@@ -19,7 +19,7 @@ export default async function NewActivityPage({ params }: Props) {
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('*')
+    .select('id, title')
     .eq('id', tripId)
     .single()
 
@@ -29,7 +29,7 @@ export default async function NewActivityPage({ params }: Props) {
 
   const { data: day, error: dayError } = await supabase
     .from('days')
-    .select('*')
+    .select('id, day_number, date, trip_id')
     .eq('id', dayId)
     .eq('trip_id', tripId)
     .single()
@@ -67,6 +67,7 @@ export default async function NewActivityPage({ params }: Props) {
       type,
       notes: notes || null,
       status: 'planned',
+      sort_order: 0,
     })
 
     if (error) {
@@ -109,8 +110,8 @@ export default async function NewActivityPage({ params }: Props) {
           <label className="mb-1 block text-sm font-medium">Type</label>
           <select
             name="type"
-            className="w-full rounded-xl border px-3 py-2"
             defaultValue="other"
+            className="w-full rounded-xl border px-3 py-2"
           >
             <option value="food">Food</option>
             <option value="attraction">Attraction</option>
@@ -132,12 +133,21 @@ export default async function NewActivityPage({ params }: Props) {
           />
         </div>
 
-        <button
-          type="submit"
-          className="rounded-xl bg-black px-4 py-2 text-white"
-        >
-          Save Activity
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            className="rounded-xl bg-black px-4 py-2 text-white"
+          >
+            Save Activity
+          </button>
+
+          <a
+            href={`/trips/${tripId}/itinerary`}
+            className="rounded-xl border px-4 py-2"
+          >
+            Cancel
+          </a>
+        </div>
       </form>
     </main>
   )
