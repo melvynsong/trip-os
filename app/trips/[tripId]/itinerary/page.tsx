@@ -1,13 +1,39 @@
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 type Props = {
-  params: Promise<{ tripId: string; dayId: string }>
+  params: Promise<{ tripId: string }>
 }
 
-export default async function NewActivityPage({ params }: Props) {
-  const { tripId, dayId } = await params
+type Trip = {
+  id: string
+  title: string
+  destination: string
+  start_date: string
+  end_date: string
+}
+
+type Day = {
+  id: string
+  trip_id: string
+  day_number: number
+  date: string
+  title: string | null
+}
+
+type Activity = {
+  id: string
+  day_id: string
+  title: string
+  activity_time: string | null
+  type: string
+  notes: string | null
+  sort_order: number
+}
+
+export default async function ItineraryPage({ params }: Props) {
+  const { tripId } = await params
   const supabase = await createClient()
 
   const {
@@ -20,136 +46,147 @@ export default async function NewActivityPage({ params }: Props) {
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('id, title')
+    .select('id, title, destination, start_date, end_date')
     .eq('id', tripId)
-    .single()
+    .single<Trip>()
 
   if (tripError || !trip) {
     notFound()
   }
 
-  const { data: day, error: dayError } = await supabase
+  const { data: days, error: daysError } = await supabase
     .from('days')
-    .select('id, day_number, date, trip_id')
-    .eq('id', dayId)
+    .select('id, trip_id, day_number, date, title')
     .eq('trip_id', tripId)
-    .single()
+    .order('day_number', { ascending: true })
+    .returns<Day[]>()
 
-  if (dayError || !day) {
-    notFound()
+  if (daysError) {
+    return (
+      <main className="mx-auto max-w-5xl p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+          Failed to load itinerary days: {daysError.message}
+        </div>
+      </main>
+    )
   }
 
-  async function createActivity(formData: FormData) {
-    'use server'
+  if (!days || days.length === 0) {
+    return (
+      <main className="mx-auto max-w-5xl p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">{trip.title}</h1>
+          <p className="text-gray-600">{trip.destination}</p>
+        </div>
 
-    const supabase = await createClient()
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      redirect('/login')
-    }
-
-    const title = String(formData.get('title') || '').trim()
-    const activity_time = String(formData.get('activity_time') || '').trim()
-    const type = String(formData.get('type') || 'other').trim()
-    const notes = String(formData.get('notes') || '').trim()
-
-    if (!title) {
-      throw new Error('Title is required')
-    }
-
-    const { error } = await supabase.from('activities').insert({
-      day_id: dayId,
-      title,
-      activity_time: activity_time || null,
-      type,
-      notes: notes || null,
-      status: 'planned',
-      sort_order: 0,
-    })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    redirect(`/trips/${tripId}/itinerary`)
+        <div className="rounded-2xl border border-dashed p-6 text-gray-500">
+          No itinerary days found for this trip.
+        </div>
+      </main>
+    )
   }
+
+  const dayIds = days.map((day) => day.id)
+
+  let activities: Activity[] = []
+
+  const { data: activitiesData, error: activitiesError } = await supabase
+    .from('activities')
+    .select('id, day_id, title, activity_time, type, notes, sort_order')
+    .in('day_id', dayIds)
+    .order('activity_time', { ascending: true })
+    .order('sort_order', { ascending: true })
+    .returns<Activity[]>()
+
+  if (activitiesError) {
+    return (
+      <main className="mx-auto max-w-5xl p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+          Failed to load activities: {activitiesError.message}
+        </div>
+      </main>
+    )
+  }
+
+  activities = activitiesData || []
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
+    <main className="mx-auto max-w-5xl p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Add Activity</h1>
+        <h1 className="text-3xl font-bold">{trip.title}</h1>
+        <p className="text-gray-600">{trip.destination}</p>
         <p className="text-sm text-gray-500">
-          {trip.title} · Day {day.day_number} · {day.date}
+          {trip.start_date} → {trip.end_date}
         </p>
       </div>
 
-      <form action={createActivity} className="space-y-4 rounded-2xl border p-6">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
-          <input
-            name="title"
-            required
-            className="w-full rounded-xl border px-3 py-2"
-            placeholder="e.g. Lunch at Tao Tao Ju"
-          />
-        </div>
+      <div className="mb-6">
+        <Link
+          href={`/trips/${tripId}`}
+          className="rounded-xl border px-4 py-2"
+        >
+          ← Back to Trip
+        </Link>
+      </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Time</label>
-          <input
-            type="time"
-            name="activity_time"
-            className="w-full rounded-xl border px-3 py-2"
-          />
-        </div>
+      <div className="space-y-6">
+        {days.map((day) => {
+          const dayActivities = activities.filter(
+            (activity) => activity.day_id === day.id
+          )
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
-          <select
-            name="type"
-            defaultValue="other"
-            className="w-full rounded-xl border px-3 py-2"
-          >
-            <option value="food">Food</option>
-            <option value="attraction">Attraction</option>
-            <option value="shopping">Shopping</option>
-            <option value="transport">Transport</option>
-            <option value="hotel">Hotel</option>
-            <option value="note">Note</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+          return (
+            <div key={day.id} className="rounded-2xl border p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">
+                    Day {day.day_number}
+                    {day.title ? ` · ${day.title}` : ''}
+                  </div>
+                  <div className="text-sm text-gray-500">{day.date}</div>
+                </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Notes</label>
-          <textarea
-            name="notes"
-            rows={4}
-            className="w-full rounded-xl border px-3 py-2"
-            placeholder="Optional notes..."
-          />
-        </div>
+                <Link
+                  href={`/trips/${tripId}/itinerary/${day.id}/new`}
+                  className="rounded-lg border px-3 py-1 text-sm"
+                >
+                  + Add Activity
+                </Link>
+              </div>
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            className="rounded-xl bg-black px-4 py-2 text-white"
-          >
-            Save Activity
-          </button>
+              {dayActivities.length > 0 ? (
+                <div className="space-y-3">
+                  {dayActivities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="rounded-xl bg-gray-50 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="font-medium">{activity.title}</div>
+                        <div className="text-sm text-gray-500">
+                          {activity.activity_time || 'No time'}
+                        </div>
+                      </div>
 
-          <Link
-            href={`/trips/${tripId}/itinerary`}
-            className="rounded-xl border px-4 py-2"
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
+                      <div className="mt-1 text-sm text-gray-500 capitalize">
+                        {activity.type}
+                      </div>
+
+                      {activity.notes ? (
+                        <div className="mt-2 text-sm text-gray-700">
+                          {activity.notes}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-400">No activities yet</div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </main>
   )
 }
