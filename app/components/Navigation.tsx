@@ -10,31 +10,32 @@ export default function Navigation() {
   const router = useRouter()
   const supabase = createClient()
 
-  // State for user
   const [user, setUser] = useState<{ email: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Check if user is logged in on mount
   useEffect(() => {
     const checkUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      setUser(user)
+
+      setUser(
+        user
+          ? { email: user.email ?? '' }
+          : null
+      )
       setLoading(false)
     }
 
     checkUser()
-  }, [])
+  }, [supabase])
 
-  // Handle logout
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUser(null)
     router.push('/')
   }
 
-  // Helper function to check if link is active
   const isActive = (href: string) => pathname === href
 
   return (
@@ -58,7 +59,6 @@ export default function Navigation() {
             Trips
           </Link>
 
-          {/* Show Login link only when user is logged out */}
           {!loading && !user && (
             <Link
               href="/login"
@@ -68,7 +68,6 @@ export default function Navigation() {
             </Link>
           )}
 
-          {/* Show Logout button only when user is logged in */}
           {!loading && user && (
             <button
               onClick={handleLogout}
