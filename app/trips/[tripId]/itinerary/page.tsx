@@ -2,6 +2,25 @@ import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
+function getEmoji(type: string) {
+  switch (type) {
+    case 'food':
+      return '🍜'
+    case 'attraction':
+      return '📍'
+    case 'shopping':
+      return '🛍️'
+    case 'transport':
+      return '🚗'
+    case 'hotel':
+      return '🏨'
+    case 'note':
+      return '📝'
+    default:
+      return '📌'
+  }
+}
+
 type Props = {
   params: Promise<{ tripId: string }>
 }
@@ -139,9 +158,9 @@ export default async function ItineraryPage({ params }: Props) {
             <div key={day.id} className="rounded-2xl border p-5">
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">
+                  <div className="font-semibold text-lg">
                     Day {day.day_number}
-                    {day.title ? ` · ${day.title}` : ''}
+                    {day.title ? ` — ${day.title}` : ''}
                   </div>
                   <div className="text-sm text-gray-500">{day.date}</div>
                 </div>
@@ -159,10 +178,12 @@ export default async function ItineraryPage({ params }: Props) {
                   {dayActivities.map((activity) => (
                     <div
                       key={activity.id}
-                      className="rounded-xl bg-gray-50 p-4"
+                      className="border-l-4 border-blue-500 pl-4 py-3"
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium">{activity.title}</div>
+                        <div className="font-medium">
+                          {getEmoji(activity.type)} {activity.title}
+                        </div>
                         <div className="text-sm text-gray-500">
                           {activity.activity_time || 'No time'}
                         </div>
