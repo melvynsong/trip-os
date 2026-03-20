@@ -1,8 +1,13 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function TripsPage() {
+type Props = {
+  params: Promise<{ tripId: string }>
+}
+
+export default async function TripDetailPage({ params }: Props) {
+  const { tripId } = await params
   const supabase = await createClient()
 
   const {
@@ -13,54 +18,63 @@ export default async function TripsPage() {
     redirect('/login')
   }
 
-  const { data: trips, error } = await supabase
+  const { data: trip, error } = await supabase
     .from('trips')
     .select('*')
-    .order('start_date', { ascending: true })
+    .eq('id', tripId)
+    .single()
 
-  if (error) {
-    return <div className="p-6">Failed to load trips.</div>
+  if (error || !trip) {
+    notFound()
   }
+
+  const { data: days } = await supabase
+    .from('days')
+    .select('*')
+    .eq('trip_id', tripId)
+    .order('day_number', { ascending: true })
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Trips</h1>
-          <p className="text-sm text-gray-500">
-            Create and manage your travel plans.
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">{trip.title}</h1>
+        <p className="text-gray-600">{trip.destination}</p>
+        <p className="text-sm text-gray-500">
+          {trip.start_date} → {trip.end_date}
+        </p>
+      </div>
 
+      <div className="mb-6 flex gap-3">
         <Link
-          href="/trips/new"
-          className="rounded-xl bg-black px-4 py-2 text-white"
+          href={`/trips/${tripId}/itinerary`}
+          className="rounded-xl border px-4 py-2"
         >
-          + Create Trip
+          Itinerary
+        </Link>
+        <Link
+          href={`/trips/${tripId}/places`}
+          className="rounded-xl border px-4 py-2"
+        >
+          Places
+        </Link>
+        <Link
+          href={`/trips/${tripId}/journal`}
+          className="rounded-xl border px-4 py-2"
+        >
+          Journal
         </Link>
       </div>
 
-      {trips && trips.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {trips.map((trip) => (
-            <Link
-              key={trip.id}
-              href={`/trips/${trip.id}`}
-              className="block rounded-2xl border p-5 shadow-sm transition hover:shadow-md"
-            >
-              <div className="mb-2 text-xl font-semibold">{trip.title}</div>
-              <div className="text-sm text-gray-600">{trip.destination}</div>
-              <div className="mt-3 text-sm text-gray-500">
-                {trip.start_date} → {trip.end_date}
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed p-10 text-center text-gray-500">
-          No trips yet. Create your first one.
-        </div>
-      )}
+      <div className="space-y-3">
+        {days?.map((day) => (
+          <div key={day.id} className="rounded-xl bg-gray-50 p-4">
+            <div className="font-medium">
+              Day {day.day_number}
+            </div>
+            <div className="text-sm text-gray-500">{day.date}</div>
+          </div>
+        ))}
+      </div>
     </main>
   )
 }
