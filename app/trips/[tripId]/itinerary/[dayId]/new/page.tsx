@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -141,12 +142,12 @@ export default async function NewActivityPage({ params }: Props) {
             Save Activity
           </button>
 
-          <a
+          <Link
             href={`/trips/${tripId}/itinerary`}
             className="rounded-xl border px-4 py-2"
           >
             Cancel
-          </a>
+          </Link>
         </div>
       </form>
     </main>
