@@ -6,11 +6,28 @@ type Props = {
   params: Promise<{ tripId: string }>
 }
 
+type Day = {
+  id: string
+  trip_id: string
+  day_number: number
+  date: string
+  title: string | null
+}
+
+type Activity = {
+  id: string
+  day_id: string
+  title: string
+  activity_time: string | null
+  type: string
+  notes: string | null
+  sort_order: number
+}
+
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
   const supabase = await createClient()
 
-  // Check user
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -19,7 +36,6 @@ export default async function ItineraryPage({ params }: Props) {
     redirect('/login')
   }
 
-  // Get trip
   const { data: trip, error: tripError } = await supabase
     .from('trips')
     .select('*')
@@ -30,53 +46,54 @@ export default async function ItineraryPage({ params }: Props) {
     notFound()
   }
 
-  // Get days + activities
   const { data: days, error: daysError } = await supabase
     .from('days')
-    .select(`
-      *,
-      activities (*)
-    `)
+    .select('*')
     .eq('trip_id', tripId)
     .order('day_number', { ascending: true })
 
-  if (daysError) {
-    return <div className="p-6">Failed to load itinerary.</div>
+  if (daysError || !days) {
+    return <div className="p-6">Failed to load itinerary days.</div>
+  }
+
+  const dayIds = days.map((day: Day) => day.id)
+
+  let activities: Activity[] = []
+
+  if (dayIds.length > 0) {
+    const { data: activitiesData, error: activitiesError } = await supabase
+      .from('activities')
+      .select('*')
+      .in('day_id', dayIds)
+      .order('activity_time', { ascending: true })
+      .order('sort_order', { ascending: true })
+
+    if (activitiesError) {
+      return <div className="p-6">Failed to load activities.</div>
+    }
+
+    activities = activitiesData || []
   }
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold">{trip.title}</h1>
         <p className="text-gray-600">{trip.destination}</p>
       </div>
 
-      {/* Days */}
       <div className="space-y-6">
-        {days?.map((day) => {
-          const activities = [...(day.activities || [])].sort((a, b) => {
-            const timeA = a.activity_time || '99:99:99'
-            const timeB = b.activity_time || '99:99:99'
-
-            if (timeA !== timeB) {
-              return timeA.localeCompare(timeB)
-            }
-
-            return a.sort_order - b.sort_order
-          })
+        {days.map((day: Day) => {
+          const dayActivities = activities.filter(
+            (activity) => activity.day_id === day.id
+          )
 
           return (
             <div key={day.id} className="rounded-2xl border p-5">
-              {/* Day Header */}
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">
-                    Day {day.day_number}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {day.date}
-                  </div>
+                  <div className="font-semibold">Day {day.day_number}</div>
+                  <div className="text-sm text-gray-500">{day.date}</div>
                 </div>
 
                 <Link
@@ -87,18 +104,15 @@ export default async function ItineraryPage({ params }: Props) {
                 </Link>
               </div>
 
-              {/* Activities */}
-              {activities.length > 0 ? (
+              {dayActivities.length > 0 ? (
                 <div className="space-y-3">
-                  {activities.map((activity) => (
+                  {dayActivities.map((activity) => (
                     <div
                       key={activity.id}
                       className="rounded-xl bg-gray-50 p-4"
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium">
-                          {activity.title}
-                        </div>
+                        <div className="font-medium">{activity.title}</div>
                         <div className="text-sm text-gray-500">
                           {activity.activity_time || 'No time'}
                         </div>
@@ -117,9 +131,7 @@ export default async function ItineraryPage({ params }: Props) {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-gray-400">
-                  No activities yet
-                </div>
+                <div className="text-sm text-gray-400">No activities yet</div>
               )}
             </div>
           )
