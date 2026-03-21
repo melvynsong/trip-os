@@ -1,29 +1,15 @@
-import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 export default function DeploymentFooter() {
-  let deploymentTime = 'Unknown'
+  let deploymentTime = 'Latest version deployed'
 
   try {
-    // Get the latest commit timestamp in ISO format
-    const timestamp = execSync('git log -1 --format=%cI', {
-      encoding: 'utf-8',
-    })
-      .toString()
-      .trim()
-
-    // Format it nicely for display
-    const date = new Date(timestamp)
-    deploymentTime = date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZoneName: 'short',
-    })
+    // Read the build timestamp file created at build time
+    const timestampFile = join(process.cwd(), 'public', 'build-timestamp.txt')
+    deploymentTime = readFileSync(timestampFile, 'utf-8')
   } catch (error) {
-    // Fallback if git command fails (e.g., in serverless environment)
+    // Fallback if file doesn't exist
     deploymentTime = 'Latest version deployed'
   }
 
