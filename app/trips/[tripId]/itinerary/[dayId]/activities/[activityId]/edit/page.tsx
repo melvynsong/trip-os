@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
 
 type Props = {
   params: Promise<{
@@ -24,7 +25,7 @@ export default async function EditActivityPage({ params }: Props) {
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('id, title')
+    .select('id, title, destination')
     .eq('id', tripId)
     .single()
 
@@ -176,23 +177,12 @@ export default async function EditActivityPage({ params }: Props) {
           </select>
         </div>
 
-        {places && places.length > 0 && (
-          <div>
-            <label className="mb-1 block text-sm font-medium">Saved Place (optional)</label>
-            <select
-              name="place_id"
-              defaultValue={activity.place_id || ''}
-              className="w-full rounded-xl border px-3 py-2"
-            >
-              <option value="">— None —</option>
-              {places.map((place) => (
-                <option key={place.id} value={place.id}>
-                  {place.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <ActivityPlacePickerField
+          tripId={tripId}
+          destination={trip.destination}
+          initialPlaces={places || []}
+          initialSelectedPlaceId={activity.place_id}
+        />
 
         <div>
           <label className="mb-1 block text-sm font-medium">Notes</label>
