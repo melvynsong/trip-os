@@ -1,54 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-
-type GoogleAddressComponent = {
-  long_name?: string
-  short_name?: string
-  types?: string[]
-}
-
-type GooglePlaceDetailsResponse = {
-  status?: string
-  error_message?: string
-  result?: {
-    name?: string
-    place_id?: string
-    formatted_address?: string
-    geometry?: {
-      location?: {
-        lat?: number
-        lng?: number
-      }
-    }
-    address_components?: GoogleAddressComponent[]
-  }
-}
+import { extractCity, parseExternalPlaceId, toOsmLookupId, type OsmLookupResult } from '@/app/api/places/shared'
 
 export const runtime = 'nodejs'
 
-function extractAddressParts(addressComponents: GoogleAddressComponent[] | undefined) {
-  const components = addressComponents || []
-
-  const city =
-    components.find((component) => component.types?.includes('locality'))?.long_name ||
-    components.find((component) => component.types?.includes('postal_town'))?.long_name ||
-    null
-
-  const country =
-    components.find((component) => component.types?.includes('country'))?.long_name || null
-
-  return { city, country }
-}
-
 export async function GET(request: Request) {
   try {
-    if (!process.env.GOOGLE_MAPS_SERVER_API_KEY) {
-      return NextResponse.json(
-        { error: 'GOOGLE_MAPS_SERVER_API_KEY is not configured.' },
-        { status: 500 }
-      )
-    }
-
     const supabase = await createClient()
     const {
       data: { user },
@@ -65,66 +22,64 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'placeId is required.' }, { status: 400 })
     }
 
+    const parsed = parseExternalPlaceId(placeId)
+
+    if (!parsed) {
+      return NextResponse.json({ error: 'Invalid placeId format.' }, { status: 400 })
+    }
+
+    const osmLookupId = toOsmLookupId(parsed.osmType, parsed.osmId)
+
+    if (!osmLookupId) {
+      return NextResponse.json({ error: 'Unsupported OSM type.' }, { status: 400 })
+    }
+
     const params = new URLSearchParams({
-      place_id: placeId,
-      key: process.env.GOOGLE_MAPS_SERVER_API_KEY,
-      fields: 'name,place_id,formatted_address,geometry,address_component',
+      osm_ids: osmLookupId,
+      format: 'jsonv2',
+      addressdetails: '1',
     })
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?${params.toString()}`,
-      {
-        cache: 'no-store',
-      }
-    )
+    const response = await fetch(`https://nominatim.openstreetmap.org/lookup?${params.toString()}`, {
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Trip.OS/1.0 (place details)',
+      },
+    })
 
-    const payload = (await response.json()) as GooglePlaceDetailsResponse
-
-    if (!response.ok || payload.status !== 'OK' || !payload.result) {
-      return NextResponse.json(
-        {
-          error:
-            payload.error_message ||
-            (payload.status ? `Google Places error: ${payload.status}` : 'Failed to fetch place details.'),
-        },
-        { status: 502 }
-      )
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Failed to fetch place details.' }, { status: 502 })
     }
 
-    const details = payload.result
-    const location = details.geometry?.location
+    const payload = (await response.json()) as OsmLookupResult[]
+    const details = payload[0]
 
-    if (
-      !details.name ||
-      !details.place_id ||
-      !details.formatted_address ||
-      typeof location?.lat !== 'number' ||
-      typeof location?.lng !== 'number'
-    ) {
-      return NextResponse.json(
-        { error: 'Incomplete place details returned by Google Places.' },
-        { status: 502 }
-      )
+    const latitude = details?.lat ? Number(details.lat) : null
+    const longitude = details?.lon ? Number(details.lon) : null
+
+    if (!details?.display_name || latitude === null || longitude === null) {
+      return NextResponse.json({ error: 'Incomplete place details returned by provider.' }, { status: 502 })
     }
 
-    const { city, country } = extractAddressParts(details.address_components)
+    const address = details.display_name
+    const name = address.split(',')[0]?.trim() || address
 
     return NextResponse.json({
       place: {
-        name: details.name,
-        address: details.formatted_address,
-        latitude: location.lat,
-        longitude: location.lng,
-        external_place_id: details.place_id,
-        city,
-        country,
+        name,
+        address,
+        latitude,
+        longitude,
+        external_place_id: placeId,
+        city: extractCity(details.address),
+        country: details.address?.country || null,
       },
     })
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Unexpected error fetching place details.',
+        error: error instanceof Error ? error.message : 'Unexpected error fetching place details.',
       },
       { status: 500 }
     )

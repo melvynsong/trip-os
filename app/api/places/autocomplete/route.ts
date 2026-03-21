@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { mapPlaceTypeToGoogleType, type PlaceType } from '@/lib/places'
+import { mapPlaceTypeToSearchKeyword, type PlaceType } from '@/lib/places'
+import { toExternalPlaceId } from '@/app/api/places/shared'
 
 export const runtime = 'nodejs'
 
@@ -13,30 +14,15 @@ const VALID_PLACE_TYPES: PlaceType[] = [
   'other',
 ]
 
-type GoogleAutocompletePrediction = {
-  description?: string
-  place_id?: string
-  structured_formatting?: {
-    main_text?: string
-    secondary_text?: string
-  }
-}
-
-type GoogleAutocompleteResponse = {
-  status?: string
-  error_message?: string
-  predictions?: GoogleAutocompletePrediction[]
+type NominatimSearchResult = {
+  display_name?: string
+  name?: string
+  osm_type?: string
+  osm_id?: number
 }
 
 export async function GET(request: Request) {
   try {
-    if (!process.env.GOOGLE_MAPS_SERVER_API_KEY) {
-      return NextResponse.json(
-        { error: 'GOOGLE_MAPS_SERVER_API_KEY is not configured.' },
-        { status: 500 }
-      )
-    }
-
     const supabase = await createClient()
     const {
       data: { user },
@@ -60,50 +46,43 @@ export async function GET(request: Request) {
       ? (placeTypeRaw as PlaceType)
       : 'other'
 
-    const typeKeyword = mapPlaceTypeToGoogleType(placeType).replaceAll('_', ' ')
+    const typeKeyword = mapPlaceTypeToSearchKeyword(placeType)
+    const q = `${input} ${typeKeyword} ${destination}`.trim()
 
     const params = new URLSearchParams({
-      input: `${input} ${typeKeyword}`.trim(),
-      key: process.env.GOOGLE_MAPS_SERVER_API_KEY,
-      language: 'en',
-      types: 'establishment',
+      q,
+      format: 'jsonv2',
+      addressdetails: '1',
+      limit: '8',
     })
 
-    if (destination) {
-      params.set('input', `${input} ${typeKeyword} ${destination}`.trim())
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Trip.OS/1.0 (places search)',
+      },
+    })
+
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Failed to fetch place suggestions.' }, { status: 502 })
     }
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`,
-      {
-        cache: 'no-store',
-      }
-    )
+    const payload = (await response.json()) as NominatimSearchResult[]
 
-    const payload = (await response.json()) as GoogleAutocompleteResponse
-
-    if (!response.ok || (payload.status && payload.status !== 'OK' && payload.status !== 'ZERO_RESULTS')) {
-      return NextResponse.json(
-        {
-          error:
-            payload.error_message ||
-            (payload.status ? `Google Places error: ${payload.status}` : 'Failed to fetch suggestions.'),
-        },
-        { status: 502 }
-      )
-    }
-
-    const suggestions = (payload.predictions || []).slice(0, 8).flatMap((prediction) => {
-      if (!prediction.place_id || !prediction.description) {
+    const suggestions = payload.slice(0, 8).flatMap((item) => {
+      if (!item.display_name || !item.osm_type || !item.osm_id) {
         return []
       }
 
+      const parts = item.display_name.split(',').map((part) => part.trim())
+
       return [
         {
-          placeId: prediction.place_id,
-          description: prediction.description,
-          mainText: prediction.structured_formatting?.main_text || prediction.description,
-          secondaryText: prediction.structured_formatting?.secondary_text || '',
+          placeId: toExternalPlaceId(item.osm_type, item.osm_id),
+          description: item.display_name,
+          mainText: item.name || parts[0] || item.display_name,
+          secondaryText: parts.slice(1).join(', '),
         },
       ]
     })
@@ -112,8 +91,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Unexpected error fetching place suggestions.',
+        error: error instanceof Error ? error.message : 'Unexpected error fetching place suggestions.',
       },
       { status: 500 }
     )

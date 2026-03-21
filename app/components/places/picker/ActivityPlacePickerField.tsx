@@ -19,7 +19,7 @@ type ActivityPlacePickerFieldProps = {
   initialSelectedPlaceId?: string | null
 }
 
-const MIN_QUERY_LENGTH = 2
+const MIN_QUERY_LENGTH = 3
 
 export default function ActivityPlacePickerField({
   tripId,
@@ -163,7 +163,7 @@ export default function ActivityPlacePickerField({
           latitude: selectedPlace.latitude,
           longitude: selectedPlace.longitude,
           external_place_id: selectedPlace.external_place_id,
-          source: 'google_places',
+          source: 'openstreetmap',
           notes: null,
           visited: false,
         }),

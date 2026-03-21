@@ -35,7 +35,7 @@ export type PlaceCategory =
   | 'hotel'
   | 'other'
 
-export type PlaceSource = 'google_places' | 'manual'
+export type PlaceSource = 'openstreetmap' | 'manual'
 
 export type Place = {
   id: string

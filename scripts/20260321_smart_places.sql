@@ -60,4 +60,4 @@ alter table public.places
   drop constraint if exists places_source_check;
 alter table public.places
   add constraint places_source_check
-  check (source in ('google_places', 'manual'));
+  check (source in ('openstreetmap', 'manual'));

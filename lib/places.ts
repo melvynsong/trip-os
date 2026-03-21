@@ -6,7 +6,7 @@ export type PlaceType =
   | 'hotel'
   | 'other'
 
-export type PlaceSource = 'google_places' | 'manual'
+export type PlaceSource = 'openstreetmap' | 'manual'
 
 export const PLACE_TYPE_OPTIONS: Array<{ value: PlaceType; label: string; emoji: string }> = [
   { value: 'attraction', label: 'Attraction', emoji: '📍' },
@@ -82,20 +82,20 @@ export function resolvePlaceType(input: {
   return 'other'
 }
 
-export function mapPlaceTypeToGoogleType(placeType: PlaceType): string {
+export function mapPlaceTypeToSearchKeyword(placeType: PlaceType): string {
   switch (placeType) {
     case 'attraction':
-      return 'tourist_attraction'
+      return 'attraction'
     case 'restaurant':
       return 'restaurant'
     case 'shopping':
-      return 'shopping_mall'
+      return 'shopping mall'
     case 'cafe':
       return 'cafe'
     case 'hotel':
-      return 'lodging'
+      return 'hotel'
     case 'other':
     default:
-      return 'establishment'
+      return 'place'
   }
 }

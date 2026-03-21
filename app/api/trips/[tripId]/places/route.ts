@@ -13,7 +13,7 @@ const VALID_PLACE_TYPES: PlaceType[] = [
   'other',
 ]
 
-const VALID_SOURCES: PlaceSource[] = ['google_places', 'manual']
+const VALID_SOURCES: PlaceSource[] = ['openstreetmap', 'manual']
 
 type SavePlacePayload = {
   name?: string
@@ -84,19 +84,19 @@ export async function POST(
 
     const externalPlaceId = String(body.external_place_id || '').trim() || null
 
-    if (source === 'google_places' && !externalPlaceId) {
+    if (source === 'openstreetmap' && !externalPlaceId) {
       return NextResponse.json(
         {
-          error: 'external_place_id is required when source is google_places.',
+          error: 'external_place_id is required when source is openstreetmap.',
         },
         { status: 400 }
       )
     }
 
-    if (source === 'google_places' && (latitude === null || longitude === null)) {
+    if (source === 'openstreetmap' && (latitude === null || longitude === null)) {
       return NextResponse.json(
         {
-          error: 'Latitude and longitude are required when source is google_places.',
+          error: 'Latitude and longitude are required when source is openstreetmap.',
         },
         { status: 400 }
       )

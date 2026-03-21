@@ -14,7 +14,7 @@ type AddPlaceDrawerProps = {
   destination: string
 }
 
-const MIN_QUERY_LENGTH = 2
+const MIN_QUERY_LENGTH = 3
 
 export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPlaceDrawerProps) {
   const router = useRouter()
@@ -166,7 +166,7 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
           latitude: selectedPlace.latitude,
           longitude: selectedPlace.longitude,
           external_place_id: selectedPlace.external_place_id,
-          source: 'google_places',
+          source: 'openstreetmap',
           notes: null,
           visited: false,
         }),
