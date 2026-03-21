@@ -108,12 +108,20 @@ export default async function ItineraryPage({ params }: Props) {
       </div>
 
       <div className="mb-6">
-        <Link
-          href={`/trips/${tripId}`}
-          className="rounded-xl border px-4 py-2"
-        >
-          ← Back to Trip
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/trips/${tripId}`}
+            className="rounded-xl border px-4 py-2"
+          >
+            ← Back to Trip
+          </Link>
+          <Link
+            href={`/trips/${tripId}/ai-itinerary`}
+            className="rounded-xl bg-black px-4 py-2 text-white"
+          >
+            AI Generate Itinerary
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-6">

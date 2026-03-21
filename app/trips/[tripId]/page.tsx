@@ -107,6 +107,12 @@ export default async function ItineraryPage({ params }: Props) {
               ← Back to Trips
             </Link>
             <Link
+              href={`/trips/${tripId}/ai-itinerary`}
+              className="rounded-xl bg-black px-4 py-2 text-white"
+            >
+              AI Generate Itinerary
+            </Link>
+            <Link
               href={`/trips/${tripId}/itinerary`}
               className="rounded-xl border px-4 py-2"
             >
