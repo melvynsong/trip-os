@@ -8,8 +8,10 @@ import TodayNowNextCard, { type NowNextActivity } from './TodayNowNextCard'
 import DayTimeline from './DayTimeline'
 import ReplanPreviewPanel from './ReplanPreviewPanel'
 import AddManualItemForm from './AddManualItemForm'
+import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import { type TodayItem } from './TimelineItemCard'
 import { type AiReplanResult, type QuickActionType } from '@/lib/ai/today'
+import { formatTodayForWhatsApp } from '@/lib/share/whatsapp'
 import { type ActivityType } from '@/types/trip'
 
 // ---------------------------------------------------------------------------
@@ -99,6 +101,46 @@ export default function TodayView({
   const [globalError, setGlobalError] = useState<string | null>(null)
 
   const { now, next } = useMemo(() => getNowNext(items), [items])
+
+  const shortShareText = useMemo(
+    () =>
+      formatTodayForWhatsApp(
+        {
+          tripTitle,
+          date,
+          city: destination,
+          hotel,
+          activities: items.map((item) => ({
+            title: item.title,
+            type: item.type,
+            activity_time: item.activity_time,
+            notes: item.notes,
+          })),
+        },
+        { length: 'short' }
+      ),
+    [tripTitle, date, destination, hotel, items]
+  )
+
+  const detailedShareText = useMemo(
+    () =>
+      formatTodayForWhatsApp(
+        {
+          tripTitle,
+          date,
+          city: destination,
+          hotel,
+          activities: items.map((item) => ({
+            title: item.title,
+            type: item.type,
+            activity_time: item.activity_time,
+            notes: item.notes,
+          })),
+        },
+        { length: 'detailed' }
+      ),
+    [tripTitle, date, destination, hotel, items]
+  )
 
   // --- helpers ---
 
@@ -327,14 +369,23 @@ export default function TodayView({
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 space-y-5">
       {/* Back + title row */}
-      <div className="flex items-center gap-3">
-        <Link
-          href={`/trips/${tripId}`}
-          className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-        >
-          ← Back
-        </Link>
-        <span className="text-sm font-medium text-gray-400">Today</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/trips/${tripId}`}
+            className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            ← Back
+          </Link>
+          <span className="text-sm font-medium text-gray-400">Today</span>
+        </div>
+
+        <WhatsAppShareSheet
+          title="Share today plan"
+          shortText={shortShareText}
+          detailedText={detailedShareText}
+          triggerLabel="Share"
+        />
       </div>
 
       {/* Header */}

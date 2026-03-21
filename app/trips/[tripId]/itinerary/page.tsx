@@ -3,7 +3,8 @@ import { redirect, notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
-import { Trip as TripType, Day as DayType, Activity as ActivityType } from '@/types/trip'
+import { resolvePlaceType } from '@/lib/places'
+import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
 
 type Props = {
   params: Promise<{ tripId: string }>
@@ -19,6 +20,8 @@ type Activity = Pick<
 > & {
   places: { id: string; name: string } | null
 }
+
+type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
@@ -177,6 +180,15 @@ export default async function ItineraryPage({ params }: Props) {
 
   activities = activitiesData || []
 
+  const { data: places } = await supabase
+    .from('places')
+    .select('id, name, category, place_type')
+    .eq('trip_id', tripId)
+    .returns<Place[]>()
+
+  const hotel =
+    places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
+
   return (
     <main className="mx-auto max-w-5xl p-6">
       <div className="mb-6">
@@ -220,6 +232,9 @@ export default async function ItineraryPage({ params }: Props) {
             <DayCard
               key={day.id}
               tripId={tripId}
+              tripTitle={trip.title}
+              destination={trip.destination}
+              hotel={hotel}
               day={day}
               activities={dayActivities}
               moveActivityAction={moveActivity}

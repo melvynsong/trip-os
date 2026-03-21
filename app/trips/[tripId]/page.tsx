@@ -2,8 +2,11 @@ import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PageHeader from '@/app/components/shared/PageHeader'
+import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import { getEmoji } from '@/lib/utils/getEmoji'
-import { Trip as TripType, Day as DayType, Activity as ActivityType } from '@/types/trip'
+import { resolvePlaceType } from '@/lib/places'
+import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
+import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
 
 type Props = {
   params: Promise<{ tripId: string }>
@@ -17,6 +20,8 @@ type Activity = Pick<
   ActivityType,
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
 >
+
+type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
@@ -96,6 +101,50 @@ export default async function ItineraryPage({ params }: Props) {
 
   activities = activitiesData || []
 
+  const { data: places } = await supabase
+    .from('places')
+    .select('id, name, category, place_type')
+    .eq('trip_id', tripId)
+    .returns<Place[]>()
+
+  const hotel =
+    places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
+
+  const destinations = trip.destination
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+  const tripShareInput = {
+    tripTitle: trip.title,
+    startDate: trip.start_date,
+    endDate: trip.end_date,
+    destinations,
+    hotel,
+    days: days.map((day) => ({
+      dayNumber: day.day_number,
+      date: day.date,
+      city: destinations[0] ?? trip.destination,
+      title: day.title,
+      hotel,
+      activities: activities
+        .filter((activity) => activity.day_id === day.id)
+        .map((activity) => ({
+          title: activity.title,
+          type: activity.type,
+          activity_time: activity.activity_time,
+          notes: activity.notes,
+        })),
+    })),
+  }
+
+  const shortShareText = formatTripForWhatsApp(tripShareInput, {
+    length: 'short',
+  })
+  const detailedShareText = formatTripForWhatsApp(tripShareInput, {
+    length: 'detailed',
+  })
+
   return (
     <main className="mx-auto max-w-5xl p-6">
       <PageHeader
@@ -112,6 +161,13 @@ export default async function ItineraryPage({ params }: Props) {
             >
               📍 Today
             </Link>
+            <WhatsAppShareSheet
+              title="Share full itinerary"
+              shortText={shortShareText}
+              detailedText={detailedShareText}
+              triggerLabel="Share"
+              triggerClassName="rounded-xl border px-4 py-2"
+            />
             <Link
               href={`/trips/${tripId}/ai-itinerary`}
               className="rounded-xl border px-4 py-2"
