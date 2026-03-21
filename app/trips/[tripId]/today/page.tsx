@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import TodayView from '@/app/components/today/TodayView'
 import { type TodayItem } from '@/app/components/today/TimelineItemCard'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
+import { resolvePlaceType } from '@/lib/places'
 
 type Props = { params: Promise<{ tripId: string }> }
 
@@ -13,7 +14,7 @@ type Activity = Pick<
   ActivityType,
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'status' | 'sort_order'
 >
-type Place = Pick<PlaceType, 'id' | 'name' | 'category'>
+type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 /** Determine the best day to show for Today View (closest to real today) */
 function pickActiveDay(days: Day[]): Day | null {
@@ -144,12 +145,12 @@ export default async function TodayPage({ params }: Props) {
   // Load saved places to detect hotel
   const { data: places } = await supabase
     .from('places')
-    .select('id, name, category')
+    .select('id, name, category, place_type')
     .eq('trip_id', tripId)
     .returns<Place[]>()
 
   const hotel =
-    places?.find((p) => p.category === 'hotel')?.name ?? null
+    places?.find((p) => resolvePlaceType(p) === 'hotel')?.name ?? null
 
   const tripStatus = getTripStatus(trip.start_date, trip.end_date)
 

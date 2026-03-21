@@ -20,16 +20,40 @@ export type Day = {
   created_at: string
 }
 
-export type PlaceCategory = 'food' | 'attraction' | 'shopping' | 'hotel' | 'other'
+export type PlaceType =
+  | 'attraction'
+  | 'restaurant'
+  | 'shopping'
+  | 'cafe'
+  | 'hotel'
+  | 'other'
+
+export type PlaceCategory =
+  | 'food'
+  | 'attraction'
+  | 'shopping'
+  | 'hotel'
+  | 'other'
+
+export type PlaceSource = 'google_places' | 'manual'
 
 export type Place = {
   id: string
   trip_id: string
   name: string
   category: PlaceCategory
+  place_type: PlaceType | null
   address: string | null
+  city: string | null
+  country: string | null
+  latitude: number | null
+  longitude: number | null
+  external_place_id: string | null
+  source: PlaceSource | null
   notes: string | null
+  visited: boolean | null
   created_at: string
+  updated_at: string | null
 }
 
 export type ActivityType =

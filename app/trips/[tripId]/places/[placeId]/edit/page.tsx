@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PLACE_TYPE_OPTIONS, resolvePlaceType, toLegacyCategory, type PlaceType } from '@/lib/places'
 
 type Props = {
   params: Promise<{ tripId: string; placeId: string }>
@@ -30,7 +31,9 @@ export default async function EditPlacePage({ params }: Props) {
 
   const { data: place, error: placeError } = await supabase
     .from('places')
-    .select('id, trip_id, name, category, address, notes')
+    .select(
+      'id, trip_id, name, category, place_type, address, city, country, latitude, longitude, source, notes, visited'
+    )
     .eq('id', placeId)
     .eq('trip_id', tripId)
     .single()
@@ -53,21 +56,26 @@ export default async function EditPlacePage({ params }: Props) {
     }
 
     const name = String(formData.get('name') || '').trim()
-    const category = String(formData.get('category') || 'other').trim()
+    const placeType = String(formData.get('place_type') || 'other').trim() as PlaceType
     const address = String(formData.get('address') || '').trim()
     const notes = String(formData.get('notes') || '').trim()
+    const visited = String(formData.get('visited') || '').trim() === 'on'
 
     if (!name) {
       throw new Error('Place name is required')
     }
 
+    const category = toLegacyCategory(placeType)
+
     const { error } = await supabase
       .from('places')
       .update({
         name,
+        place_type: placeType,
         category,
         address: address || null,
         notes: notes || null,
+        visited,
       })
       .eq('id', placeId)
       .eq('trip_id', tripId)
@@ -125,17 +133,17 @@ export default async function EditPlacePage({ params }: Props) {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Category</label>
+          <label className="mb-1 block text-sm font-medium">Place Type</label>
           <select
-            name="category"
-            defaultValue={place.category}
+            name="place_type"
+            defaultValue={resolvePlaceType(place)}
             className="w-full rounded-xl border px-3 py-2"
           >
-            <option value="food">Food</option>
-            <option value="attraction">Attraction</option>
-            <option value="shopping">Shopping</option>
-            <option value="hotel">Hotel</option>
-            <option value="other">Other</option>
+            {PLACE_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -160,6 +168,11 @@ export default async function EditPlacePage({ params }: Props) {
             placeholder="Optional notes (hours, menu, etc.)"
           />
         </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="visited" defaultChecked={Boolean(place.visited)} />
+          Mark as visited
+        </label>
 
         <div className="flex flex-wrap gap-3">
           <button

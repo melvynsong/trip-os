@@ -9,6 +9,7 @@ import {
   type QuickActionType,
 } from '@/lib/ai/today'
 import { ActivityType } from '@/types/trip'
+import { resolvePlaceType } from '@/lib/places'
 
 export const runtime = 'nodejs'
 
@@ -114,7 +115,7 @@ export async function POST(request: Request, { params }: Params) {
       // Load saved places for this trip
       const { data: places } = await supabase
         .from('places')
-        .select('id, name, category, address')
+        .select('id, name, category, place_type, address')
         .eq('trip_id', tripId)
         .order('name', { ascending: true })
 
@@ -142,7 +143,7 @@ export async function POST(request: Request, { params }: Params) {
         savedPlaces: (places ?? []).map((p) => ({
           id: p.id,
           name: p.name,
-          category: p.category,
+          category: resolvePlaceType(p),
           address: p.address,
         })),
       }

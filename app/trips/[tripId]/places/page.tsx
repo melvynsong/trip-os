@@ -13,7 +13,20 @@ type Trip = Pick<TripType, 'id' | 'title' | 'destination'>
 
 type Place = Pick<
   PlaceType,
-  'id' | 'trip_id' | 'name' | 'category' | 'address' | 'notes'
+  | 'id'
+  | 'trip_id'
+  | 'name'
+  | 'category'
+  | 'place_type'
+  | 'address'
+  | 'city'
+  | 'country'
+  | 'latitude'
+  | 'longitude'
+  | 'external_place_id'
+  | 'source'
+  | 'notes'
+  | 'visited'
 >
 
 export default async function PlacesPage({ params }: Props) {
@@ -40,7 +53,9 @@ export default async function PlacesPage({ params }: Props) {
 
   const { data: places, error: placesError } = await supabase
     .from('places')
-    .select('id, trip_id, name, category, address, notes')
+    .select(
+      'id, trip_id, name, category, place_type, address, city, country, latitude, longitude, external_place_id, source, notes, visited'
+    )
     .eq('trip_id', tripId)
     .order('created_at', { ascending: true })
     .returns<Place[]>()
