@@ -71,7 +71,7 @@ export async function POST(request: Request, { params }: Params) {
 
     const { data: trip, error: tripError } = await supabase
       .from('trips')
-      .select('id, title, destination, notes')
+      .select('id, title, destination')
       .eq('id', tripId)
       .eq('user_id', user.id)
       .single()
@@ -140,7 +140,7 @@ export async function POST(request: Request, { params }: Params) {
       const context: DayStoryContext = {
         tripTitle: trip.title,
         destination: trip.destination,
-        tripNotes: trip.notes,
+        tripNotes: null,
         date: day.date,
         dayTitle: day.title,
         city: trip.destination,
