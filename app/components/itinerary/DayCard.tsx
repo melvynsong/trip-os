@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import ActivityCard from '@/app/components/itinerary/ActivityCard'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
 import { Day as DayType, Activity as ActivityType } from '@/types/trip'
 
@@ -82,6 +83,15 @@ export default function DayCard({
         </div>
 
         <div className="flex items-center gap-2">
+          <StoryGenerationSheet
+            tripId={tripId}
+            scope="day"
+            dayId={day.id}
+            relatedDate={day.date}
+            title={`Generate Day ${day.day_number} Story`}
+            triggerLabel="Generate Day Story"
+            triggerClassName="rounded-lg border px-3 py-1 text-sm"
+          />
           <WhatsAppShareSheet
             title={`Share Day ${day.day_number}`}
             shortText={shortShareText}

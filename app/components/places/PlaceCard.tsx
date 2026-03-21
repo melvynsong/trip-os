@@ -1,6 +1,11 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Place as PlaceType } from '@/types/trip'
 import { getPlaceTypeEmoji, getPlaceTypeLabel, resolvePlaceType } from '@/lib/places'
+import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
+import StoryListSection from '@/app/components/story/StoryListSection'
 
 type PlaceCardPlace = Pick<
   PlaceType,
@@ -26,6 +31,7 @@ type PlaceCardProps = {
 
 export default function PlaceCard({ place, tripId }: PlaceCardProps) {
   const placeType = resolvePlaceType(place)
+  const [storyRefreshKey, setStoryRefreshKey] = useState(0)
 
   return (
     <div className="rounded-2xl border p-5">
@@ -73,12 +79,34 @@ export default function PlaceCard({ place, tripId }: PlaceCardProps) {
           ) : null}
         </div>
 
-        <Link
-          href={`/trips/${tripId}/places/${place.id}/edit`}
-          className="rounded-lg border px-3 py-1 text-sm whitespace-nowrap"
-        >
-          Edit
-        </Link>
+        <div className="flex flex-col items-end gap-2">
+          <StoryGenerationSheet
+            tripId={tripId}
+            scope="place"
+            placeId={place.id}
+            title={`Write Story: ${place.name}`}
+            triggerLabel="Write Story"
+            triggerClassName="rounded-lg border px-3 py-1 text-sm whitespace-nowrap"
+            onSaved={() => setStoryRefreshKey((k) => k + 1)}
+          />
+          <Link
+            href={`/trips/${tripId}/places/${place.id}/edit`}
+            className="rounded-lg border px-3 py-1 text-sm whitespace-nowrap"
+          >
+            Edit
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <StoryListSection
+          tripId={tripId}
+          scope="place"
+          placeId={place.id}
+          title="Saved Place Stories"
+          refreshKey={storyRefreshKey}
+          limit={3}
+        />
       </div>
     </div>
   )

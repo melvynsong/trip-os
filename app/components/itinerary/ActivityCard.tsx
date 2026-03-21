@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
+import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 
 type ActivityCardActivity = Pick<
   ActivityType,
@@ -46,6 +47,15 @@ export default function ActivityCard({
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
+        <StoryGenerationSheet
+          tripId={tripId}
+          scope="place"
+          dayId={activity.day_id}
+          activityId={activity.id}
+          title="Write Activity Story"
+          triggerLabel="Write Story"
+          triggerClassName="rounded-lg border px-2 py-1 text-xs"
+        />
         <form action={moveActivityAction}>
           <input type="hidden" name="day_id" value={activity.day_id} />
           <input type="hidden" name="activity_id" value={activity.id} />

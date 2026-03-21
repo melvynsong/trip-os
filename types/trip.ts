@@ -88,3 +88,40 @@ export type JournalEntry = {
   photos: string[]
   created_at: string
 }
+
+export type StoryScope = 'day' | 'place'
+
+export type StoryTone =
+  | 'warm_personal'
+  | 'fun_casual'
+  | 'reflective'
+  | 'travel_journal'
+  | 'family_memory'
+  | 'food_focused'
+
+export type StoryLength = 'short' | 'medium' | 'long'
+
+export type StoryType =
+  | 'day_summary'
+  | 'place_story'
+  | 'restaurant_story'
+  | 'activity_story'
+  | 'caption'
+  | 'food_note'
+
+export type Story = {
+  id: string
+  trip_id: string
+  story_scope: StoryScope
+  story_type: StoryType
+  related_date: string | null
+  related_place_id: string | null
+  related_activity_id: string | null
+  tone: StoryTone
+  length: StoryLength
+  focus: string | null
+  title: string | null
+  content: string
+  created_at: string
+  updated_at: string
+}

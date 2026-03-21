@@ -9,6 +9,8 @@ import DayTimeline from './DayTimeline'
 import ReplanPreviewPanel from './ReplanPreviewPanel'
 import AddManualItemForm from './AddManualItemForm'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
+import StoryListSection from '@/app/components/story/StoryListSection'
 import { type TodayItem } from './TimelineItemCard'
 import { type AiReplanResult, type QuickActionType } from '@/lib/ai/today'
 import { formatTodayForWhatsApp } from '@/lib/share/whatsapp'
@@ -99,6 +101,7 @@ export default function TodayView({
   const [replanDraft, setReplanDraft] = useState<AiReplanResult | null>(null)
   const [isApplyingReplan, setIsApplyingReplan] = useState(false)
   const [globalError, setGlobalError] = useState<string | null>(null)
+  const [storyRefreshKey, setStoryRefreshKey] = useState(0)
 
   const { now, next } = useMemo(() => getNowNext(items), [items])
 
@@ -388,6 +391,19 @@ export default function TodayView({
         />
       </div>
 
+      <div>
+        <StoryGenerationSheet
+          tripId={tripId}
+          scope="day"
+          dayId={dayId}
+          relatedDate={date}
+          title="Generate Day Story"
+          triggerLabel="Generate Day Story"
+          triggerClassName="rounded-lg border px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+          onSaved={() => setStoryRefreshKey((k) => k + 1)}
+        />
+      </div>
+
       {/* Header */}
       <TodayHeader
         tripTitle={tripTitle}
@@ -467,6 +483,14 @@ export default function TodayView({
           onDiscard={handleDiscardReplan}
         />
       )}
+
+      <StoryListSection
+        tripId={tripId}
+        scope="day"
+        dayId={dayId}
+        title="Saved Day Stories"
+        refreshKey={storyRefreshKey}
+      />
     </div>
   )
 }
