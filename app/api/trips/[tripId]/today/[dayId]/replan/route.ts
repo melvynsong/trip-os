@@ -66,7 +66,7 @@ export async function POST(request: Request, { params }: Params) {
     // Verify trip ownership
     const { data: trip, error: tripError } = await supabase
       .from('trips')
-      .select('id, title, destination, notes')
+      .select('id, title, destination')
       .eq('id', tripId)
       .eq('user_id', user.id)
       .single()
@@ -124,7 +124,7 @@ export async function POST(request: Request, { params }: Params) {
         trip: {
           title: trip.title,
           destination: trip.destination,
-          notes: trip.notes ?? null,
+          notes: null,
         },
         day: {
           date: day.date,

@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import TodayView, { type TodayViewProps } from '@/app/components/today/TodayView'
+import TodayView from '@/app/components/today/TodayView'
 import { type TodayItem } from '@/app/components/today/TimelineItemCard'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
 
 type Props = { params: Promise<{ tripId: string }> }
 
-type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date' | 'notes'>
+type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
 type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 type Activity = Pick<
   ActivityType,
@@ -44,7 +44,7 @@ function pickActiveDay(days: Day[]): Day | null {
 function getTripStatus(
   startDate: string,
   endDate: string
-): TodayViewProps['tripStatus'] {
+): 'upcoming' | 'active' | 'past' {
   const todayStr = new Date().toISOString().slice(0, 10)
   if (todayStr < startDate) return 'upcoming'
   if (todayStr > endDate) return 'past'
@@ -66,7 +66,7 @@ export default async function TodayPage({ params }: Props) {
   // Load trip
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('id, title, destination, start_date, end_date, notes')
+    .select('id, title, destination, start_date, end_date')
     .eq('id', tripId)
     .eq('user_id', user.id)
     .single<Trip>()
