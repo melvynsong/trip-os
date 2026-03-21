@@ -196,8 +196,14 @@ export default async function ItineraryPage({ params }: Props) {
             ← Back to Trip
           </Link>
           <Link
-            href={`/trips/${tripId}/ai-itinerary`}
+            href={`/trips/${tripId}/today`}
             className="rounded-xl bg-black px-4 py-2 text-white"
+          >
+            📍 Today
+          </Link>
+          <Link
+            href={`/trips/${tripId}/ai-itinerary`}
+            className="rounded-xl border px-4 py-2"
           >
             AI Generate Itinerary
           </Link>
