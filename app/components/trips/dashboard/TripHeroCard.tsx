@@ -31,7 +31,14 @@ export default function TripHeroCard({
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <Link href={`/trips/${tripId}/today`} className={buttonClass({ variant: 'primary', className: 'bg-white text-gray-900 hover:bg-gray-100 active:bg-gray-200' })}>
+          <Link
+            href={`/trips/${tripId}/today`}
+            className={buttonClass({
+              variant: 'secondary',
+              className:
+                '!border-white/70 !bg-white !text-gray-900 hover:!bg-gray-100 active:!bg-gray-200',
+            })}
+          >
             View Today
           </Link>
           <Link href={`/trips/${tripId}/itinerary`} className={buttonClass({ variant: 'secondary', className: 'border-white/50 bg-white/10 text-white hover:bg-white/20' })}>
