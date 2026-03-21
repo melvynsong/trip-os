@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
 import { Trip as TripType, Day as DayType, Activity as ActivityType } from '@/types/trip'
@@ -22,6 +23,85 @@ type Activity = Pick<
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
   const supabase = await createClient()
+
+  async function moveActivity(formData: FormData) {
+    'use server'
+
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      redirect('/login')
+    }
+
+    const dayId = String(formData.get('day_id') || '').trim()
+    const activityId = String(formData.get('activity_id') || '').trim()
+    const direction = String(formData.get('direction') || '').trim()
+
+    if (!dayId || !activityId || (direction !== 'up' && direction !== 'down')) {
+      return
+    }
+
+    const { data: day } = await supabase
+      .from('days')
+      .select('id')
+      .eq('id', dayId)
+      .eq('trip_id', tripId)
+      .single()
+
+    if (!day) {
+      return
+    }
+
+    const { data: dayActivities, error: dayActivitiesError } = await supabase
+      .from('activities')
+      .select('id, sort_order')
+      .eq('day_id', dayId)
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true })
+
+    if (dayActivitiesError || !dayActivities || dayActivities.length < 2) {
+      return
+    }
+
+    const normalized = dayActivities.map((activity, index) => ({
+      id: activity.id,
+      sort_order: index + 1,
+    }))
+
+    const currentIndex = normalized.findIndex((activity) => activity.id === activityId)
+
+    if (currentIndex === -1) {
+      return
+    }
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+
+    if (targetIndex < 0 || targetIndex >= normalized.length) {
+      return
+    }
+
+    const reordered = [...normalized]
+    ;[reordered[currentIndex], reordered[targetIndex]] = [
+      reordered[targetIndex],
+      reordered[currentIndex],
+    ]
+
+    await Promise.all(
+      reordered.map((activity, index) =>
+        supabase
+          .from('activities')
+          .update({ sort_order: index + 1 })
+          .eq('id', activity.id)
+          .eq('day_id', dayId)
+      )
+    )
+
+    revalidatePath(`/trips/${tripId}/itinerary`)
+  }
 
   const {
     data: { user },
@@ -81,8 +161,8 @@ export default async function ItineraryPage({ params }: Props) {
     .from('activities')
     .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, places(id, name)')
     .in('day_id', dayIds)
-    .order('activity_time', { ascending: true })
     .order('sort_order', { ascending: true })
+    .order('activity_time', { ascending: true })
     .returns<Activity[]>()
 
   if (activitiesError) {
@@ -130,7 +210,15 @@ export default async function ItineraryPage({ params }: Props) {
             (activity) => activity.day_id === day.id
           )
 
-          return <DayCard key={day.id} tripId={tripId} day={day} activities={dayActivities} />
+          return (
+            <DayCard
+              key={day.id}
+              tripId={tripId}
+              day={day}
+              activities={dayActivities}
+              moveActivityAction={moveActivity}
+            />
+          )
         })}
       </div>
     </main>

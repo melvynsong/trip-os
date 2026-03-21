@@ -15,9 +15,15 @@ type DayCardProps = {
   tripId: string
   day: DayCardDay
   activities: DayCardActivity[]
+  moveActivityAction: (formData: FormData) => Promise<void>
 }
 
-export default function DayCard({ tripId, day, activities }: DayCardProps) {
+export default function DayCard({
+  tripId,
+  day,
+  activities,
+  moveActivityAction,
+}: DayCardProps) {
   return (
     <div key={day.id} className="rounded-2xl border p-5">
       <div className="mb-3 flex items-center justify-between">
@@ -39,8 +45,15 @@ export default function DayCard({ tripId, day, activities }: DayCardProps) {
 
       {activities.length > 0 ? (
         <div className="space-y-3">
-          {activities.map((activity) => (
-            <ActivityCard key={activity.id} activity={activity} />
+          {activities.map((activity, index) => (
+            <ActivityCard
+              key={activity.id}
+              tripId={tripId}
+              activity={activity}
+              canMoveUp={index > 0}
+              canMoveDown={index < activities.length - 1}
+              moveActivityAction={moveActivityAction}
+            />
           ))}
         </div>
       ) : (

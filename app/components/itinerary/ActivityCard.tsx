@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
 
@@ -9,10 +10,20 @@ type ActivityCardActivity = Pick<
 }
 
 type ActivityCardProps = {
+  tripId: string
   activity: ActivityCardActivity
+  canMoveUp: boolean
+  canMoveDown: boolean
+  moveActivityAction: (formData: FormData) => Promise<void>
 }
 
-export default function ActivityCard({ activity }: ActivityCardProps) {
+export default function ActivityCard({
+  tripId,
+  activity,
+  canMoveUp,
+  canMoveDown,
+  moveActivityAction,
+}: ActivityCardProps) {
   return (
     <div key={activity.id} className="border-l-4 border-blue-500 pl-4 py-3">
       <div className="flex items-center justify-between gap-3">
@@ -33,6 +44,41 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
       {activity.notes ? (
         <div className="mt-2 text-sm text-gray-700">{activity.notes}</div>
       ) : null}
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <form action={moveActivityAction}>
+          <input type="hidden" name="day_id" value={activity.day_id} />
+          <input type="hidden" name="activity_id" value={activity.id} />
+          <input type="hidden" name="direction" value="up" />
+          <button
+            type="submit"
+            disabled={!canMoveUp}
+            className="rounded-lg border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ↑ Up
+          </button>
+        </form>
+
+        <form action={moveActivityAction}>
+          <input type="hidden" name="day_id" value={activity.day_id} />
+          <input type="hidden" name="activity_id" value={activity.id} />
+          <input type="hidden" name="direction" value="down" />
+          <button
+            type="submit"
+            disabled={!canMoveDown}
+            className="rounded-lg border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ↓ Down
+          </button>
+        </form>
+
+        <Link
+          href={`/trips/${tripId}/itinerary/${activity.day_id}/activities/${activity.id}/edit`}
+          className="text-sm underline"
+        >
+          Edit
+        </Link>
+      </div>
     </div>
   )
 }
