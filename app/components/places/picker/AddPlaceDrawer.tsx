@@ -15,16 +15,22 @@ type AddPlaceDrawerProps = {
   tripId: string
   tripTitle: string
   destination: string
+  initialPlaceType?: PlaceType
 }
 
 const MIN_QUERY_LENGTH = 3
 
-export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPlaceDrawerProps) {
+export default function AddPlaceDrawer({
+  tripId,
+  tripTitle,
+  destination,
+  initialPlaceType = 'attraction',
+}: AddPlaceDrawerProps) {
   const router = useRouter()
   const { showToast } = useToast()
 
   const [mode, setMode] = useState<'search' | 'manual'>('search')
-  const [placeType, setPlaceType] = useState<PlaceType>('attraction')
+  const [placeType, setPlaceType] = useState<PlaceType>(initialPlaceType)
 
   const [query, setQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)

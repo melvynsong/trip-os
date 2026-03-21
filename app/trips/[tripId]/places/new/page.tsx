@@ -2,15 +2,35 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AddPlaceDrawer from '@/app/components/places/picker/AddPlaceDrawer'
 import { Trip as TripType } from '@/types/trip'
+import { type PlaceType } from '@/lib/places'
 
 type Props = {
   params: Promise<{ tripId: string }>
+  searchParams?: Promise<{ placeType?: string }>
 }
 
 type Trip = Pick<TripType, 'id' | 'title' | 'destination'>
 
-export default async function NewPlacePage({ params }: Props) {
+function parsePlaceType(value: string | undefined): PlaceType | undefined {
+  if (!value) return undefined
+
+  if (
+    value === 'attraction' ||
+    value === 'restaurant' ||
+    value === 'shopping' ||
+    value === 'cafe' ||
+    value === 'hotel' ||
+    value === 'other'
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
+export default async function NewPlacePage({ params, searchParams }: Props) {
   const { tripId } = await params
+  const parsedSearch = searchParams ? await searchParams : undefined
   const supabase = await createClient()
 
   const {
@@ -37,6 +57,7 @@ export default async function NewPlacePage({ params }: Props) {
         tripId={tripId}
         tripTitle={trip.title}
         destination={trip.destination}
+        initialPlaceType={parsePlaceType(parsedSearch?.placeType)}
       />
     </main>
   )

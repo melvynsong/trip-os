@@ -1,15 +1,25 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import PageHeader from '@/app/components/shared/PageHeader'
-import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
-import Card from '@/app/components/ui/Card'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
-import { getEmoji } from '@/lib/utils/getEmoji'
+import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import {
+  QuickActionsGrid,
+  SavedPlacesCarousel,
+  SectionHeader,
+  StatCard,
+  TodayCard,
+  TripHeroCard,
+} from '@/app/components/trips/dashboard'
 import { resolvePlaceType } from '@/lib/places'
 import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
-import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
+import {
+  Trip as TripType,
+  Day as DayType,
+  Activity as ActivityType,
+  Place as PlaceType,
+} from '@/types/trip'
 
 type Props = {
   params: Promise<{ tripId: string }>
@@ -24,9 +34,116 @@ type Activity = Pick<
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
 >
 
-type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
+type Place = Pick<
+  PlaceType,
+  'id' | 'name' | 'category' | 'place_type' | 'city' | 'visited'
+>
 
-export default async function ItineraryPage({ params }: Props) {
+type PlacePreview = {
+  id: string
+  name: string
+  city: string | null
+  visited: boolean
+}
+
+function formatDateRange(startDate: string, endDate: string) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return `${startDate} → ${endDate}`
+  }
+
+  return `${formatter.format(start)} → ${formatter.format(end)}`
+}
+
+function pickActiveDay(days: Day[]): Day | null {
+  if (!days.length) return null
+
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const exact = days.find((day) => day.date === todayStr)
+  if (exact) return exact
+
+  const future = days
+    .filter((day) => day.date > todayStr)
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
+  if (future.length > 0) return future[0]
+
+  const past = days
+    .filter((day) => day.date < todayStr)
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+  if (past.length > 0) return past[0]
+
+  return days[0]
+}
+
+function getNowNext(activities: Activity[]) {
+  const now = new Date()
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+
+  const timed = activities
+    .filter((activity) => Boolean(activity.activity_time))
+    .sort((a, b) => {
+      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+      if (!a.activity_time || !b.activity_time) return 0
+      return a.activity_time < b.activity_time ? -1 : 1
+    })
+
+  let nowActivity: Activity | null = null
+  let nextActivity: Activity | null = null
+
+  for (const activity of timed) {
+    if (!activity.activity_time) continue
+
+    const [hour, minute] = activity.activity_time.split(':').map(Number)
+    const itemMinutes = hour * 60 + minute
+
+    if (itemMinutes <= currentMinutes) {
+      nowActivity = activity
+    } else if (!nextActivity) {
+      nextActivity = activity
+      break
+    }
+  }
+
+  if (!nowActivity && timed.length > 0) {
+    nextActivity = timed[0]
+  }
+
+  return {
+    now: nowActivity
+      ? {
+          title: nowActivity.title,
+          time: nowActivity.activity_time,
+          type: nowActivity.type,
+        }
+      : null,
+    next: nextActivity
+      ? {
+          title: nextActivity.title,
+          time: nextActivity.activity_time,
+          type: nextActivity.type,
+        }
+      : null,
+  }
+}
+
+function toPlacePreview(items: Place[]): PlacePreview[] {
+  return items.slice(0, 5).map((place) => ({
+    id: place.id,
+    name: place.name,
+    city: place.city,
+    visited: Boolean(place.visited),
+  }))
+}
+
+export default async function TripDashboardPage({ params }: Props) {
   const { tripId } = await params
   const supabase = await createClient()
 
@@ -42,6 +159,7 @@ export default async function ItineraryPage({ params }: Props) {
     .from('trips')
     .select('id, title, destination, start_date, end_date')
     .eq('id', tripId)
+    .eq('user_id', user.id)
     .single<Trip>()
 
   if (tripError || !trip) {
@@ -65,34 +183,18 @@ export default async function ItineraryPage({ params }: Props) {
     )
   }
 
-  if (!days || days.length === 0) {
-    return (
-      <main className="mx-auto max-w-5xl p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">{trip.title}</h1>
-          <p className="text-gray-600">{trip.destination}</p>
-        </div>
+  const safeDays = days || []
+  const dayIds = safeDays.map((day) => day.id)
 
-        <EmptyState
-          title="No itinerary days yet"
-          description="Add your first day to start building this trip."
-          className="p-6"
-        />
-      </main>
-    )
-  }
-
-  const dayIds = days.map((day) => day.id)
-
-  let activities: Activity[] = []
-
-  const { data: activitiesData, error: activitiesError } = await supabase
-    .from('activities')
-    .select('id, day_id, title, activity_time, type, notes, sort_order')
-    .in('day_id', dayIds)
-    .order('activity_time', { ascending: true })
-    .order('sort_order', { ascending: true })
-    .returns<Activity[]>()
+  const { data: activitiesData, error: activitiesError } = dayIds.length
+    ? await supabase
+        .from('activities')
+        .select('id, day_id, title, activity_time, type, notes, sort_order')
+        .in('day_id', dayIds)
+        .order('sort_order', { ascending: true })
+        .order('activity_time', { ascending: true })
+        .returns<Activity[]>()
+    : { data: [], error: null }
 
   if (activitiesError) {
     return (
@@ -104,16 +206,18 @@ export default async function ItineraryPage({ params }: Props) {
     )
   }
 
-  activities = activitiesData || []
+  const activities = activitiesData || []
 
   const { data: places } = await supabase
     .from('places')
-    .select('id, name, category, place_type')
+    .select('id, name, category, place_type, city, visited')
     .eq('trip_id', tripId)
     .returns<Place[]>()
 
+  const safePlaces = places || []
+
   const hotel =
-    places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
+    safePlaces.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
 
   const destinations = trip.destination
     .split(',')
@@ -126,7 +230,7 @@ export default async function ItineraryPage({ params }: Props) {
     endDate: trip.end_date,
     destinations,
     hotel,
-    days: days.map((day) => ({
+    days: safeDays.map((day) => ({
       dayNumber: day.day_number,
       date: day.date,
       city: destinations[0] ?? trip.destination,
@@ -150,119 +254,149 @@ export default async function ItineraryPage({ params }: Props) {
     length: 'detailed',
   })
 
+  const activeDay = pickActiveDay(safeDays)
+  const activeDayActivities = activeDay
+    ? activities.filter((activity) => activity.day_id === activeDay.id)
+    : []
+  const nowNext = getNowNext(activeDayActivities)
+
+  const placeGroups = [
+    {
+      label: 'Attractions',
+      emoji: '📍',
+      places: toPlacePreview(
+        safePlaces.filter((place) => resolvePlaceType(place) === 'attraction')
+      ),
+    },
+    {
+      label: 'Restaurants',
+      emoji: '🍜',
+      places: toPlacePreview(
+        safePlaces.filter((place) => resolvePlaceType(place) === 'restaurant')
+      ),
+    },
+    {
+      label: 'Shopping',
+      emoji: '🛍️',
+      places: toPlacePreview(
+        safePlaces.filter((place) => resolvePlaceType(place) === 'shopping')
+      ),
+    },
+  ]
+
+  const quickActions = [
+    {
+      label: 'Plan today',
+      subtitle: 'Open your live day timeline',
+      icon: '📍',
+      href: `/trips/${tripId}/today`,
+    },
+    {
+      label: 'Add place',
+      subtitle: 'Save a must-visit spot',
+      icon: '➕',
+      href: `/trips/${tripId}/places/new`,
+    },
+    {
+      label: 'Find food nearby',
+      subtitle: 'Search restaurants quickly',
+      icon: '🍽️',
+      href: `/trips/${tripId}/places/new?placeType=restaurant`,
+    },
+    {
+      label: 'Explore attractions',
+      subtitle: 'Find highlights around you',
+      icon: '🧭',
+      href: `/trips/${tripId}/places/new?placeType=attraction`,
+    },
+  ]
+
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <PageHeader
-        title={trip.title}
-        subtitle={`${trip.destination} · ${trip.start_date} → ${trip.end_date}`}
-        actions={
-          <div className="flex flex-wrap gap-3">
-            <Link href="/trips" className={buttonClass({ variant: 'secondary' })}>
-              ← Back to Trips
-            </Link>
-            <Link
-              href={`/trips/${tripId}/today`}
-              className={buttonClass({ variant: 'primary' })}
-            >
-              📍 Today
-            </Link>
+    <main className="mx-auto max-w-5xl p-4 sm:p-6">
+      <div className="mb-4">
+        <Link href="/trips" className={buttonClass({ size: 'sm', variant: 'ghost' })}>
+          ← Back to Trips
+        </Link>
+      </div>
+
+      <div className="space-y-6">
+        <TripHeroCard
+          destination={trip.destination}
+          dateRangeLabel={formatDateRange(trip.start_date, trip.end_date)}
+          tripTitle={trip.title}
+          hotel={hotel}
+          tripId={tripId}
+          shareButton={
             <WhatsAppShareSheet
               title="Share full itinerary"
               shortText={shortShareText}
               detailedText={detailedShareText}
               triggerLabel="Share"
-              triggerClassName={buttonClass({ variant: 'secondary' })}
+              triggerClassName={buttonClass({
+                variant: 'secondary',
+                className: 'border-white/50 bg-white/10 text-white hover:bg-white/20',
+              })}
             />
-            <Link
-              href={`/trips/${tripId}/ai-itinerary`}
-              className={buttonClass({ variant: 'secondary' })}
-            >
-              AI Generate Itinerary
-            </Link>
-            <Link
-              href={`/trips/${tripId}/itinerary`}
-              className={buttonClass({ variant: 'secondary' })}
-            >
-              View Itinerary
-            </Link>
-            <Link
-              href={`/trips/${tripId}/places`}
-              className={buttonClass({ variant: 'secondary' })}
-            >
-              Saved Places
-            </Link>
+          }
+        />
+
+        <section>
+          <SectionHeader
+            title="Today"
+            subtitle="See what’s happening now and what’s next"
+          />
+          {activeDay ? (
+            <TodayCard
+              dayLabel={`Day ${activeDay.day_number}${activeDay.title ? ` · ${activeDay.title}` : ''}`}
+              nowActivity={nowNext.now}
+              nextActivity={nowNext.next}
+              todayHref={`/trips/${tripId}/today`}
+            />
+          ) : (
+            <EmptyState
+              title="No day planned yet"
+              description="Create or generate your itinerary to unlock Today planning."
+            />
+          )}
+        </section>
+
+        <section>
+          <SectionHeader
+            title="Quick Actions"
+            subtitle="Jump into the next planning step"
+          />
+          <QuickActionsGrid actions={quickActions} />
+        </section>
+
+        <section>
+          <SectionHeader
+            title="Saved Places"
+            subtitle="Your curated spots by category"
+            actionLabel="View all"
+            actionHref={`/trips/${tripId}/places`}
+          />
+          <SavedPlacesCarousel
+            groups={placeGroups}
+            viewAllHref={`/trips/${tripId}/places`}
+          />
+        </section>
+
+        <section>
+          <SectionHeader title="Trip Stats" subtitle="A quick pulse check" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatCard label="Saved Places" value={safePlaces.length} />
+            <StatCard label="Planned Days" value={safeDays.length} />
+            <StatCard label="Activities" value={activities.length} />
           </div>
-        }
-      />
+        </section>
 
-      <div className="space-y-6">
-        {days.map((day) => {
-          const dayActivities = activities.filter(
-            (activity) => activity.day_id === day.id
-          )
-
-          return (
-            <Card key={day.id} className="p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-lg">
-                    Day {day.day_number}
-                    {day.title ? ` — ${day.title}` : ''}
-                  </div>
-                  <div className="text-sm text-gray-500">{day.date}</div>
-                </div>
-
-                <Link
-                  href={`/trips/${tripId}/itinerary/${day.id}/new`}
-                  className={buttonClass({ size: 'sm' })}
-                >
-                  + Add Activity
-                </Link>
-              </div>
-
-              {dayActivities.length > 0 ? (
-                <div className="space-y-3">
-                  {dayActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="rounded-xl border-l-4 border-blue-500 bg-blue-50/30 px-3 py-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium">
-                          {getEmoji(activity.type)} {activity.title}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {activity.activity_time || 'No time'}
-                        </div>
-                      </div>
-
-                      <div className="mt-1 text-sm text-gray-500 capitalize">
-                        {activity.type}
-                      </div>
-
-                      {activity.notes ? (
-                        <div className="mt-2 text-sm text-gray-700">
-                          {activity.notes}
-                        </div>
-                      ) : null}
-
-                      <div className="mt-3">
-                        <Link
-                          href={`/trips/${tripId}/itinerary/${day.id}/activities/${activity.id}/edit`}
-                          className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 px-2.5 text-xs' })}
-                        >
-                          Edit
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-400">No activities yet</div>
-              )}
-            </Card>
-          )
-        })}
+        <section>
+          <SectionHeader title="Memories" subtitle="Future-ready" />
+          <EmptyState
+            title="Memories and summaries coming soon"
+            description="This area will showcase your stories, day recaps, and trip highlights."
+          />
+        </section>
       </div>
     </main>
   )
