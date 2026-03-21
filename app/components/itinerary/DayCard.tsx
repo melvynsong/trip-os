@@ -2,6 +2,8 @@ import Link from 'next/link'
 import ActivityCard from '@/app/components/itinerary/ActivityCard'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
+import Card from '@/app/components/ui/Card'
+import { buttonClass } from '@/app/components/ui/Button'
 import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
 import { Day as DayType, Activity as ActivityType } from '@/types/trip'
 
@@ -72,7 +74,7 @@ export default function DayCard({
   )
 
   return (
-    <div key={day.id} className="rounded-2xl border p-5">
+    <Card key={day.id} className="p-5">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <div className="font-semibold text-lg">
@@ -90,18 +92,18 @@ export default function DayCard({
             relatedDate={day.date}
             title={`Generate Day ${day.day_number} Story`}
             triggerLabel="Generate Day Story"
-            triggerClassName="rounded-lg border px-3 py-1 text-sm"
+            triggerClassName={buttonClass({ size: 'sm' })}
           />
           <WhatsAppShareSheet
             title={`Share Day ${day.day_number}`}
             shortText={shortShareText}
             detailedText={detailedShareText}
             triggerLabel="Share"
-            triggerClassName="rounded-lg border px-3 py-1 text-sm"
+            triggerClassName={buttonClass({ size: 'sm' })}
           />
           <Link
             href={`/trips/${tripId}/itinerary/${day.id}/new`}
-            className="rounded-lg border px-3 py-1 text-sm"
+            className={buttonClass({ size: 'sm' })}
           >
             + Add Activity
           </Link>
@@ -124,6 +126,6 @@ export default function DayCard({
       ) : (
         <div className="text-sm text-gray-400">No activities yet</div>
       )}
-    </div>
+    </Card>
   )
 }

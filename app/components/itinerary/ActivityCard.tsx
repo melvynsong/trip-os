@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
+import { buttonClass } from '@/app/components/ui/Button'
 
 type ActivityCardActivity = Pick<
   ActivityType,
@@ -26,7 +27,10 @@ export default function ActivityCard({
   moveActivityAction,
 }: ActivityCardProps) {
   return (
-    <div key={activity.id} className="border-l-4 border-blue-500 pl-4 py-3">
+    <div
+      key={activity.id}
+      className="rounded-xl border-l-4 border-blue-500 bg-blue-50/30 px-3 py-3 transition-colors hover:bg-blue-50/50"
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="font-medium">
           {getEmoji(activity.type)} {activity.title}
@@ -54,7 +58,7 @@ export default function ActivityCard({
           activityId={activity.id}
           title="Write Activity Story"
           triggerLabel="Write Story"
-          triggerClassName="rounded-lg border px-2 py-1 text-xs"
+          triggerClassName={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs' })}
         />
         <form action={moveActivityAction}>
           <input type="hidden" name="day_id" value={activity.day_id} />
@@ -63,7 +67,7 @@ export default function ActivityCard({
           <button
             type="submit"
             disabled={!canMoveUp}
-            className="rounded-lg border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+            className={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs' })}
           >
             ↑ Up
           </button>
@@ -76,7 +80,7 @@ export default function ActivityCard({
           <button
             type="submit"
             disabled={!canMoveDown}
-            className="rounded-lg border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+            className={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs' })}
           >
             ↓ Down
           </button>
@@ -84,7 +88,7 @@ export default function ActivityCard({
 
         <Link
           href={`/trips/${tripId}/itinerary/${activity.day_id}/activities/${activity.id}/edit`}
-          className="text-sm underline"
+          className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 px-2.5 text-xs' })}
         >
           Edit
         </Link>

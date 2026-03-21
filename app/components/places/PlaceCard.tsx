@@ -6,6 +6,8 @@ import { Place as PlaceType } from '@/types/trip'
 import { getPlaceTypeEmoji, getPlaceTypeLabel, resolvePlaceType } from '@/lib/places'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import StoryListSection from '@/app/components/story/StoryListSection'
+import Card from '@/app/components/ui/Card'
+import { buttonClass } from '@/app/components/ui/Button'
 
 type PlaceCardPlace = Pick<
   PlaceType,
@@ -34,7 +36,7 @@ export default function PlaceCard({ place, tripId }: PlaceCardProps) {
   const [storyRefreshKey, setStoryRefreshKey] = useState(0)
 
   return (
-    <div className="rounded-2xl border p-5">
+    <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -72,7 +74,7 @@ export default function PlaceCard({ place, tripId }: PlaceCardProps) {
               href={`https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-flex rounded-lg border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              className={buttonClass({ size: 'sm', className: 'mt-2 inline-flex h-8 px-2.5 text-xs' })}
             >
               Open Map ↗
             </a>
@@ -86,12 +88,12 @@ export default function PlaceCard({ place, tripId }: PlaceCardProps) {
             placeId={place.id}
             title={`Write Story: ${place.name}`}
             triggerLabel="Write Story"
-            triggerClassName="rounded-lg border px-3 py-1 text-sm whitespace-nowrap"
+            triggerClassName={`${buttonClass({ size: 'sm' })} whitespace-nowrap`}
             onSaved={() => setStoryRefreshKey((k) => k + 1)}
           />
           <Link
             href={`/trips/${tripId}/places/${place.id}/edit`}
-            className="rounded-lg border px-3 py-1 text-sm whitespace-nowrap"
+            className={`${buttonClass({ size: 'sm' })} whitespace-nowrap`}
           >
             Edit
           </Link>
@@ -108,6 +110,6 @@ export default function PlaceCard({ place, tripId }: PlaceCardProps) {
           limit={3}
         />
       </div>
-    </div>
+    </Card>
   )
 }

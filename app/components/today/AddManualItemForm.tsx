@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ActivityType } from '@/types/trip'
+import Button from '@/app/components/ui/Button'
 
 const ACTIVITY_TYPES: { value: ActivityType; label: string }[] = [
   { value: 'food', label: '🍜 Food' },
@@ -75,7 +76,7 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Lunch at Tsukiji Market"
-            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-gray-400"
+            className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
             autoFocus
           />
         </div>
@@ -88,7 +89,7 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
             />
           </div>
           <div>
@@ -96,7 +97,7 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
             <select
               value={type}
               onChange={(e) => setType(e.target.value as ActivityType)}
-              className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
             >
               {ACTIVITY_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -115,7 +116,7 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             placeholder="Any details…"
-            className="w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none focus:border-gray-400"
+            className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
           />
         </div>
 
@@ -123,21 +124,23 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
 
         {/* Buttons */}
         <div className="flex gap-2 pt-1">
-          <button
-            type="button"
+          <Button
             onClick={onCancel}
             disabled={isAdding}
-            className="flex-1 rounded-xl border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            variant="secondary"
+            className="flex-1"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             disabled={isAdding || !title.trim()}
-            className="flex-1 rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="primary"
+            loading={isAdding}
+            className="flex-1"
           >
-            {isAdding ? 'Adding…' : 'Add Item'}
-          </button>
+            Add Item
+          </Button>
         </div>
       </div>
     </form>

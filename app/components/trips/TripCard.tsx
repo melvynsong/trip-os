@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import ClickableCard from '@/app/components/ui/ClickableCard'
 
 type Trip = {
   id: string
@@ -14,15 +14,12 @@ type TripCardProps = {
 
 export default function TripCard({ trip }: TripCardProps) {
   return (
-    <Link
-      href={`/trips/${trip.id}`}
-      className="block rounded-2xl border p-5 shadow-sm transition hover:shadow-md"
-    >
+    <ClickableCard href={`/trips/${trip.id}`} className="p-5">
       <div className="mb-2 text-xl font-semibold">{trip.title}</div>
       <div className="text-sm text-gray-600">{trip.destination}</div>
       <div className="mt-3 text-sm text-gray-500">
         {trip.start_date} → {trip.end_date}
       </div>
-    </Link>
+    </ClickableCard>
   )
 }

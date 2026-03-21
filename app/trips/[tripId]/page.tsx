@@ -3,6 +3,9 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PageHeader from '@/app/components/shared/PageHeader'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import Card from '@/app/components/ui/Card'
+import EmptyState from '@/app/components/ui/EmptyState'
+import { buttonClass } from '@/app/components/ui/Button'
 import { getEmoji } from '@/lib/utils/getEmoji'
 import { resolvePlaceType } from '@/lib/places'
 import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
@@ -70,9 +73,11 @@ export default async function ItineraryPage({ params }: Props) {
           <p className="text-gray-600">{trip.destination}</p>
         </div>
 
-        <div className="rounded-2xl border border-dashed p-6 text-gray-500">
-          No itinerary days found for this trip.
-        </div>
+        <EmptyState
+          title="No itinerary days yet"
+          description="Add your first day to start building this trip."
+          className="p-6"
+        />
       </main>
     )
   }
@@ -152,12 +157,12 @@ export default async function ItineraryPage({ params }: Props) {
         subtitle={`${trip.destination} · ${trip.start_date} → ${trip.end_date}`}
         actions={
           <div className="flex flex-wrap gap-3">
-            <Link href="/trips" className="rounded-xl border px-4 py-2">
+            <Link href="/trips" className={buttonClass({ variant: 'secondary' })}>
               ← Back to Trips
             </Link>
             <Link
               href={`/trips/${tripId}/today`}
-              className="rounded-xl bg-black px-4 py-2 text-white"
+              className={buttonClass({ variant: 'primary' })}
             >
               📍 Today
             </Link>
@@ -166,23 +171,23 @@ export default async function ItineraryPage({ params }: Props) {
               shortText={shortShareText}
               detailedText={detailedShareText}
               triggerLabel="Share"
-              triggerClassName="rounded-xl border px-4 py-2"
+              triggerClassName={buttonClass({ variant: 'secondary' })}
             />
             <Link
               href={`/trips/${tripId}/ai-itinerary`}
-              className="rounded-xl border px-4 py-2"
+              className={buttonClass({ variant: 'secondary' })}
             >
               AI Generate Itinerary
             </Link>
             <Link
               href={`/trips/${tripId}/itinerary`}
-              className="rounded-xl border px-4 py-2"
+              className={buttonClass({ variant: 'secondary' })}
             >
               View Itinerary
             </Link>
             <Link
               href={`/trips/${tripId}/places`}
-              className="rounded-xl border px-4 py-2"
+              className={buttonClass({ variant: 'secondary' })}
             >
               Saved Places
             </Link>
@@ -197,7 +202,7 @@ export default async function ItineraryPage({ params }: Props) {
           )
 
           return (
-            <div key={day.id} className="rounded-2xl border p-5">
+            <Card key={day.id} className="p-5">
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <div className="font-semibold text-lg">
@@ -209,7 +214,7 @@ export default async function ItineraryPage({ params }: Props) {
 
                 <Link
                   href={`/trips/${tripId}/itinerary/${day.id}/new`}
-                  className="rounded-lg border px-3 py-1 text-sm"
+                  className={buttonClass({ size: 'sm' })}
                 >
                   + Add Activity
                 </Link>
@@ -220,7 +225,7 @@ export default async function ItineraryPage({ params }: Props) {
                   {dayActivities.map((activity) => (
                     <div
                       key={activity.id}
-                      className="border-l-4 border-blue-500 pl-4 py-3"
+                      className="rounded-xl border-l-4 border-blue-500 bg-blue-50/30 px-3 py-3"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-medium">
@@ -244,7 +249,7 @@ export default async function ItineraryPage({ params }: Props) {
                       <div className="mt-3">
                         <Link
                           href={`/trips/${tripId}/itinerary/${day.id}/activities/${activity.id}/edit`}
-                          className="text-sm underline"
+                          className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 px-2.5 text-xs' })}
                         >
                           Edit
                         </Link>
@@ -255,7 +260,7 @@ export default async function ItineraryPage({ params }: Props) {
               ) : (
                 <div className="text-sm text-gray-400">No activities yet</div>
               )}
-            </div>
+            </Card>
           )
         })}
       </div>

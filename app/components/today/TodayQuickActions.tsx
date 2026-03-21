@@ -1,6 +1,7 @@
 'use client'
 
 import { QUICK_ACTION_LABELS, type QuickActionType } from '@/lib/ai/today'
+import Chip from '@/app/components/ui/Chip'
 
 const ACTIONS: QuickActionType[] = [
   'replan',
@@ -23,14 +24,14 @@ export default function TodayQuickActions({ onAction, disabled }: TodayQuickActi
       </p>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {ACTIONS.map((action) => (
-          <button
+          <Chip
             key={action}
             onClick={() => onAction(action)}
             disabled={disabled}
-            className="shrink-0 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 shrink-0"
           >
             {QUICK_ACTION_LABELS[action]}
-          </button>
+          </Chip>
         ))}
       </div>
     </div>

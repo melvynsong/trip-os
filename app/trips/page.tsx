@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PageHeader from '@/app/components/shared/PageHeader'
 import TripCard from '@/app/components/trips/TripCard'
+import EmptyState from '@/app/components/ui/EmptyState'
+import { buttonClass } from '@/app/components/ui/Button'
 import { Trip as TripType } from '@/types/trip'
 
 type TripListItem = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
@@ -36,7 +38,7 @@ export default async function TripsPage() {
         actions={
           <Link
             href="/trips/new"
-            className="rounded-xl bg-black px-4 py-2 text-white"
+            className={buttonClass({ variant: 'primary' })}
           >
             + Create Trip
           </Link>
@@ -50,9 +52,10 @@ export default async function TripsPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed p-10 text-center text-gray-500">
-          No trips yet. Create your first one.
-        </div>
+        <EmptyState
+          title="No trips yet"
+          description="Create your first trip to start planning your itinerary."
+        />
       )}
     </main>
   )

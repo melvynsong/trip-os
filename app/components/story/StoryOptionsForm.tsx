@@ -11,6 +11,7 @@ import {
   type StoryScope,
   type StoryTone,
 } from '@/lib/story/types'
+import SegmentedControl from '@/app/components/ui/SegmentedControl'
 
 type StoryOptionsFormProps = {
   scope: StoryScope
@@ -37,74 +38,34 @@ export default function StoryOptionsForm({
 }: StoryOptionsFormProps) {
   return (
     <div className="space-y-3">
-      <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Tone
-        </label>
-        <select
-          value={tone}
-          onChange={(e) => onToneChange(e.target.value as StoryTone)}
-          className="w-full rounded-xl border px-3 py-2 text-sm"
-        >
-          {STORY_TONE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SegmentedControl
+        label="Tone"
+        value={tone}
+        onChange={(v) => onToneChange(v as StoryTone)}
+        options={STORY_TONE_OPTIONS}
+      />
 
-      <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Length
-        </label>
-        <select
-          value={length}
-          onChange={(e) => onLengthChange(e.target.value as StoryLength)}
-          className="w-full rounded-xl border px-3 py-2 text-sm"
-        >
-          {STORY_LENGTH_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SegmentedControl
+        label="Length"
+        value={length}
+        onChange={(v) => onLengthChange(v as StoryLength)}
+        options={STORY_LENGTH_OPTIONS}
+      />
 
       {scope === 'day' ? (
-        <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Focus
-          </label>
-          <select
-            value={dayFocus}
-            onChange={(e) => onDayFocusChange(e.target.value as DayStoryFocus)}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
-          >
-            {DAY_STORY_FOCUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SegmentedControl
+          label="Focus"
+          value={dayFocus}
+          onChange={(v) => onDayFocusChange(v as DayStoryFocus)}
+          options={DAY_STORY_FOCUS_OPTIONS}
+        />
       ) : (
-        <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Type
-          </label>
-          <select
-            value={placeStoryType}
-            onChange={(e) => onPlaceStoryTypeChange(e.target.value as PlaceStoryTypeOption)}
-            className="w-full rounded-xl border px-3 py-2 text-sm"
-          >
-            {PLACE_STORY_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SegmentedControl
+          label="Type"
+          value={placeStoryType}
+          onChange={(v) => onPlaceStoryTypeChange(v as PlaceStoryTypeOption)}
+          options={PLACE_STORY_TYPE_OPTIONS}
+        />
       )}
     </div>
   )

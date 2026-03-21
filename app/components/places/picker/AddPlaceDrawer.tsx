@@ -7,6 +7,9 @@ import PlaceTypeSelector from './PlaceTypeSelector'
 import PlaceAutocompleteInput from './PlaceAutocompleteInput'
 import PlaceSearchResults, { type PlaceSuggestion } from './PlaceSearchResults'
 import PlacePreviewCard, { type SelectedPlaceDetails } from './PlacePreviewCard'
+import Chip from '@/app/components/ui/Chip'
+import Button from '@/app/components/ui/Button'
+import { useToast } from '@/app/components/ui/ToastProvider'
 
 type AddPlaceDrawerProps = {
   tripId: string
@@ -18,6 +21,7 @@ const MIN_QUERY_LENGTH = 3
 
 export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPlaceDrawerProps) {
   const router = useRouter()
+  const { showToast } = useToast()
 
   const [mode, setMode] = useState<'search' | 'manual'>('search')
   const [placeType, setPlaceType] = useState<PlaceType>('attraction')
@@ -178,10 +182,13 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
         throw new Error(payload.error || 'Failed to save place.')
       }
 
+      showToast('Place saved successfully.', 'success')
       router.push(`/trips/${tripId}/places`)
       router.refresh()
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Failed to save place.')
+      const message = error instanceof Error ? error.message : 'Failed to save place.'
+      setSaveError(message)
+      showToast(message, 'error')
     } finally {
       setSaveLoading(false)
     }
@@ -216,10 +223,13 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
         throw new Error(payload.error || 'Failed to save place.')
       }
 
+      showToast('Place saved successfully.', 'success')
       router.push(`/trips/${tripId}/places`)
       router.refresh()
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Failed to save place.')
+      const message = error instanceof Error ? error.message : 'Failed to save place.'
+      setSaveError(message)
+      showToast(message, 'error')
     } finally {
       setSaveLoading(false)
     }
@@ -240,28 +250,12 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
           <PlaceTypeSelector value={placeType} onChange={setPlaceType} />
 
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setMode('search')}
-              className={`rounded-full px-3 py-1.5 text-sm ${
-                mode === 'search'
-                  ? 'bg-black text-white'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
+            <Chip selected={mode === 'search'} onClick={() => setMode('search')}>
               Search Places
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('manual')}
-              className={`rounded-full px-3 py-1.5 text-sm ${
-                mode === 'manual'
-                  ? 'bg-black text-white'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
+            </Chip>
+            <Chip selected={mode === 'manual'} onClick={() => setMode('manual')}>
               Can’t find this place? Add manually
-            </button>
+            </Chip>
           </div>
 
           {mode === 'search' ? (
@@ -309,7 +303,7 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
                 <input
                   value={manualName}
                   onChange={(event) => setManualName(event.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
                   placeholder="e.g. Hidden Rooftop Cafe"
                 />
               </div>
@@ -319,7 +313,7 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
                 <input
                   value={manualAddress}
                   onChange={(event) => setManualAddress(event.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
                   placeholder="Optional"
                 />
               </div>
@@ -330,7 +324,7 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
                   value={manualNotes}
                   onChange={(event) => setManualNotes(event.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
                   placeholder="Hours, reservation notes, etc."
                 />
               </div>
@@ -344,33 +338,32 @@ export default function AddPlaceDrawer({ tripId, tripTitle, destination }: AddPl
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
+            <Button
               onClick={() => router.push(`/trips/${tripId}/places`)}
-              className="rounded-xl border px-4 py-2 text-sm"
               disabled={saveLoading}
+              variant="secondary"
             >
               Cancel
-            </button>
+            </Button>
 
             {mode === 'search' ? (
-              <button
-                type="button"
+              <Button
                 onClick={saveFromSearch}
                 disabled={!canSaveSearchMode}
-                className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+                variant="primary"
+                loading={saveLoading}
               >
-                {saveLoading ? 'Saving…' : 'Save Selected Place'}
-              </button>
+                Save Selected Place
+              </Button>
             ) : (
-              <button
-                type="button"
+              <Button
                 onClick={saveFromManual}
                 disabled={!canSaveManualMode}
-                className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+                variant="primary"
+                loading={saveLoading}
               >
-                {saveLoading ? 'Saving…' : 'Save Manual Place'}
-              </button>
+                Save Manual Place
+              </Button>
             )}
           </div>
         </div>

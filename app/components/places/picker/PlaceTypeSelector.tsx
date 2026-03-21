@@ -1,6 +1,7 @@
 'use client'
 
 import { PLACE_TYPE_OPTIONS, type PlaceType } from '@/lib/places'
+import Chip from '@/app/components/ui/Chip'
 
 type PlaceTypeSelectorProps = {
   value: PlaceType
@@ -16,19 +17,15 @@ export default function PlaceTypeSelector({ value, onChange }: PlaceTypeSelector
           const active = option.value === value
 
           return (
-            <button
+            <Chip
               key={option.value}
-              type="button"
               onClick={() => onChange(option.value)}
-              className={`rounded-xl border px-3 py-2 text-left text-sm transition ${
-                active
-                  ? 'border-black bg-black text-white'
-                  : 'border-gray-200 bg-white hover:border-gray-400'
-              }`}
+              selected={active}
+              className="justify-start rounded-xl px-3 py-2 text-left"
             >
               <span className="mr-2">{option.emoji}</span>
               {option.label}
-            </button>
+            </Chip>
           )
         })}
       </div>

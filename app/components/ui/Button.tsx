@@ -1,0 +1,68 @@
+import * as React from 'react'
+import { cn } from '@/lib/utils/cn'
+
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type ButtonSize = 'sm' | 'md' | 'lg'
+
+const variantClasses: Record<ButtonVariant, string> = {
+  primary:
+    'border-transparent bg-black text-white shadow-sm hover:bg-gray-800 active:bg-gray-900 active:shadow-none',
+  secondary:
+    'border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 active:shadow-none',
+  ghost:
+    'border-transparent bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+  danger:
+    'border-transparent bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800 active:shadow-none',
+}
+
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: 'h-9 px-3 text-sm',
+  md: 'h-11 px-4 text-sm',
+  lg: 'h-12 px-5 text-base',
+}
+
+export function buttonClass(options?: {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  loading?: boolean
+  className?: string
+}) {
+  const variant = options?.variant ?? 'secondary'
+  const size = options?.size ?? 'md'
+
+  return cn(
+    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-xl border font-medium transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 disabled:pointer-events-none disabled:opacity-50',
+    variantClasses[variant],
+    sizeClasses[size],
+    options?.className
+  )
+}
+
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  loading?: boolean
+}
+
+export default function Button({
+  className,
+  variant = 'secondary',
+  size = 'md',
+  loading = false,
+  disabled,
+  children,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      className={buttonClass({ variant, size, loading, className })}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading ? (
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      ) : null}
+      {children}
+    </button>
+  )
+}

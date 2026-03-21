@@ -2,6 +2,7 @@
 
 import { getEmoji } from '@/lib/utils/getEmoji'
 import { Activity as ActivityType } from '@/types/trip'
+import { buttonClass } from '@/app/components/ui/Button'
 
 export type TodayItem = Pick<
   ActivityType,
@@ -44,7 +45,7 @@ export default function TimelineItemCard({
       className={`flex gap-3 rounded-xl border p-4 transition-all ${
         isDone
           ? 'border-gray-100 bg-gray-50 opacity-60'
-          : 'border-gray-200 bg-white shadow-sm'
+          : 'border-gray-200 bg-white shadow-sm active:scale-[0.995]'
       }`}
     >
       {/* Done toggle */}
@@ -89,21 +90,21 @@ export default function TimelineItemCard({
           <button
             onClick={() => onMoveUp(item)}
             disabled={!canMoveUp || isActing}
-            className="rounded-lg border px-2 py-0.5 text-xs text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
+            className={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs text-gray-600' })}
           >
             ↑
           </button>
           <button
             onClick={() => onMoveDown(item)}
             disabled={!canMoveDown || isActing}
-            className="rounded-lg border px-2 py-0.5 text-xs text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
+            className={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs text-gray-600' })}
           >
             ↓
           </button>
           <button
             onClick={() => onDelete(item)}
             disabled={isActing}
-            className="ml-auto rounded-lg px-2 py-0.5 text-xs text-red-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
+            className={buttonClass({ size: 'sm', variant: 'ghost', className: 'ml-auto h-8 px-2.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-600' })}
           >
             Remove
           </button>

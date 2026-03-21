@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 import StoryOptionsForm from '@/app/components/story/StoryOptionsForm'
 import StoryPreviewCard from '@/app/components/story/StoryPreviewCard'
+import Button from '@/app/components/ui/Button'
+import { useToast } from '@/app/components/ui/ToastProvider'
 import {
   type DayStoryFocus,
   type PlaceStoryTypeOption,
@@ -67,6 +69,7 @@ export default function StoryGenerationSheet({
   triggerClassName = 'rounded-lg border px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50',
   onSaved,
 }: StoryGenerationSheetProps) {
+  const { showToast } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [tone, setTone] = useState<StoryTone>('warm_personal')
   const [length, setLength] = useState<StoryLength>('medium')
@@ -117,8 +120,11 @@ export default function StoryGenerationSheet({
 
       setDraft(json.draft)
       setMeta(json.meta)
+      showToast('Story draft generated.', 'success')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Story generation failed.')
+      const message = err instanceof Error ? err.message : 'Story generation failed.'
+      setError(message)
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -129,6 +135,7 @@ export default function StoryGenerationSheet({
     await copyText(draft.content)
     setCopyState('copied')
     setTimeout(() => setCopyState('idle'), 1400)
+    showToast('Story copied to clipboard.', 'success')
   }
 
   async function handleSave() {
@@ -160,8 +167,11 @@ export default function StoryGenerationSheet({
       if (!res.ok) throw new Error(json.error || 'Failed to save story.')
 
       onSaved?.()
+      showToast('Story saved to memories.', 'success')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save story.')
+      const message = err instanceof Error ? err.message : 'Failed to save story.'
+      setError(message)
+      showToast(message, 'error')
     } finally {
       setSaving(false)
     }
@@ -169,7 +179,10 @@ export default function StoryGenerationSheet({
 
   return (
     <>
-      <button className={triggerClassName} onClick={() => setIsOpen(true)}>
+      <button
+        className={`${triggerClassName} min-h-10 transition-all duration-150 active:scale-[0.98]`}
+        onClick={() => setIsOpen(true)}
+      >
         ✍️ {triggerLabel}
       </button>
 
@@ -208,13 +221,15 @@ export default function StoryGenerationSheet({
                   onPlaceStoryTypeChange={setPlaceStoryType}
                 />
 
-                <button
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={handleGenerate}
-                  disabled={loading}
-                  className="w-full rounded-xl bg-black px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                  loading={loading}
+                  className="w-full"
                 >
-                  {loading ? 'Generating…' : draft ? 'Regenerate' : 'Generate Story'}
-                </button>
+                  {draft ? 'Regenerate Story' : 'Generate Story'}
+                </Button>
               </div>
 
               <div className="space-y-3">
@@ -236,28 +251,31 @@ export default function StoryGenerationSheet({
 
             <div className="border-t px-5 py-4">
               <div className="grid gap-3 sm:grid-cols-3">
-                <button
+                <Button
                   onClick={handleCopy}
                   disabled={!draft}
-                  className="rounded-xl border px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                  variant="secondary"
+                  className="w-full"
                 >
                   {copyState === 'copied' ? 'Copied' : 'Copy'}
-                </button>
+                </Button>
 
-                <button
+                <Button
                   onClick={handleSave}
-                  disabled={!draft || saving}
-                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
+                  disabled={!draft}
+                  loading={saving}
+                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800"
                 >
-                  {saving ? 'Saving…' : 'Save to Memories'}
-                </button>
+                  Save to Memories
+                </Button>
 
-                <button
+                <Button
                   onClick={() => setIsOpen(false)}
-                  className="rounded-xl border px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  variant="ghost"
+                  className="w-full"
                 >
                   Close
-                </button>
+                </Button>
               </div>
             </div>
           </div>

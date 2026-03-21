@@ -22,11 +22,12 @@ export default function PlaceAutocompleteInput({
           onChange={(event) => onChange(event.target.value)}
           disabled={disabled}
           placeholder="Type at least 2 characters"
-          className="w-full rounded-xl border px-3 py-2 pr-10 text-sm outline-none focus:border-gray-400 disabled:bg-gray-50"
+          className="h-11 w-full rounded-xl border border-gray-200 px-3 pr-14 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10 disabled:bg-gray-50"
         />
 
         {loading ? (
-          <div className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-400">
+          <div className="absolute inset-y-0 right-3 flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
             Loading…
           </div>
         ) : null}

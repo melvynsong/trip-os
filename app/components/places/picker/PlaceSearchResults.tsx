@@ -30,7 +30,7 @@ export default function PlaceSearchResults({
 
   if (!minCharsMet) {
     return (
-      <div className="rounded-xl border border-dashed p-3 text-sm text-gray-400">
+      <div className="rounded-xl border border-dashed p-3 text-sm text-gray-500">
         Keep typing to search places.
       </div>
     )
@@ -39,7 +39,10 @@ export default function PlaceSearchResults({
   if (loading) {
     return (
       <div className="rounded-xl border border-dashed p-3 text-sm text-gray-500">
-        Searching places…
+        <div className="inline-flex items-center gap-2">
+          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          Searching places…
+        </div>
       </div>
     )
   }
@@ -67,7 +70,7 @@ export default function PlaceSearchResults({
           <button
             type="button"
             onClick={() => onSelect(suggestion)}
-            className="w-full px-3 py-2 text-left hover:bg-gray-50"
+            className="w-full min-h-11 px-3 py-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
           >
             <div className="text-sm font-medium">{suggestion.mainText}</div>
             <div className="text-xs text-gray-500">{suggestion.secondaryText || suggestion.description}</div>

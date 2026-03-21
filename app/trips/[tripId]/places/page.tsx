@@ -3,6 +3,8 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PlaceCard from '@/app/components/places/PlaceCard'
 import PageHeader from '@/app/components/shared/PageHeader'
+import EmptyState from '@/app/components/ui/EmptyState'
+import { buttonClass } from '@/app/components/ui/Button'
 import { Trip as TripType, Place as PlaceType } from '@/types/trip'
 
 type Props = {
@@ -77,12 +79,12 @@ export default async function PlacesPage({ params }: Props) {
         subtitle={`${trip.destination} · Saved Places`}
         actions={
           <div className="flex flex-wrap gap-3">
-            <Link href={`/trips/${tripId}`} className="rounded-xl border px-4 py-2">
+            <Link href={`/trips/${tripId}`} className={buttonClass({ variant: 'secondary' })}>
               ← Back to Trip
             </Link>
             <Link
               href={`/trips/${tripId}/places/new`}
-              className="rounded-xl bg-black px-4 py-2 text-white"
+              className={buttonClass({ variant: 'primary' })}
             >
               + Save Place
             </Link>
@@ -97,9 +99,10 @@ export default async function PlacesPage({ params }: Props) {
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed p-10 text-center text-gray-500">
-          No saved places yet. Add one to get started.
-        </div>
+        <EmptyState
+          title="No saved places yet"
+          description="Save places to build a richer itinerary and story memory feed."
+        />
       )}
     </main>
   )

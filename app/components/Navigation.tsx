@@ -40,21 +40,28 @@ export default function Navigation() {
 
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
-      <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold hover:opacity-80">
+      <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:py-4">
+        <Link
+          href="/"
+          className="rounded-lg px-2 py-1 text-2xl font-bold transition hover:bg-white/10 active:scale-[0.98]"
+        >
           Trip.OS
         </Link>
 
-        <div className="flex gap-6 items-center">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Link
             href="/"
-            className={`${isActive('/') ? 'font-bold underline' : ''} hover:opacity-80`}
+            className={`rounded-lg px-3 py-2 text-sm transition active:scale-[0.98] ${
+              isActive('/') ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+            }`}
           >
             Home
           </Link>
           <Link
             href="/trips"
-            className={`${isActive('/trips') ? 'font-bold underline' : ''} hover:opacity-80`}
+            className={`rounded-lg px-3 py-2 text-sm transition active:scale-[0.98] ${
+              isActive('/trips') ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+            }`}
           >
             Trips
           </Link>
@@ -62,7 +69,9 @@ export default function Navigation() {
           {!loading && !user && (
             <Link
               href="/login"
-              className={`${isActive('/login') ? 'font-bold underline' : ''} hover:opacity-80`}
+              className={`rounded-lg px-3 py-2 text-sm transition active:scale-[0.98] ${
+                isActive('/login') ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+              }`}
             >
               Login
             </Link>
@@ -71,7 +80,7 @@ export default function Navigation() {
           {!loading && user && (
             <button
               onClick={handleLogout}
-              className="hover:opacity-80 transition"
+              className="min-h-10 rounded-lg px-3 py-2 text-sm transition hover:bg-white/10 active:scale-[0.98]"
             >
               Logout
             </button>
