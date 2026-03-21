@@ -6,8 +6,10 @@ type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'titl
 
 type DayCardActivity = Pick<
   ActivityType,
-  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
->
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id'
+> & {
+  places: { id: string; name: string } | null
+}
 
 type DayCardProps = {
   tripId: string

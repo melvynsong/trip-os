@@ -3,8 +3,10 @@ import { getEmoji } from '@/lib/utils/getEmoji'
 
 type ActivityCardActivity = Pick<
   ActivityType,
-  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
->
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id'
+> & {
+  places: { id: string; name: string } | null
+}
 
 type ActivityCardProps = {
   activity: ActivityCardActivity
@@ -23,6 +25,10 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
       </div>
 
       <div className="mt-1 text-sm text-gray-500 capitalize">{activity.type}</div>
+
+      {activity.places && (
+        <div className="mt-1 text-xs text-blue-600">📍 {activity.places.name}</div>
+      )}
 
       {activity.notes ? (
         <div className="mt-2 text-sm text-gray-700">{activity.notes}</div>

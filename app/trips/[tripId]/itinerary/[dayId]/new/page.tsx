@@ -39,6 +39,12 @@ export default async function NewActivityPage({ params }: Props) {
     notFound()
   }
 
+  const { data: places } = await supabase
+    .from('places')
+    .select('id, name')
+    .eq('trip_id', tripId)
+    .order('name', { ascending: true })
+
   async function createActivity(formData: FormData) {
     'use server'
 
@@ -56,6 +62,7 @@ export default async function NewActivityPage({ params }: Props) {
     const activity_time = String(formData.get('activity_time') || '').trim()
     const type = String(formData.get('type') || 'other').trim()
     const notes = String(formData.get('notes') || '').trim()
+    const place_id = String(formData.get('place_id') || '').trim()
 
     if (!title) {
       throw new Error('Title is required')
@@ -67,6 +74,7 @@ export default async function NewActivityPage({ params }: Props) {
       activity_time: activity_time || null,
       type,
       notes: notes || null,
+      place_id: place_id || null,
       status: 'planned',
       sort_order: 0,
     })
@@ -123,6 +131,20 @@ export default async function NewActivityPage({ params }: Props) {
             <option value="other">Other</option>
           </select>
         </div>
+
+        {places && places.length > 0 && (
+          <div>
+            <label className="mb-1 block text-sm font-medium">Saved Place (optional)</label>
+            <select name="place_id" className="w-full rounded-xl border px-3 py-2">
+              <option value="">— None —</option>
+              {places.map((place) => (
+                <option key={place.id} value={place.id}>
+                  {place.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="mb-1 block text-sm font-medium">Notes</label>
