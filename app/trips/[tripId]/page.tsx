@@ -112,6 +112,12 @@ export default async function ItineraryPage({ params }: Props) {
             >
               View Itinerary
             </Link>
+            <Link
+              href={`/trips/${tripId}/places`}
+              className="rounded-xl border px-4 py-2"
+            >
+              Saved Places
+            </Link>
           </div>
         }
       />
