@@ -1,55 +1,22 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
-function getEmoji(type: string) {
-  switch (type) {
-    case 'food':
-      return '🍜'
-    case 'attraction':
-      return '📍'
-    case 'shopping':
-      return '🛍️'
-    case 'transport':
-      return '🚗'
-    case 'hotel':
-      return '🏨'
-    case 'note':
-      return '📝'
-    default:
-      return '📌'
-  }
-}
+import PageHeader from '@/app/components/shared/PageHeader'
+import { getEmoji } from '@/lib/utils/getEmoji'
+import { Trip as TripType, Day as DayType, Activity as ActivityType } from '@/types/trip'
 
 type Props = {
   params: Promise<{ tripId: string }>
 }
 
-type Trip = {
-  id: string
-  title: string
-  destination: string
-  start_date: string
-  end_date: string
-}
+type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
 
-type Day = {
-  id: string
-  trip_id: string
-  day_number: number
-  date: string
-  title: string | null
-}
+type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
-type Activity = {
-  id: string
-  day_id: string
-  title: string
-  activity_time: string | null
-  type: string
-  notes: string | null
-  sort_order: number
-}
+type Activity = Pick<
+  ActivityType,
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
+>
 
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
@@ -131,22 +98,23 @@ export default async function ItineraryPage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{trip.title}</h1>
-        <p className="text-gray-600">{trip.destination}</p>
-        <p className="text-sm text-gray-500">
-          {trip.start_date} → {trip.end_date}
-        </p>
-      </div>
-
-      <div className="mb-6">
-        <Link
-          href={`/trips/${tripId}`}
-          className="rounded-xl border px-4 py-2"
-        >
-          ← Back to Trip
-        </Link>
-      </div>
+      <PageHeader
+        title={trip.title}
+        subtitle={`${trip.destination} · ${trip.start_date} → ${trip.end_date}`}
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Link href="/trips" className="rounded-xl border px-4 py-2">
+              ← Back to Trips
+            </Link>
+            <Link
+              href={`/trips/${tripId}/itinerary`}
+              className="rounded-xl border px-4 py-2"
+            >
+              View Itinerary
+            </Link>
+          </div>
+        }
+      />
 
       <div className="space-y-6">
         {days.map((day) => {

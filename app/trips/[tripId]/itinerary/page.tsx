@@ -1,55 +1,21 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
-function getEmoji(type: string) {
-  switch (type) {
-    case 'food':
-      return '🍜'
-    case 'attraction':
-      return '📍'
-    case 'shopping':
-      return '🛍️'
-    case 'transport':
-      return '🚗'
-    case 'hotel':
-      return '🏨'
-    case 'note':
-      return '📝'
-    default:
-      return '📌'
-  }
-}
+import DayCard from '@/app/components/itinerary/DayCard'
+import { Trip as TripType, Day as DayType, Activity as ActivityType } from '@/types/trip'
 
 type Props = {
   params: Promise<{ tripId: string }>
 }
 
-type Trip = {
-  id: string
-  title: string
-  destination: string
-  start_date: string
-  end_date: string
-}
+type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
 
-type Day = {
-  id: string
-  trip_id: string
-  day_number: number
-  date: string
-  title: string | null
-}
+type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
-type Activity = {
-  id: string
-  day_id: string
-  title: string
-  activity_time: string | null
-  type: string
-  notes: string | null
-  sort_order: number
-}
+type Activity = Pick<
+  ActivityType,
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
+>
 
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
@@ -154,58 +120,7 @@ export default async function ItineraryPage({ params }: Props) {
             (activity) => activity.day_id === day.id
           )
 
-          return (
-            <div key={day.id} className="rounded-2xl border p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-lg">
-                    Day {day.day_number}
-                    {day.title ? ` — ${day.title}` : ''}
-                  </div>
-                  <div className="text-sm text-gray-500">{day.date}</div>
-                </div>
-
-                <Link
-                  href={`/trips/${tripId}/itinerary/${day.id}/new`}
-                  className="rounded-lg border px-3 py-1 text-sm"
-                >
-                  + Add Activity
-                </Link>
-              </div>
-
-              {dayActivities.length > 0 ? (
-                <div className="space-y-3">
-                  {dayActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="border-l-4 border-blue-500 pl-4 py-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium">
-                          {getEmoji(activity.type)} {activity.title}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {activity.activity_time || 'No time'}
-                        </div>
-                      </div>
-
-                      <div className="mt-1 text-sm text-gray-500 capitalize">
-                        {activity.type}
-                      </div>
-
-                      {activity.notes ? (
-                        <div className="mt-2 text-sm text-gray-700">
-                          {activity.notes}
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-400">No activities yet</div>
-              )}
-            </div>
-          )
+          return <DayCard key={day.id} tripId={tripId} day={day} activities={dayActivities} />
         })}
       </div>
     </main>

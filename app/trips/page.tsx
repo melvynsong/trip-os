@@ -1,6 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import PageHeader from '@/app/components/shared/PageHeader'
+import TripCard from '@/app/components/trips/TripCard'
+import { Trip as TripType } from '@/types/trip'
+
+type TripListItem = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
 
 export default async function TripsPage() {
   const supabase = await createClient()
@@ -15,8 +20,9 @@ export default async function TripsPage() {
 
   const { data: trips, error } = await supabase
     .from('trips')
-    .select('*')
+    .select('id, title, destination, start_date, end_date')
     .order('start_date', { ascending: true })
+    .returns<TripListItem[]>()
 
   if (error) {
     return <div className="p-6">Failed to load trips.</div>
@@ -24,36 +30,23 @@ export default async function TripsPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Trips</h1>
-          <p className="text-sm text-gray-500">
-            Create and manage your travel plans.
-          </p>
-        </div>
-
-        <Link
-          href="/trips/new"
-          className="rounded-xl bg-black px-4 py-2 text-white"
-        >
-          + Create Trip
-        </Link>
-      </div>
+      <PageHeader
+        title="My Trips"
+        subtitle="Create and manage your travel plans."
+        actions={
+          <Link
+            href="/trips/new"
+            className="rounded-xl bg-black px-4 py-2 text-white"
+          >
+            + Create Trip
+          </Link>
+        }
+      />
 
       {trips && trips.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {trips.map((trip) => (
-            <Link
-              key={trip.id}
-              href={`/trips/${trip.id}`}
-              className="block rounded-2xl border p-5 shadow-sm transition hover:shadow-md"
-            >
-              <div className="mb-2 text-xl font-semibold">{trip.title}</div>
-              <div className="text-sm text-gray-600">{trip.destination}</div>
-              <div className="mt-3 text-sm text-gray-500">
-                {trip.start_date} → {trip.end_date}
-              </div>
-            </Link>
+            <TripCard key={trip.id} trip={trip} />
           ))}
         </div>
       ) : (
