@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export default async function HomePage() {
   const cookieStore = await cookies()
@@ -21,15 +22,15 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  if (user) {
+    redirect('/trips')
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div className="rounded-2xl bg-white p-8 shadow-lg text-center">
         <h1 className="text-4xl font-bold mb-4">Trip.OS</h1>
-        {user ? (
-          <p className="text-green-600">Logged in as {user.email}</p>
-        ) : (
-          <p className="text-red-600">Not logged in</p>
-        )}
+        <p className="text-red-600">Not logged in</p>
       </div>
     </main>
   )
