@@ -61,7 +61,7 @@ export default async function TodayPage({ params }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   // Load trip

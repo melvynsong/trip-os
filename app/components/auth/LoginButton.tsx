@@ -2,7 +2,15 @@
 
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginButton() {
+type LoginButtonProps = {
+  label?: string
+  className?: string
+}
+
+export default function LoginButton({
+  label = 'Continue with Google',
+  className = 'rounded-xl bg-black px-6 py-3 text-white',
+}: LoginButtonProps) {
   const handleLogin = async () => {
     const supabase = createClient()
 
@@ -20,9 +28,9 @@ export default function LoginButton() {
   return (
     <button
       onClick={handleLogin}
-      className="rounded-xl bg-black px-6 py-3 text-white"
+      className={className}
     >
-      Continue with Google
+      {label}
     </button>
   )
 }

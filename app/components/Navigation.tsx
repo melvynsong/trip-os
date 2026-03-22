@@ -69,17 +69,6 @@ export default function Navigation() {
             Trips
           </Link>
 
-          {!loading && !user && (
-            <Link
-              href="/login"
-              className={`rounded-lg px-3 py-2 text-sm transition active:scale-[0.98] ${
-                isActive('/login') ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
-              }`}
-            >
-              Login
-            </Link>
-          )}
-
           {!loading && user && (
             <button
               onClick={handleLogout}

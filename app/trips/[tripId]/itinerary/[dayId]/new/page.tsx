@@ -16,7 +16,7 @@ export default async function NewActivityPage({ params }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trip, error: tripError } = await supabase
@@ -56,7 +56,7 @@ export default async function NewActivityPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const title = String(formData.get('title') || '').trim()

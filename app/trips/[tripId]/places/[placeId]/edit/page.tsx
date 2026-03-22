@@ -16,7 +16,7 @@ export default async function EditPlacePage({ params }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trip, error: tripError } = await supabase
@@ -52,7 +52,7 @@ export default async function EditPlacePage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const name = String(formData.get('name') || '').trim()
@@ -97,7 +97,7 @@ export default async function EditPlacePage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const { error } = await supabase

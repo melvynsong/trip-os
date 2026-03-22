@@ -20,7 +20,7 @@ export default async function EditActivityPage({ params }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trip, error: tripError } = await supabase
@@ -71,7 +71,7 @@ export default async function EditActivityPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const title = String(formData.get('title') || '').trim()
@@ -113,7 +113,7 @@ export default async function EditActivityPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const { error } = await supabase

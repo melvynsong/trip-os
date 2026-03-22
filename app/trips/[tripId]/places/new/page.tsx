@@ -38,7 +38,7 @@ export default async function NewPlacePage({ params, searchParams }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trip, error: tripError } = await supabase

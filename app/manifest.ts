@@ -1,11 +1,11 @@
 import type { MetadataRoute } from 'next'
-import { branding } from '@/lib/branding'
+import { branding as BRAND } from '@/lib/branding'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: branding.appName,
-    short_name: branding.shortName,
-    description: branding.description,
+    name: BRAND.appName,
+    short_name: BRAND.shortName,
+    description: BRAND.description,
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

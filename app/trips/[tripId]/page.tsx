@@ -153,7 +153,7 @@ export default async function TripDashboardPage({ params }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trip, error: tripError } = await supabase

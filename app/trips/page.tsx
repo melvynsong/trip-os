@@ -26,7 +26,7 @@ export default async function TripsPage() {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const { data: ownedTrip } = await supabase
@@ -62,7 +62,7 @@ export default async function TripsPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trips, error } = await supabase

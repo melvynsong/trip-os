@@ -37,7 +37,7 @@ export default async function ItineraryPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/login')
+      redirect('/')
     }
 
     const dayId = String(formData.get('day_id') || '').trim()
@@ -111,7 +111,7 @@ export default async function ItineraryPage({ params }: Props) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/')
   }
 
   const { data: trip, error: tripError } = await supabase

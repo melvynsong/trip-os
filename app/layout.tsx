@@ -4,7 +4,7 @@ import "./globals.css";
 import Navigation from "@/app/components/Navigation";
 import DeploymentFooter from "@/app/components/DeploymentFooter";
 import ToastProvider from "@/app/components/ui/ToastProvider";
-import { branding } from "@/lib/branding";
+import { branding as BRAND } from "@/lib/branding";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: branding.appName,
-    template: `%s | ${branding.shortName}`,
+    default: BRAND.appName,
+    template: `%s | ${BRAND.shortName}`,
   },
-  description: branding.description,
-  metadataBase: new URL(branding.siteUrl),
+  description: BRAND.description,
+  metadataBase: new URL(BRAND.siteUrl),
   robots: {
     index: false,
     follow: false,
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    url: branding.siteUrl,
-    siteName: branding.appName,
-    title: branding.appName,
-    description: branding.description,
+    url: BRAND.siteUrl,
+    siteName: BRAND.appName,
+    title: BRAND.appName,
+    description: BRAND.description,
   },
 };
 
