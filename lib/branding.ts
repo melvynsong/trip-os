@@ -1,4 +1,14 @@
 const appName = process.env.NEXT_PUBLIC_APP_NAME || 'ToGoStory'
+let hasWarnedAboutSiteUrl = false
+
+function warnInvalidSiteUrl(raw: string) {
+  if (hasWarnedAboutSiteUrl) return
+
+  hasWarnedAboutSiteUrl = true
+  console.warn(
+    `[branding] Ignoring invalid NEXT_PUBLIC_SITE_URL value: ${raw}. Falling back to a safe default origin.`
+  )
+}
 
 function resolveSiteUrl() {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim()
@@ -7,7 +17,13 @@ function resolveSiteUrl() {
     const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
     try {
       return new URL(candidate).origin
-    } catch {}
+    } catch {
+      warnInvalidSiteUrl(raw)
+    }
+  }
+
+  if (raw === 'NEXT_PUBLIC_SITE_URL') {
+    warnInvalidSiteUrl(raw)
   }
 
   if (typeof window !== 'undefined') {
