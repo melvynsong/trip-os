@@ -104,7 +104,7 @@ export default async function TodayPage({ params }: Props) {
           <div className="text-3xl">📅</div>
           <div className="mt-2 font-medium">No itinerary days found</div>
           <div className="mt-1 text-sm">
-            Generate your itinerary first, then come back to Today View.
+            Go make today count — generate your itinerary first, then come back to Today View.
           </div>
           <Link
             href={`/trips/${tripId}/ai-itinerary`}

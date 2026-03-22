@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import BrandLine from '@/app/components/shared/BrandLine'
 
 export default function DeploymentFooter() {
   let deploymentTime = 'Latest version deployed'
@@ -15,6 +16,7 @@ export default function DeploymentFooter() {
 
   return (
     <footer className="border-t bg-gray-50 py-4 text-center text-sm text-gray-600 mt-12">
+      <BrandLine className="mb-1 text-gray-400" />
       <p>Version Deployed: {deploymentTime}</p>
     </footer>
   )

@@ -6,6 +6,7 @@ import PageHeader from '@/app/components/shared/PageHeader'
 import TripCard from '@/app/components/trips/TripCard'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
+import BrandLine from '@/app/components/shared/BrandLine'
 import { Trip as TripType } from '@/types/trip'
 
 type TripListItem = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
@@ -78,7 +79,12 @@ export default async function TripsPage() {
     <main className="mx-auto max-w-5xl p-6">
       <PageHeader
         title="My Trips"
-        subtitle="Create and manage your travel plans."
+        subtitle={
+          <span className="inline-flex items-center gap-2">
+            <span>Create and manage your travel plans.</span>
+            <BrandLine className="text-gray-400" />
+          </span>
+        }
         actions={
           <Link
             href="/trips/new"
@@ -98,7 +104,7 @@ export default async function TripsPage() {
       ) : (
         <EmptyState
           title="No trips yet"
-          description="Create your first trip to start planning your itinerary."
+          description="Plan your next escape by creating your first trip."
         />
       )}
     </main>

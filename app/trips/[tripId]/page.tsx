@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import BrandLine from '@/app/components/shared/BrandLine'
 import {
   QuickActionsGrid,
   SavedPlacesCarousel,
@@ -340,10 +341,21 @@ export default async function TripDashboardPage({ params }: Props) {
           }
         />
 
+        <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <BrandLine className="text-gray-500" />
+            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+              <span className="rounded-full border border-gray-200 px-2 py-1">Plan</span>
+              <span className="rounded-full border border-gray-200 px-2 py-1">Go</span>
+              <span className="rounded-full border border-gray-200 px-2 py-1">Share</span>
+            </div>
+          </div>
+        </section>
+
         <section>
           <SectionHeader
             title="Today"
-            subtitle="See what’s happening now and what’s next"
+            subtitle="Go make today count — see what’s happening now and what’s next"
           />
           {activeDay ? (
             <TodayCard
@@ -363,7 +375,7 @@ export default async function TripDashboardPage({ params }: Props) {
         <section>
           <SectionHeader
             title="Quick Actions"
-            subtitle="Jump into the next planning step"
+            subtitle="Plan your next move in one tap"
           />
           <QuickActionsGrid actions={quickActions} />
         </section>
@@ -394,7 +406,7 @@ export default async function TripDashboardPage({ params }: Props) {
           <SectionHeader title="Memories" subtitle="Future-ready" />
           <EmptyState
             title="Memories and summaries coming soon"
-            description="This area will showcase your stories, day recaps, and trip highlights."
+            description="Share the moments that mattered with stories, day recaps, and highlights."
           />
         </section>
       </div>
