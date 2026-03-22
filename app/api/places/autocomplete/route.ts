@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { mapPlaceTypeToSearchKeyword, type PlaceType } from '@/lib/places'
+import { branding } from '@/lib/branding'
 import { toExternalPlaceId } from '@/app/api/places/shared'
 
 export const runtime = 'nodejs'
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
       cache: 'no-store',
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'Trip.OS/1.0 (places search)',
+        'User-Agent': `${branding.appName}/1.0 (places search)`,
       },
     })
 

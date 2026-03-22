@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import BrandLine from '@/app/components/shared/BrandLine'
+import { branding } from '@/lib/branding'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -46,7 +47,7 @@ export default function Navigation() {
           href="/"
           className="rounded-lg px-2 py-1 transition hover:bg-white/10 active:scale-[0.98]"
         >
-          <div className="text-2xl font-bold">Trip.OS</div>
+          <div className="text-2xl font-bold">{branding.appName}</div>
           <BrandLine compact className="mt-0.5 text-white/80" />
         </Link>
 

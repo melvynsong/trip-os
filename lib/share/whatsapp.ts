@@ -1,4 +1,5 @@
 import { getEmoji } from '@/lib/utils/getEmoji'
+import { branding } from '@/lib/branding'
 
 export type ShareLength = 'short' | 'detailed'
 export type ShareTone = 'default' | 'family'
@@ -160,9 +161,9 @@ function groupByPeriod(activities: ShareActivity[]) {
 
 function buildToneFooter(tone: ShareTone) {
   if (tone === 'family') {
-    return '❤️ Shared from Trip.OS'
+    return `❤️ Shared from ${branding.appName} · ${branding.domain}`
   }
-  return '📲 Shared via Trip.OS'
+  return `📲 Shared via ${branding.appName} · ${branding.domain}`
 }
 
 export function buildWhatsAppShareUrl(text: string) {

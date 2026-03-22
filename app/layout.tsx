@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "./components/Navigation";
 import DeploymentFooter from "./components/DeploymentFooter";
 import ToastProvider from "./components/ui/ToastProvider";
+import { branding } from "@/lib/branding";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trip.OS",
-  description: "Your AI travel second brain",
+  title: branding.appName,
+  description: branding.description,
+  metadataBase: new URL(branding.siteUrl),
 };
 
 export default function RootLayout({

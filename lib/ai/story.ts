@@ -9,6 +9,7 @@ import {
   type StoryLength,
   type StoryTone,
 } from '@/lib/story/types'
+import { branding } from '@/lib/branding'
 
 export type StoryDraft = {
   title: string | null
@@ -102,7 +103,7 @@ export function buildDayStoryPrompt(input: {
   const targetStoryType = dayStoryTypeFromFocus(input.focus)
 
   const prompt = [
-    'You are Trip.OS story writer. Turn structured travel data into a human story draft.',
+    `You are ${branding.appName} story writer. Turn structured travel data into a human story draft.`,
     '',
     'Task: Write ONE day-level story draft from the JSON context below.',
     `Tone: ${TONE_LABEL[input.tone]}`,
@@ -134,7 +135,7 @@ export function buildPlaceStoryPrompt(input: {
   const targetStoryType = placeStoryTypeFromOption(input.storyOption, input.context.entityKind)
 
   const prompt = [
-    'You are Trip.OS story writer. Turn structured travel data into a grounded memory note.',
+    `You are ${branding.appName} story writer. Turn structured travel data into a grounded memory note.`,
     '',
     'Task: Write ONE place/activity-level story draft from the JSON context below.',
     `Tone: ${TONE_LABEL[input.tone]}`,
