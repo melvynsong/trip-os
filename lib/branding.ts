@@ -1,6 +1,6 @@
 export const branding = {
-  appName: 'TogoStory',
-  shortName: 'TogoStory',
+  appName: 'ToGoStory',
+  shortName: 'ToGoStory',
   domain: 'togostory.com',
   siteUrl: 'https://togostory.com',
   description: 'Plan, go, share.',

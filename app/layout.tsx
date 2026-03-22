@@ -17,9 +17,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: branding.appName,
+  title: {
+    default: branding.appName,
+    template: `%s | ${branding.shortName}`,
+  },
   description: branding.description,
   metadataBase: new URL(branding.siteUrl),
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      'max-snippet': -1,
+      'max-image-preview': 'none',
+      'max-video-preview': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    url: branding.siteUrl,
+    siteName: branding.appName,
+    title: branding.appName,
+    description: branding.description,
+  },
 };
 
 export default function RootLayout({
