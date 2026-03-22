@@ -14,11 +14,16 @@ export default function LoginButton({
 }: LoginButtonProps) {
   const handleLogin = async () => {
     const supabase = createClient()
+    const callbackOrigin =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? window.location.origin
+        : `https://${branding.domain}`
 
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${branding.siteUrl}/auth/callback`,
+        redirectTo: `${callbackOrigin}/auth/callback`,
       },
     })
   }
