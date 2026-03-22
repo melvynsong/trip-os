@@ -1,6 +1,6 @@
 'use client'
 
-import TimelineItemCard, { type TodayItem } from './TimelineItemCard'
+import TimelineItemCard, { type TodayItem } from '@/app/components/today/TimelineItemCard'
 
 type TimePeriod = 'morning' | 'afternoon' | 'evening' | 'unscheduled'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { getPlaceTypeEmoji, getPlaceTypeLabel, type PlaceType } from '@/lib/places'
-import PlaceMapPreview from './PlaceMapPreview'
+import PlaceMapPreview from '@/app/components/places/picker/PlaceMapPreview'
 
 export type SelectedPlaceDetails = {
   name: string

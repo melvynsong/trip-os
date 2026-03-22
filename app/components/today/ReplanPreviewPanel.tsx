@@ -2,7 +2,7 @@
 
 import { getEmoji } from '@/lib/utils/getEmoji'
 import { type AiReplanResult } from '@/lib/ai/today'
-import { type TodayItem } from './TimelineItemCard'
+import { type TodayItem } from '@/app/components/today/TimelineItemCard'
 
 type ReplanPreviewPanelProps = {
   draft: AiReplanResult

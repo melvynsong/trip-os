@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { type PlaceType } from '@/lib/places'
-import PlaceTypeSelector from './PlaceTypeSelector'
-import PlaceAutocompleteInput from './PlaceAutocompleteInput'
-import PlaceSearchResults, { type PlaceSuggestion } from './PlaceSearchResults'
-import PlacePreviewCard, { type SelectedPlaceDetails } from './PlacePreviewCard'
+import PlaceTypeSelector from '@/app/components/places/picker/PlaceTypeSelector'
+import PlaceAutocompleteInput from '@/app/components/places/picker/PlaceAutocompleteInput'
+import PlaceSearchResults, { type PlaceSuggestion } from '@/app/components/places/picker/PlaceSearchResults'
+import PlacePreviewCard, { type SelectedPlaceDetails } from '@/app/components/places/picker/PlacePreviewCard'
 
 type PlaceOption = {
   id: string
