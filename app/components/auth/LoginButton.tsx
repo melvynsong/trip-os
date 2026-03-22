@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { branding } from '@/lib/branding'
 
 type LoginButtonProps = {
   label?: string
@@ -17,10 +18,7 @@ export default function LoginButton({
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo:
-          typeof window !== 'undefined'
-            ? `${window.location.origin}/auth/callback`
-            : undefined,
+        redirectTo: `${branding.siteUrl}/auth/callback`,
       },
     })
   }
