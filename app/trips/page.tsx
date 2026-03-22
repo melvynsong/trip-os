@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserEntitlements } from '@/lib/membership/server'
 import PageHeader from '@/app/components/shared/PageHeader'
 import TripCard from '@/app/components/trips/TripCard'
 import EmptyState from '@/app/components/ui/EmptyState'
@@ -11,8 +12,21 @@ import { Trip as TripType } from '@/types/trip'
 
 type TripListItem = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
 
-export default async function TripsPage() {
+type TripsPageProps = {
+  searchParams?: Promise<{ error?: string }>
+}
+
+export default async function TripsPage({ searchParams }: TripsPageProps) {
   const supabase = await createClient()
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const pageError = resolvedSearchParams?.error
+
+  const deleteBlockedMessage =
+    pageError === 'delete_not_allowed'
+      ? 'Free tier cannot delete trips. Upgrade to Friend tier to enable trip deletion.'
+      : pageError === 'gmail_not_allowed'
+        ? 'Only gmail.com accounts are currently allowed to manage trips.'
+        : null
 
   async function deleteTripAction(formData: FormData) {
     'use server'
@@ -27,6 +41,16 @@ export default async function TripsPage() {
 
     if (!user) {
       redirect('/')
+    }
+
+    const entitlements = await getCurrentUserEntitlements()
+
+    if (!entitlements.isGmailAllowed) {
+      redirect('/trips?error=gmail_not_allowed')
+    }
+
+    if (!entitlements.canDeleteTrip) {
+      redirect('/trips?error=delete_not_allowed')
     }
 
     const { data: ownedTrip } = await supabase
@@ -77,6 +101,12 @@ export default async function TripsPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-6">
+      {deleteBlockedMessage ? (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {deleteBlockedMessage}
+        </div>
+      ) : null}
+
       <PageHeader
         title="My Trips"
         subtitle={

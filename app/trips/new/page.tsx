@@ -2,12 +2,10 @@
 
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 export default function NewTripPage() {
   const router = useRouter()
-  const supabase = createClient()
 
   // Form state
   const [title, setTitle] = useState('')
@@ -42,26 +40,23 @@ export default function NewTripPage() {
         throw new Error('Start date must be before end date')
       }
 
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        throw new Error('You must be logged in to create a trip')
-      }
-
-      // Insert trip into Supabase
-      const { error: insertError } = await supabase.from('trips').insert({
-        user_id: user.id,
-        title: title.trim(),
-        destination: destination.trim(),
-        start_date: startDate,
-        end_date: endDate,
+      const response = await fetch('/api/trips/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          destination: destination.trim(),
+          start_date: startDate,
+          end_date: endDate,
+        }),
       })
 
-      if (insertError) {
-        throw insertError
+      const payload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to create trip')
       }
 
       // Success! Redirect to trips page
