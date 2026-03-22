@@ -54,12 +54,36 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
     throw new Error(`Failed to load membership: ${memberError.message}`)
   }
 
-  if (!member) {
-    throw new Error('Membership not found.')
+  let resolvedMember = member
+
+  if (!resolvedMember) {
+    if (!isGmailAllowed) {
+      throw new Error('Only gmail.com accounts are currently allowed to use this app.')
+    }
+
+    const autoTier: MembershipTier =
+      authEmail === 'song.kg@gmail.com' ? 'owner' : 'free'
+
+    const { data: newMember, error: insertError } = await supabase
+      .from('members')
+      .insert({
+        id: user.id,
+        email: authEmail,
+        tier: autoTier,
+        is_active: true,
+      })
+      .select('id, email, tier, is_active')
+      .single<MemberRow>()
+
+    if (insertError || !newMember) {
+      throw new Error(`Failed to create membership: ${insertError?.message ?? 'unknown error'}`)
+    }
+
+    resolvedMember = newMember
   }
 
-  if (!member.is_active) {
-    throw new Error('Membership is inactive.')
+  if (!resolvedMember.is_active) {
+    throw new Error('Your account has been deactivated. Please contact support.')
   }
 
   const { start, end } = getUtcYearBounds()
@@ -85,7 +109,7 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
     throw new Error(`Failed to count itinerary AI usage: ${aiUsageError.message}`)
   }
 
-  const tier = member.tier
+  const tier = resolvedMember.tier
   const tripLimitPerYear = getTripLimitPerYear(tier)
   const itineraryAiLimit = getItineraryAiLimit(tier)
 
