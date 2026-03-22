@@ -1,5 +1,14 @@
-const appName = process.env.NEXT_PUBLIC_APP_NAME || 'ToGoStory'
+let hasWarnedAboutAppName = false
 let hasWarnedAboutSiteUrl = false
+
+function warnInvalidAppName(raw: string) {
+  if (hasWarnedAboutAppName) return
+
+  hasWarnedAboutAppName = true
+  console.warn(
+    `[branding] Ignoring invalid NEXT_PUBLIC_APP_NAME value: ${raw}. Falling back to ToGoStory.`
+  )
+}
 
 function warnInvalidSiteUrl(raw: string) {
   if (hasWarnedAboutSiteUrl) return
@@ -32,6 +41,22 @@ function resolveSiteUrl() {
 
   return 'http://localhost:3000'
 }
+
+function resolveAppName() {
+  const raw = process.env.NEXT_PUBLIC_APP_NAME?.trim()
+
+  if (raw && raw !== 'NEXT_PUBLIC_APP_NAME') {
+    return raw
+  }
+
+  if (raw === 'NEXT_PUBLIC_APP_NAME') {
+    warnInvalidAppName(raw)
+  }
+
+  return 'ToGoStory'
+}
+
+const appName = resolveAppName()
 
 export const branding = {
   appName,
