@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
+import { getCurrentUserMembership } from '@/lib/membership/server'
 import { createClient } from '@/lib/supabase/server'
 import { toLegacyCategory, type PlaceSource, type PlaceType } from '@/lib/places'
 
@@ -13,7 +15,8 @@ const VALID_PLACE_TYPES: PlaceType[] = [
   'other',
 ]
 
-const VALID_SOURCES: PlaceSource[] = ['openstreetmap', 'manual']
+const VALID_SOURCES: PlaceSource[] = ['openstreetmap', 'google', 'manual']
+const SOURCES_REQUIRING_EXTERNAL_ID: PlaceSource[] = ['openstreetmap', 'google']
 
 type SavePlacePayload = {
   name?: string
@@ -84,19 +87,27 @@ export async function POST(
 
     const externalPlaceId = String(body.external_place_id || '').trim() || null
 
-    if (source === 'openstreetmap' && !externalPlaceId) {
+    if (source === 'google') {
+      const membership = await getCurrentUserMembership()
+
+      if (!hasAccess(membership.tier, PREMIUM_FIND_PLACE_TIERS)) {
+        return NextResponse.json({ error: 'Premium access required.' }, { status: 403 })
+      }
+    }
+
+    if (SOURCES_REQUIRING_EXTERNAL_ID.includes(source) && !externalPlaceId) {
       return NextResponse.json(
         {
-          error: 'external_place_id is required when source is openstreetmap.',
+          error: 'external_place_id is required when source is provider-backed.',
         },
         { status: 400 }
       )
     }
 
-    if (source === 'openstreetmap' && (latitude === null || longitude === null)) {
+    if (SOURCES_REQUIRING_EXTERNAL_ID.includes(source) && (latitude === null || longitude === null)) {
       return NextResponse.json(
         {
-          error: 'Latitude and longitude are required when source is openstreetmap.',
+          error: 'Latitude and longitude are required when source is provider-backed.',
         },
         { status: 400 }
       )
@@ -105,16 +116,13 @@ export async function POST(
     if (externalPlaceId) {
       const { data: existing } = await supabase
         .from('places')
-        .select('id')
+        .select('*')
         .eq('trip_id', tripId)
         .eq('external_place_id', externalPlaceId)
         .maybeSingle()
 
       if (existing) {
-        return NextResponse.json(
-          { error: 'This place is already saved in your trip.' },
-          { status: 409 }
-        )
+        return NextResponse.json({ place: existing, existing: true }, { status: 200 })
       }
     }
 

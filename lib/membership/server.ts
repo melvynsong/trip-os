@@ -8,6 +8,14 @@ type MemberRow = {
   is_active: boolean
 }
 
+export type CurrentUserMembership = {
+  userId: string
+  email: string
+  tier: MembershipTier
+  isActive: boolean
+  isGmailAllowed: boolean
+}
+
 function getTripLimitPerYear(tier: MembershipTier): number | null {
   if (tier === 'owner') return null
   if (tier === 'friend') return 3
@@ -30,7 +38,7 @@ function getUtcYearBounds(now = new Date()) {
   return { start, end }
 }
 
-export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot> {
+export async function getCurrentUserMembership(): Promise<CurrentUserMembership> {
   const supabase = await createClient()
 
   const {
@@ -86,12 +94,25 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
     throw new Error('Your account has been deactivated. Please contact support.')
   }
 
+  return {
+    userId: user.id,
+    email: authEmail,
+    tier: resolvedMember.tier,
+    isActive: resolvedMember.is_active,
+    isGmailAllowed,
+  }
+}
+
+export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot> {
+  const supabase = await createClient()
+  const membership = await getCurrentUserMembership()
+
   const { start, end } = getUtcYearBounds()
 
   const { count: currentYearTripCount, error: tripsError } = await supabase
     .from('trips')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
+    .eq('user_id', membership.userId)
     .gte('created_at', start)
     .lt('created_at', end)
 
@@ -102,14 +123,14 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
   const { count: itineraryAiUsed, error: aiUsageError } = await supabase
     .from('ai_usage_log')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
+    .eq('user_id', membership.userId)
     .eq('usage_type', 'itinerary')
 
   if (aiUsageError) {
     throw new Error(`Failed to count itinerary AI usage: ${aiUsageError.message}`)
   }
 
-  const tier = resolvedMember.tier
+  const tier = membership.tier
   const tripLimitPerYear = getTripLimitPerYear(tier)
   const itineraryAiLimit = getItineraryAiLimit(tier)
 
@@ -135,6 +156,6 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
     itineraryAiUsed: safeAiUsed,
     itineraryAiRemaining,
     canUseItineraryAi,
-    isGmailAllowed,
+    isGmailAllowed: membership.isGmailAllowed,
   }
 }

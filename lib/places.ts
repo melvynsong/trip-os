@@ -6,7 +6,7 @@ export type PlaceType =
   | 'hotel'
   | 'other'
 
-export type PlaceSource = 'openstreetmap' | 'manual'
+export type PlaceSource = 'openstreetmap' | 'google' | 'manual'
 
 export const PLACE_TYPE_OPTIONS: Array<{ value: PlaceType; label: string; emoji: string }> = [
   { value: 'attraction', label: 'Attraction', emoji: '📍' },

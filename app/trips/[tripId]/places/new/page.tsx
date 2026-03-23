@@ -1,9 +1,10 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserEntitlements } from '@/lib/membership/server'
-import { hasAccess } from '@/lib/membership/access'
+import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
 import type { MembershipTier } from '@/lib/membership/types'
 import AddPlaceDrawer from '@/app/components/places/picker/AddPlaceDrawer'
+import GooglePlacePicker from '@/app/components/places/picker/GooglePlacePicker'
 import FeatureComingSoon from '@/app/components/FeatureComingSoon'
 import { type PlaceType } from '@/lib/places'
 
@@ -13,17 +14,10 @@ type Props = {
 }
 
 // ---------------------------------------------------------------------------
-// Tiers that have access to the premium Find Places feature
-// ---------------------------------------------------------------------------
-const PREMIUM_FIND_PLACE_TIERS: MembershipTier[] = ['friend', 'owner']
-
-// ---------------------------------------------------------------------------
 // Feature copy — edit all card text here
 // ---------------------------------------------------------------------------
 const COPY = {
   title: 'Google Search & Maps',
-  premiumDescription:
-    'Search places, explore maps, and discover top-rated food and attractions seamlessly within your trip.',
   freeDescription:
     'Unlock smarter place discovery with maps, ratings, and better recommendations.',
   ctaText: 'Upgrade to Friend',
@@ -75,21 +69,13 @@ export default async function NewPlacePage({ params, searchParams }: Props) {
   return (
     <main>
       {isPremiumUser ? (
-        /*
-         * PREMIUM USERS (friend / owner)
-         * Show only the premium placeholder.
-         *
-         * ── STEP 2 integration point ──────────────────────────────────────
-         * Replace <FeatureComingSoon> with <GoogleMapsSearch> here.
-         * Keep the isPremiumUser gate above; just swap the component.
-         * ──────────────────────────────────────────────────────────────────
-         */
-        <div className="mx-auto max-w-xl p-6">
-          <FeatureComingSoon
-            title={COPY.title}
-            description={COPY.premiumDescription}
-            userTier={tier}
-            allowedTiers={PREMIUM_FIND_PLACE_TIERS}
+        <div className="mx-auto max-w-5xl p-4 sm:p-6">
+          <GooglePlacePicker
+            tripId={tripId}
+            destination={trip.destination}
+            initialPlaceType={parsePlaceType(parsedSearch?.placeType)}
+            afterSaveHref={`/trips/${tripId}/places`}
+            saveButtonText="Save Place"
           />
         </div>
       ) : (
@@ -111,6 +97,7 @@ export default async function NewPlacePage({ params, searchParams }: Props) {
               userTier={tier}
               allowedTiers={PREMIUM_FIND_PLACE_TIERS}
               ctaText={COPY.ctaText}
+              previewMode="place-discovery"
             />
           </div>
         </>

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import FeatureComingSoon from '@/app/components/FeatureComingSoon'
-import { hasAccess } from '@/lib/membership/access'
+import GooglePlacePicker from '@/app/components/places/picker/GooglePlacePicker'
+import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
 import type { MembershipTier } from '@/lib/membership/types'
 import { type PlaceType } from '@/lib/places'
 import PlaceTypeSelector from '@/app/components/places/picker/PlaceTypeSelector'
@@ -24,14 +25,9 @@ type ActivityPlacePickerFieldProps = {
 }
 
 const MIN_QUERY_LENGTH = 3
-const PREMIUM_FIND_PLACE_TIERS: MembershipTier[] = ['friend', 'owner']
 
 const COPY = {
   title: 'Google Search & Maps',
-  premiumDescription:
-    'Search places, explore map results, and attach highly rated spots to your activity without leaving your trip.',
-  premiumHelperText:
-    'Google-powered place discovery is being prepared for your tier.',
   freeDescription:
     'Upgrade to Friend to unlock smarter place search with maps, ratings, and better discovery.',
   ctaText: 'Upgrade to Friend',
@@ -269,28 +265,23 @@ export default function ActivityPlacePickerField({
 
   return (
     <div className="space-y-3">
-      <input type="hidden" name="place_id" value={placeId} />
-
       {isPremiumUser ? (
         <div className="space-y-2">
           <label className="block text-sm font-medium">Place Search</label>
 
-          {/*
-           * STEP 2 integration point:
-           * Replace the placeholder below with the real Google Maps / Places picker.
-           * Keep the premium gate above and preserve the hidden `place_id` input.
-           */}
-          <FeatureComingSoon
-            title={COPY.title}
-            description={COPY.premiumDescription}
-            helperText={COPY.premiumHelperText}
-            userTier={userTier}
-            allowedTiers={PREMIUM_FIND_PLACE_TIERS}
-            previewMode="place-discovery"
+          <GooglePlacePicker
+            tripId={tripId}
+            destination={destination}
+            initialPlaceType={placeType}
+            hiddenInputName="place_id"
+            initialSavedPlaceId={initialSelectedPlaceId}
+            saveButtonText="Save and Attach Place"
           />
         </div>
       ) : (
         <>
+          <input type="hidden" name="place_id" value={placeId} />
+
           <div>
             <label className="mb-1 block text-sm font-medium">Saved Place (optional)</label>
             <select

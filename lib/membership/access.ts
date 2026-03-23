@@ -1,5 +1,7 @@
 import type { MembershipTier } from '@/lib/membership/types'
 
+export const PREMIUM_FIND_PLACE_TIERS: MembershipTier[] = ['friend', 'owner']
+
 /**
  * Returns true if the given userTier is included in the allowedTiers list.
  *
