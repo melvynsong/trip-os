@@ -16,6 +16,76 @@ type TripListItem = Pick<
 
 type TripListItemWithoutCover = Omit<TripListItem, 'cover_image'>
 
+async function loadTripsForUser(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const attempt1 = await supabase
+    .from('trips')
+    .select('id, title, destination, start_date, end_date, cover_image')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .returns<TripListItem[]>()
+
+  if (!attempt1.error) {
+    return { data: attempt1.data || [], error: null }
+  }
+
+  const attempt2 = await supabase
+    .from('trips')
+    .select('id, title, destination, start_date, end_date')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .returns<TripListItemWithoutCover[]>()
+
+  if (!attempt2.error) {
+    return {
+      data: (attempt2.data || []).map((trip) => ({ ...trip, cover_image: null })),
+      error: null,
+    }
+  }
+
+  const attempt3 = await supabase
+    .from('trips')
+    .select('id, title, destination, start_date, end_date, cover_image')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .returns<TripListItem[]>()
+
+  if (!attempt3.error) {
+    return { data: attempt3.data || [], error: null }
+  }
+
+  const attempt4 = await supabase
+    .from('trips')
+    .select('id, title, destination, start_date, end_date')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .returns<TripListItemWithoutCover[]>()
+
+  if (!attempt4.error) {
+    return {
+      data: (attempt4.data || []).map((trip) => ({ ...trip, cover_image: null })),
+      error: null,
+    }
+  }
+
+  const noOrderFallback = await supabase
+    .from('trips')
+    .select('id, title, destination, start_date, end_date')
+    .eq('user_id', userId)
+    .returns<TripListItemWithoutCover[]>()
+
+  if (!noOrderFallback.error) {
+    return {
+      data: (noOrderFallback.data || []).map((trip) => ({ ...trip, cover_image: null })),
+      error: null,
+    }
+  }
+
+  return {
+    data: null,
+    error: noOrderFallback.error || attempt4.error || attempt3.error || attempt2.error || attempt1.error,
+  }
+}
+
 type TripsPageProps = {
   searchParams?: Promise<{ error?: string }>
 }
@@ -95,29 +165,15 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
 
   const membership = await getCurrentUserMembership()
 
-  let { data: trips, error } = await supabase
-    .from('trips')
-    .select('id, title, destination, start_date, end_date, cover_image')
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false })
-    .returns<TripListItem[]>()
-
-  if (error && /cover_image/i.test(error.message)) {
-    const fallback = await supabase
-      .from('trips')
-      .select('id, title, destination, start_date, end_date')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .returns<TripListItemWithoutCover[]>()
-
-    if (!fallback.error) {
-      trips = (fallback.data || []).map((trip) => ({ ...trip, cover_image: null }))
-      error = null
-    }
-  }
+  const { data: trips, error } = await loadTripsForUser(supabase, user.id)
 
   if (error) {
-    return <div className="p-6">Failed to load trips.</div>
+    return (
+      <div className="p-6">
+        Failed to load trips.
+        <div className="mt-2 text-sm text-stone-600">{error.message}</div>
+      </div>
+    )
   }
 
   const tripIds = (trips || []).map((trip) => trip.id)
