@@ -36,10 +36,15 @@ const detailsCache = new Map<string, { expiresAt: number; data: GooglePlaceDetai
 const rateLimitStore = new Map<string, { windowStart: number; searchCount: number; detailsCount: number }>()
 
 function getApiKey() {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+  const apiKey =
+    process.env.GOOGLE_MAPS_API_KEY ||
+    process.env.GOOGLE_MAPS_API ||
+    process.env.Google_Maps_API
 
   if (!apiKey) {
-    throw new Error('GOOGLE_MAPS_API_KEY is not configured.')
+    throw new Error(
+      'Google Maps API key is not configured. Set GOOGLE_MAPS_API_KEY (preferred), or GOOGLE_MAPS_API / Google_Maps_API, then redeploy or restart.'
+    )
   }
 
   return apiKey
