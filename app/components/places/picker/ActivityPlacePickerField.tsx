@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import FeatureComingSoon from '@/app/components/FeatureComingSoon'
+import { hasAccess } from '@/lib/membership/access'
+import type { MembershipTier } from '@/lib/membership/types'
 import { type PlaceType } from '@/lib/places'
 import PlaceTypeSelector from '@/app/components/places/picker/PlaceTypeSelector'
 import PlaceAutocompleteInput from '@/app/components/places/picker/PlaceAutocompleteInput'
@@ -17,15 +20,29 @@ type ActivityPlacePickerFieldProps = {
   destination: string
   initialPlaces: PlaceOption[]
   initialSelectedPlaceId?: string | null
+  userTier?: MembershipTier
 }
 
 const MIN_QUERY_LENGTH = 3
+const PREMIUM_FIND_PLACE_TIERS: MembershipTier[] = ['friend', 'owner']
+
+const COPY = {
+  title: 'Google Search & Maps',
+  premiumDescription:
+    'Search places, explore map results, and attach highly rated spots to your activity without leaving your trip.',
+  premiumHelperText:
+    'Google-powered place discovery is being prepared for your tier.',
+  freeDescription:
+    'Upgrade to Friend to unlock smarter place search with maps, ratings, and better discovery.',
+  ctaText: 'Upgrade to Friend',
+} as const
 
 export default function ActivityPlacePickerField({
   tripId,
   destination,
   initialPlaces,
   initialSelectedPlaceId,
+  userTier = 'free',
 }: ActivityPlacePickerFieldProps) {
   const [placeId, setPlaceId] = useState(initialSelectedPlaceId || '')
   const [placeOptions, setPlaceOptions] = useState<PlaceOption[]>(initialPlaces)
@@ -59,6 +76,8 @@ export default function ActivityPlacePickerField({
   const sortedOptions = useMemo(() => {
     return [...placeOptions].sort((a, b) => a.name.localeCompare(b.name))
   }, [placeOptions])
+
+  const isPremiumUser = hasAccess(userTier, PREMIUM_FIND_PLACE_TIERS)
 
   useEffect(() => {
     if (!showQuickAdd || mode !== 'search') {
@@ -252,166 +271,198 @@ export default function ActivityPlacePickerField({
     <div className="space-y-3">
       <input type="hidden" name="place_id" value={placeId} />
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">Saved Place (optional)</label>
-        <select
-          value={placeId}
-          onChange={(event) => setPlaceId(event.target.value)}
-          className="w-full rounded-xl border px-3 py-2"
-        >
-          <option value="">— None —</option>
-          {sortedOptions.map((place) => (
-            <option key={place.id} value={place.id}>
-              {place.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {isPremiumUser ? (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Place Search</label>
 
-      {!showQuickAdd ? (
-        <button
-          type="button"
-          onClick={() => setShowQuickAdd(true)}
-          className="rounded-xl border px-3 py-1.5 text-sm"
-        >
-          + Add New Place Inline
-        </button>
+          {/*
+           * STEP 2 integration point:
+           * Replace the placeholder below with the real Google Maps / Places picker.
+           * Keep the premium gate above and preserve the hidden `place_id` input.
+           */}
+          <FeatureComingSoon
+            title={COPY.title}
+            description={COPY.premiumDescription}
+            helperText={COPY.premiumHelperText}
+            userTier={userTier}
+            allowedTiers={PREMIUM_FIND_PLACE_TIERS}
+            previewMode="place-discovery"
+          />
+        </div>
       ) : (
-        <div className="space-y-3 rounded-2xl border border-dashed p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Quick Add Place</p>
-            <button
-              type="button"
-              onClick={() => setShowQuickAdd(false)}
-              className="rounded-lg border px-2 py-1 text-xs"
+        <>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Saved Place (optional)</label>
+            <select
+              value={placeId}
+              onChange={(event) => setPlaceId(event.target.value)}
+              className="w-full rounded-xl border px-3 py-2"
             >
-              Close
-            </button>
+              <option value="">— None —</option>
+              {sortedOptions.map((place) => (
+                <option key={place.id} value={place.id}>
+                  {place.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <PlaceTypeSelector value={placeType} onChange={setPlaceType} />
-
-          <div className="flex flex-wrap gap-2">
+          {!showQuickAdd ? (
             <button
               type="button"
-              onClick={() => setMode('search')}
-              className={`rounded-full px-3 py-1.5 text-sm ${
-                mode === 'search'
-                  ? 'bg-black text-white'
-                  : 'border border-gray-200 text-gray-600'
-              }`}
+              onClick={() => setShowQuickAdd(true)}
+              className="rounded-xl border px-3 py-1.5 text-sm"
             >
-              Search
+              + Add New Place Inline
             </button>
-            <button
-              type="button"
-              onClick={() => setMode('manual')}
-              className={`rounded-full px-3 py-1.5 text-sm ${
-                mode === 'manual'
-                  ? 'bg-black text-white'
-                  : 'border border-gray-200 text-gray-600'
-              }`}
-            >
-              Manual
-            </button>
-          </div>
-
-          {mode === 'search' ? (
-            <div className="space-y-3">
-              <PlaceAutocompleteInput
-                value={query}
-                onChange={setQuery}
-                loading={searchLoading}
-                disabled={saveLoading}
-              />
-
-              <PlaceSearchResults
-                suggestions={suggestions}
-                loading={searchLoading}
-                error={searchError}
-                minCharsMet={minCharsMet}
-                hasQuery={hasQuery}
-                onSelect={handleSelectSuggestion}
-              />
-
-              {detailsLoading ? (
-                <div className="rounded-xl border border-dashed p-3 text-sm text-gray-500">
-                  Fetching place details…
-                </div>
-              ) : null}
-
-              {detailsError ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                  {detailsError}
-                </div>
-              ) : null}
-
-              {selectedPlace ? (
-                <PlacePreviewCard
-                  placeType={placeType}
-                  place={selectedPlace}
-                  onClear={() => setSelectedPlace(null)}
-                />
-              ) : null}
-
-              <button
-                type="button"
-                onClick={saveGooglePlace}
-                disabled={!selectedPlace || saveLoading}
-                className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saveLoading ? 'Saving…' : 'Save and Select Place'}
-              </button>
-            </div>
           ) : (
-            <div className="space-y-3">
-              <div>
-                <label className="mb-1 block text-sm font-medium">Place Name</label>
-                <input
-                  value={manualName}
-                  onChange={(event) => setManualName(event.target.value)}
-                  className="w-full rounded-xl border px-3 py-2"
-                  placeholder="e.g. Hidden ramen spot"
-                />
+            <div className="space-y-3 rounded-2xl border border-dashed p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium">Quick Add Place</p>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAdd(false)}
+                  className="rounded-lg border px-2 py-1 text-xs"
+                >
+                  Close
+                </button>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium">Address (optional)</label>
-                <input
-                  value={manualAddress}
-                  onChange={(event) => setManualAddress(event.target.value)}
-                  className="w-full rounded-xl border px-3 py-2"
-                  placeholder="Optional"
-                />
+              <PlaceTypeSelector value={placeType} onChange={setPlaceType} />
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMode('search')}
+                  className={`rounded-full px-3 py-1.5 text-sm ${
+                    mode === 'search'
+                      ? 'bg-black text-white'
+                      : 'border border-gray-200 text-gray-600'
+                  }`}
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('manual')}
+                  className={`rounded-full px-3 py-1.5 text-sm ${
+                    mode === 'manual'
+                      ? 'bg-black text-white'
+                      : 'border border-gray-200 text-gray-600'
+                  }`}
+                >
+                  Manual
+                </button>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium">Notes (optional)</label>
-                <textarea
-                  rows={3}
-                  value={manualNotes}
-                  onChange={(event) => setManualNotes(event.target.value)}
-                  className="w-full rounded-xl border px-3 py-2"
-                />
-              </div>
+              {mode === 'search' ? (
+                <div className="space-y-3">
+                  <PlaceAutocompleteInput
+                    value={query}
+                    onChange={setQuery}
+                    loading={searchLoading}
+                    disabled={saveLoading}
+                  />
 
-              <button
-                type="button"
-                onClick={saveManualPlace}
-                disabled={!manualName.trim() || saveLoading}
-                className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saveLoading ? 'Saving…' : 'Save and Select Place'}
-              </button>
+                  <PlaceSearchResults
+                    suggestions={suggestions}
+                    loading={searchLoading}
+                    error={searchError}
+                    minCharsMet={minCharsMet}
+                    hasQuery={hasQuery}
+                    onSelect={handleSelectSuggestion}
+                  />
+
+                  {detailsLoading ? (
+                    <div className="rounded-xl border border-dashed p-3 text-sm text-gray-500">
+                      Fetching place details…
+                    </div>
+                  ) : null}
+
+                  {detailsError ? (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {detailsError}
+                    </div>
+                  ) : null}
+
+                  {selectedPlace ? (
+                    <PlacePreviewCard
+                      placeType={placeType}
+                      place={selectedPlace}
+                      onClear={() => setSelectedPlace(null)}
+                    />
+                  ) : null}
+
+                  <button
+                    type="button"
+                    onClick={saveGooglePlace}
+                    disabled={!selectedPlace || saveLoading}
+                    className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {saveLoading ? 'Saving…' : 'Save and Select Place'}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Place Name</label>
+                    <input
+                      value={manualName}
+                      onChange={(event) => setManualName(event.target.value)}
+                      className="w-full rounded-xl border px-3 py-2"
+                      placeholder="e.g. Hidden ramen spot"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Address (optional)</label>
+                    <input
+                      value={manualAddress}
+                      onChange={(event) => setManualAddress(event.target.value)}
+                      className="w-full rounded-xl border px-3 py-2"
+                      placeholder="Optional"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Notes (optional)</label>
+                    <textarea
+                      rows={3}
+                      value={manualNotes}
+                      onChange={(event) => setManualNotes(event.target.value)}
+                      className="w-full rounded-xl border px-3 py-2"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={saveManualPlace}
+                    disabled={!manualName.trim() || saveLoading}
+                    className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {saveLoading ? 'Saving…' : 'Save and Select Place'}
+                  </button>
+                </div>
+              )}
+
+              {saveError ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {saveError}
+                </div>
+              ) : null}
             </div>
           )}
 
-          {saveError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {saveError}
-            </div>
-          ) : null}
-        </div>
+          <FeatureComingSoon
+            title={COPY.title}
+            description={COPY.freeDescription}
+            userTier={userTier}
+            allowedTiers={PREMIUM_FIND_PLACE_TIERS}
+            ctaText={COPY.ctaText}
+            previewMode="place-discovery"
+            className="mt-1"
+          />
+        </>
       )}
     </div>
   )

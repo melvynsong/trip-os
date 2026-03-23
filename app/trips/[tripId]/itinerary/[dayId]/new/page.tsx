@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { getCurrentUserEntitlements } from '@/lib/membership/server'
+import type { MembershipTier } from '@/lib/membership/types'
 import { createClient } from '@/lib/supabase/server'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
 
@@ -9,15 +11,16 @@ type Props = {
 
 export default async function NewActivityPage({ params }: Props) {
   const { tripId, dayId } = await params
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  let userTier: MembershipTier
+  try {
+    const entitlements = await getCurrentUserEntitlements()
+    userTier = entitlements.tier
+  } catch {
     redirect('/')
   }
+
+  const supabase = await createClient()
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
@@ -138,6 +141,7 @@ export default async function NewActivityPage({ params }: Props) {
           destination={trip.destination}
           initialPlaces={places || []}
           initialSelectedPlaceId={null}
+          userTier={userTier}
         />
 
         <div>

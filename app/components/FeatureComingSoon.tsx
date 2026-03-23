@@ -2,6 +2,8 @@ import { cn } from '@/lib/utils/cn'
 import type { MembershipTier } from '@/lib/membership/types'
 import { hasAccess } from '@/lib/membership/access'
 
+type PreviewMode = 'default' | 'place-discovery'
+
 export type FeatureComingSoonProps = {
   /** Card title — e.g. "Google Search & Maps" */
   title: string
@@ -13,13 +15,15 @@ export type FeatureComingSoonProps = {
   allowedTiers: MembershipTier[]
   /** Override the default CTA button label for locked users */
   ctaText?: string
+  previewMode?: PreviewMode
+  helperText?: string
   className?: string
 }
 
 // ---------------------------------------------------------------------------
-// Mock map preview — purely decorative skeleton shown for premium users
+// Default preview used by the places page placeholder
 // ---------------------------------------------------------------------------
-function MockMapPreview() {
+function DefaultMockMapPreview() {
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
       {/* Simulated map grid */}
@@ -65,6 +69,93 @@ function MockMapPreview() {
   )
 }
 
+function StarRating({ rating }: { rating: string }) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-100">
+      <span>★</span>
+      <span>{rating}</span>
+    </div>
+  )
+}
+
+function PlaceDiscoveryPreview({ locked = false }: { locked?: boolean }) {
+  const mockResults = [
+    { name: 'Din Tai Fung', rating: '4.7', meta: 'Restaurant · 8 min away' },
+    { name: 'National Palace Museum', rating: '4.8', meta: 'Attraction · Top-rated' },
+    { name: 'Fuhang Soy Milk', rating: '4.5', meta: 'Breakfast · Local favorite' },
+  ]
+
+  return (
+    <div
+      className={cn(
+        'overflow-hidden rounded-2xl border border-gray-200 bg-white',
+        locked && 'opacity-85'
+      )}
+    >
+      <div className="border-b border-gray-100 bg-gradient-to-r from-white to-gray-50 p-3 sm:p-4">
+        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-400 shadow-inner">
+          Search places, restaurants, and attractions
+        </div>
+      </div>
+
+      <div className="grid gap-0 md:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-3 p-3 sm:p-4">
+          {mockResults.map((result, index) => (
+            <div
+              key={result.name}
+              className={cn(
+                'rounded-xl border border-gray-100 bg-white p-3 shadow-sm',
+                index === 0 && !locked && 'ring-1 ring-violet-100'
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900">{result.name}</p>
+                  <p className="mt-1 text-xs text-gray-500">{result.meta}</p>
+                </div>
+                <StarRating rating={result.rating} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-gray-100 bg-gray-50 p-3 sm:p-4 md:border-l md:border-t-0">
+          <div className="relative h-full min-h-44 overflow-hidden rounded-2xl border border-gray-200 bg-[linear-gradient(135deg,#eff6ff_0%,#f8fafc_45%,#ecfeff_100%)] shadow-inner">
+            <div className="absolute inset-0 opacity-60">
+              <div className="absolute left-6 top-5 h-24 w-24 rounded-full border border-cyan-200/70" />
+              <div className="absolute right-8 top-10 h-20 w-20 rounded-full border border-violet-200/70" />
+              <div className="absolute bottom-8 left-10 right-10 h-px bg-sky-200" />
+              <div className="absolute left-1/4 top-0 bottom-0 w-px bg-cyan-100" />
+              <div className="absolute left-0 right-0 top-1/3 h-px bg-cyan-100" />
+              <div className="absolute left-0 right-0 top-2/3 h-px bg-cyan-100" />
+            </div>
+
+            <div className="absolute left-[20%] top-[28%] h-3 w-3 rounded-full bg-violet-500 ring-4 ring-violet-200/80" />
+            <div className="absolute right-[22%] top-[38%] h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-emerald-200/80" />
+            <div className="absolute left-[40%] bottom-[24%] h-3 w-3 rounded-full bg-amber-500 ring-4 ring-amber-200/80" />
+
+            <div className="absolute bottom-3 left-3 right-3 rounded-xl bg-white/88 p-3 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">Map preview</p>
+                  <p className="mt-0.5 text-[11px] text-gray-500">Ratings, map pins, and discovery results in one place</p>
+                </div>
+                <div className="rounded-full bg-violet-50 px-2 py-1 text-[11px] font-medium text-violet-700">
+                  Preview
+                </div>
+              </div>
+            </div>
+
+            {locked ? (
+              <div className="absolute inset-0 bg-white/35 backdrop-blur-[1px]" aria-hidden="true" />
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -74,9 +165,17 @@ export default function FeatureComingSoon({
   userTier,
   allowedTiers,
   ctaText = 'Upgrade to Friend',
+  previewMode = 'default',
+  helperText,
   className,
 }: FeatureComingSoonProps) {
   const isPremiumUser = hasAccess(userTier, allowedTiers)
+  const preview =
+    previewMode === 'place-discovery' ? (
+      <PlaceDiscoveryPreview locked={!isPremiumUser} />
+    ) : (
+      <DefaultMockMapPreview />
+    )
 
   if (isPremiumUser) {
     // -----------------------------------------------------------------------
@@ -117,10 +216,10 @@ export default function FeatureComingSoon({
           </div>
         </div>
 
-        <MockMapPreview />
+        {preview}
 
         <p className="mt-3 text-center text-xs text-gray-400">
-          This feature is being built for you — check back soon.
+          {helperText || 'This feature is being built for you — check back soon.'}
         </p>
       </div>
     )
@@ -164,19 +263,9 @@ export default function FeatureComingSoon({
         </div>
       </div>
 
-      {/* Faded preview rows */}
-      <div className="mb-4 space-y-2 opacity-40" aria-hidden="true">
-        {[90, 70, 80].map((w, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gray-200" />
-            <div className="flex flex-1 flex-col gap-1">
-              <div className="h-2 rounded-full bg-gray-300" style={{ width: `${w}%` }} />
-              <div className="h-2 rounded-full bg-gray-200" style={{ width: `${w - 20}%` }} />
-            </div>
-            <div className="h-2 w-8 rounded-full bg-gray-200" />
-          </div>
-        ))}
-      </div>
+      <div className="mb-4">{preview}</div>
+
+      {helperText ? <p className="mb-4 text-xs text-gray-500">{helperText}</p> : null}
 
       {/* CTA */}
       <button
