@@ -157,7 +157,7 @@ export default async function TripDashboardPage({ params }: Props) {
           className={buttonClass({
             size: 'sm',
             variant: 'ghost',
-            className: 'rounded-full text-stone-700 hover:bg-white/70',
+            className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
           })}
         >
           ← Back to Trips
@@ -194,9 +194,9 @@ export default async function TripDashboardPage({ params }: Props) {
                 />
               ))
             ) : (
-              <Card className="rounded-[2rem] border-dashed border-stone-200 bg-white p-8">
-                <h2 className="font-serif text-3xl text-stone-900">This is your story.</h2>
-                <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">
+              <Card className="rounded-[2rem] border-dashed border-slate-200 bg-white p-8">
+                <h2 className="font-serif text-3xl text-slate-900">This is your story.</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
                   Your trip exists, but the day-by-day chapters still need their first moments.
                 </p>
                 <div className="mt-5">
@@ -204,7 +204,7 @@ export default async function TripDashboardPage({ params }: Props) {
                     href={`/trips/${tripId}/ai-itinerary`}
                     className={buttonClass({
                       variant: 'primary',
-                      className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800',
+                      className: 'rounded-full',
                     })}
                   >
                     Add your first moment
@@ -217,12 +217,12 @@ export default async function TripDashboardPage({ params }: Props) {
           <div className="space-y-6 xl:sticky xl:top-6">
             <StoryGenerator tripId={tripId} tripTitle={trip.title} />
 
-            <Card className="space-y-4 rounded-[2rem] border-stone-200 bg-white p-6">
+            <Card className="space-y-4 rounded-[2rem] border-slate-200 bg-white p-6">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Story notes</p>
-                <h2 className="mt-3 font-serif text-3xl text-stone-900">The structure behind the journey</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Story notes</p>
+                <h2 className="mt-3 font-serif text-3xl text-slate-900">The structure behind the journey</h2>
               </div>
-              <div className="space-y-3 text-sm leading-7 text-stone-600 sm:text-base">
+              <div className="space-y-3 text-sm leading-7 text-slate-600 sm:text-base">
                 <p>{safeDays.length} planned day{safeDays.length === 1 ? '' : 's'}.</p>
                 <p>{activities.length} saved moment{activities.length === 1 ? '' : 's'}.</p>
                 <p>{safePlaces.length} saved place{safePlaces.length === 1 ? '' : 's'} helping shape the narrative.</p>
@@ -230,13 +230,13 @@ export default async function TripDashboardPage({ params }: Props) {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href={`/trips/${tripId}/today`}
-                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100' })}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
                 >
                   View today
                 </Link>
                 <Link
                   href={`/trips/${tripId}/places`}
-                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100' })}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
                 >
                   Explore places
                 </Link>

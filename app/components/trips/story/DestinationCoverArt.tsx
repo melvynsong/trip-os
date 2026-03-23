@@ -20,10 +20,10 @@ function getInitials(value: string) {
 
 function paletteFromSeed(seed: number) {
   const palettes = [
-    ['from-amber-100 via-orange-50 to-rose-100', 'bg-amber-300/35', 'bg-orange-300/30'],
+    ['from-sky-100 via-cyan-50 to-indigo-100', 'bg-sky-300/35', 'bg-indigo-300/30'],
     ['from-sky-100 via-cyan-50 to-emerald-100', 'bg-sky-300/35', 'bg-emerald-300/25'],
     ['from-violet-100 via-fuchsia-50 to-rose-100', 'bg-violet-300/35', 'bg-fuchsia-300/25'],
-    ['from-stone-100 via-amber-50 to-yellow-100', 'bg-stone-300/30', 'bg-yellow-300/25'],
+    ['from-indigo-100 via-blue-50 to-cyan-100', 'bg-indigo-300/30', 'bg-cyan-300/25'],
     ['from-teal-100 via-cyan-50 to-indigo-100', 'bg-teal-300/30', 'bg-indigo-300/25'],
   ] as const
 
@@ -50,16 +50,16 @@ export default function DestinationCoverArt({
       <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.45))]" />
       <div className={`absolute ${compact ? 'bottom-3 left-4 right-4' : 'bottom-6 left-6 right-6'} flex items-end justify-between gap-4`}>
         <div className="min-w-0">
-          <p className={`font-medium uppercase tracking-[0.2em] text-stone-700/70 ${compact ? 'text-[10px]' : 'text-xs'}`}>
+          <p className={`font-medium uppercase tracking-[0.2em] text-slate-700/70 ${compact ? 'text-[10px]' : 'text-xs'}`}>
             {destination || 'Travel story'}
           </p>
           {title ? (
-            <p className={`mt-1 max-w-[14rem] truncate font-serif text-stone-900/70 ${compact ? 'text-base' : 'text-2xl'}`}>
+            <p className={`mt-1 max-w-[14rem] truncate font-serif text-slate-900/75 ${compact ? 'text-base' : 'text-2xl'}`}>
               {title}
             </p>
           ) : null}
         </div>
-        <div className={`flex shrink-0 items-center justify-center rounded-full border border-white/70 bg-white/60 font-serif text-stone-700 shadow-sm backdrop-blur ${compact ? 'h-12 w-12 text-sm' : 'h-20 w-20 text-2xl'}`}>
+        <div className={`flex shrink-0 items-center justify-center rounded-full border border-white/70 bg-white/60 font-serif text-slate-700 shadow-sm backdrop-blur ${compact ? 'h-12 w-12 text-sm' : 'h-20 w-20 text-2xl'}`}>
           {initials}
         </div>
       </div>
