@@ -225,20 +225,20 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       {deleteBlockedMessage ? (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
           {deleteBlockedMessage}
         </div>
       ) : null}
 
-      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_rgba(41,31,24,0.06)] sm:p-8 lg:p-10">
+      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.09)] sm:p-8 lg:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Your stories</p>
-            <h1 className="font-serif text-4xl leading-tight text-stone-900 sm:text-5xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Your stories</p>
+            <h1 className="font-serif text-4xl leading-tight text-slate-900 sm:text-5xl">
               Welcome back, {displayName}
             </h1>
-            <p className="text-lg text-stone-700">Your next story starts here.</p>
-            <div className="inline-flex rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700">
+            <p className="text-lg text-slate-700">Your next story starts here.</p>
+            <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">
               {tierLabel}
             </div>
           </div>
@@ -247,7 +247,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
             href="/trips/new"
             className={buttonClass({
               variant: 'primary',
-              className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800',
+              className: 'rounded-full',
             })}
           >
             Start a new story
@@ -257,8 +257,8 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
 
       <section className="mt-8 space-y-5">
         <div>
-          <h2 className="font-serif text-3xl text-stone-900">Your stories</h2>
-          <p className="mt-2 text-sm leading-7 text-stone-600 sm:text-base">
+          <h2 className="font-serif text-3xl text-slate-900">Your stories</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-600 sm:text-base">
             A warm view of the trips you’re shaping, revisiting, and turning into memories.
           </p>
         </div>
@@ -287,13 +287,13 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                 href="/trips/new"
                 className={buttonClass({
                   variant: 'primary',
-                  className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800',
+                  className: 'rounded-full',
                 })}
               >
                 Start your first story
               </Link>
             }
-            className="rounded-[2rem] border-stone-200 bg-white p-8 shadow-[0_18px_50px_rgba(41,31,24,0.05)]"
+            className="rounded-[2rem] border-slate-200 bg-white p-8 shadow-[0_18px_50px_rgba(15,23,42,0.08)]"
           />
         )}
       </section>

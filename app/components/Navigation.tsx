@@ -38,14 +38,14 @@ export default async function Navigation() {
   }
 
   return (
-    <nav className="border-b border-stone-200/80 bg-white/95 text-stone-900 backdrop-blur">
+    <nav className="border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="rounded-2xl px-2 py-1 transition hover:bg-white/50 active:scale-[0.98]"
         >
-          <div className="font-serif text-3xl text-stone-900">{branding.appName}</div>
-          <BrandLine compact className="mt-1 text-stone-500" />
+          <div className="font-serif text-3xl text-slate-900">{branding.appName}</div>
+          <BrandLine compact className="mt-1 text-slate-500" />
         </Link>
 
         <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
@@ -54,7 +54,7 @@ export default async function Navigation() {
             className={buttonClass({
               variant: 'ghost',
               size: 'sm',
-              className: 'rounded-full text-stone-700 hover:bg-white/70',
+              className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
             })}
           >
             {user ? 'Stories' : 'Home'}
@@ -62,7 +62,7 @@ export default async function Navigation() {
 
           {viewer ? (
             <div className="flex flex-wrap items-center gap-2">
-              <div className="rounded-full border border-stone-200 bg-white/80 px-4 py-2 text-sm text-stone-700 shadow-sm">
+              <div className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm text-slate-700 shadow-sm">
                 {viewer.name} - {viewer.tierLabel}
               </div>
               <form action={logoutAction}>
@@ -72,7 +72,7 @@ export default async function Navigation() {
                     variant: 'secondary',
                     size: 'sm',
                     className:
-                      'rounded-full border-stone-200 bg-white text-stone-700 hover:bg-stone-50',
+                      'rounded-full border-slate-200 bg-white text-slate-700 hover:bg-sky-50/70',
                   })}
                 >
                   Logout

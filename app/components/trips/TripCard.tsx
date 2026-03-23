@@ -41,9 +41,9 @@ export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
   }
 
   return (
-    <Card interactive className="relative overflow-hidden border-stone-200 p-0">
+    <Card interactive className="relative overflow-hidden border-slate-200 p-0">
       <div
-        className="relative h-32 overflow-hidden bg-[linear-gradient(135deg,rgba(250,245,237,0.96),rgba(243,233,217,0.96))]"
+        className="relative h-32 overflow-hidden bg-[linear-gradient(135deg,rgba(240,249,255,0.96),rgba(224,242,254,0.95),rgba(224,231,255,0.95))]"
         style={
           trip.cover_image
             ? {
@@ -61,26 +61,26 @@ export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
 
       <div className="relative z-10 space-y-5 p-6">
         <div className="space-y-3 pr-10">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
             <span>Your story</span>
-            {totalStories > 0 ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] text-amber-900 ring-1 ring-amber-200">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span> : null}
+            {totalStories > 0 ? <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] text-sky-800 ring-1 ring-sky-200">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span> : null}
           </div>
           <div>
-            <h3 className="font-serif text-3xl text-stone-900">{trip.title}</h3>
-            <p className="mt-2 text-sm text-stone-600 sm:text-base">{trip.destination}</p>
+            <h3 className="font-serif text-3xl text-slate-900">{trip.title}</h3>
+            <p className="mt-2 text-sm text-slate-600 sm:text-base">{trip.destination}</p>
           </div>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-slate-500">
             {formatDisplayDateRange(trip.start_date, trip.end_date)}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm text-stone-600">
-          <span className="rounded-full bg-stone-100 px-3 py-1.5">{totalDays} {totalDays === 1 ? 'day' : 'days'} planned</span>
-          <span className="rounded-full bg-stone-100 px-3 py-1.5">{totalMoments} {totalMoments === 1 ? 'moment' : 'moments'}</span>
-          <span className="rounded-full bg-stone-100 px-3 py-1.5">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span>
+        <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+          <span className="rounded-full bg-slate-100 px-3 py-1.5">{totalDays} {totalDays === 1 ? 'day' : 'days'} planned</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5">{totalMoments} {totalMoments === 1 ? 'moment' : 'moments'}</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span>
         </div>
 
-        <p className="text-sm leading-7 text-stone-600">
+        <p className="text-sm leading-7 text-slate-600">
           {totalStories > 0
             ? 'Plan with clarity. Experience with ease. Share your story.'
             : 'This journey is ready to become something memorable.'}
@@ -89,13 +89,13 @@ export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
         <div className="flex flex-wrap gap-3">
           <Link
             href={`/trips/${trip.id}`}
-            className={buttonClass({ variant: 'primary', className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800' })}
+            className={buttonClass({ variant: 'primary', className: 'rounded-full' })}
           >
             View story
           </Link>
           <Link
             href={`/trips/${trip.id}/itinerary`}
-            className={buttonClass({ variant: 'secondary', className: 'rounded-full border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100' })}
+            className={buttonClass({ variant: 'secondary', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
           >
             Continue planning
           </Link>
@@ -107,7 +107,7 @@ export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
         <button
           type="button"
           onClick={handleDeleteClick}
-          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-sm text-stone-400 shadow-sm transition hover:bg-red-50 hover:text-red-600"
+          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-sm text-slate-400 shadow-sm transition hover:bg-red-50 hover:text-red-600"
           aria-label={`Delete ${trip.title}`}
           title="Delete trip"
         >
