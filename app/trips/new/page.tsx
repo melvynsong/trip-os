@@ -72,7 +72,12 @@ export default function NewTripPage() {
         errorMessage = err.message
       } else if (typeof err === 'object' && err !== null) {
         // Handle Supabase error objects
-        const supabaseError = err as any
+        const supabaseError = err as {
+          message?: string
+          error?: {
+            message?: string
+          }
+        }
         if (supabaseError.message) {
           errorMessage = supabaseError.message
         } else if (supabaseError.error?.message) {
