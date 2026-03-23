@@ -1,20 +1,12 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
-import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
-import BrandLine from '@/app/components/shared/BrandLine'
-import {
-  QuickActionsGrid,
-  SavedPlacesCarousel,
-  SectionHeader,
-  StatCard,
-  TodayCard,
-  TripHeroCard,
-} from '@/app/components/trips/dashboard'
-import { resolvePlaceType } from '@/lib/places'
-import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
+import DaySection from '@/app/components/trips/story/DaySection'
+import StoryGenerator from '@/app/components/trips/story/StoryGenerator'
+import TripHeader from '@/app/components/trips/story/TripHeader'
+import Card from '@/app/components/ui/Card'
+import { getStoryPeriod } from '@/lib/trip-storytelling'
 import {
   Trip as TripType,
   Day as DayType,
@@ -26,123 +18,19 @@ type Props = {
   params: Promise<{ tripId: string }>
 }
 
-type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
+type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date' | 'cover_image'>
 
 type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
 type Activity = Pick<
   ActivityType,
-  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order'
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id'
 >
 
 type Place = Pick<
   PlaceType,
-  'id' | 'name' | 'category' | 'place_type' | 'city' | 'visited'
+  'id' | 'name' | 'address'
 >
-
-type PlacePreview = {
-  id: string
-  name: string
-  city: string | null
-  visited: boolean
-}
-
-function formatDateRange(startDate: string, endDate: string) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return `${startDate} → ${endDate}`
-  }
-
-  return `${formatter.format(start)} → ${formatter.format(end)}`
-}
-
-function pickActiveDay(days: Day[]): Day | null {
-  if (!days.length) return null
-
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const exact = days.find((day) => day.date === todayStr)
-  if (exact) return exact
-
-  const future = days
-    .filter((day) => day.date > todayStr)
-    .sort((a, b) => (a.date < b.date ? -1 : 1))
-  if (future.length > 0) return future[0]
-
-  const past = days
-    .filter((day) => day.date < todayStr)
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-  if (past.length > 0) return past[0]
-
-  return days[0]
-}
-
-function getNowNext(activities: Activity[]) {
-  const now = new Date()
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
-
-  const timed = activities
-    .filter((activity) => Boolean(activity.activity_time))
-    .sort((a, b) => {
-      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
-      if (!a.activity_time || !b.activity_time) return 0
-      return a.activity_time < b.activity_time ? -1 : 1
-    })
-
-  let nowActivity: Activity | null = null
-  let nextActivity: Activity | null = null
-
-  for (const activity of timed) {
-    if (!activity.activity_time) continue
-
-    const [hour, minute] = activity.activity_time.split(':').map(Number)
-    const itemMinutes = hour * 60 + minute
-
-    if (itemMinutes <= currentMinutes) {
-      nowActivity = activity
-    } else if (!nextActivity) {
-      nextActivity = activity
-      break
-    }
-  }
-
-  if (!nowActivity && timed.length > 0) {
-    nextActivity = timed[0]
-  }
-
-  return {
-    now: nowActivity
-      ? {
-          title: nowActivity.title,
-          time: nowActivity.activity_time,
-          type: nowActivity.type,
-        }
-      : null,
-    next: nextActivity
-      ? {
-          title: nextActivity.title,
-          time: nextActivity.activity_time,
-          type: nextActivity.type,
-        }
-      : null,
-  }
-}
-
-function toPlacePreview(items: Place[]): PlacePreview[] {
-  return items.slice(0, 5).map((place) => ({
-    id: place.id,
-    name: place.name,
-    city: place.city,
-    visited: Boolean(place.visited),
-  }))
-}
 
 export default async function TripDashboardPage({ params }: Props) {
   const { tripId } = await params
@@ -158,7 +46,7 @@ export default async function TripDashboardPage({ params }: Props) {
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('id, title, destination, start_date, end_date')
+    .select('id, title, destination, start_date, end_date, cover_image')
     .eq('id', tripId)
     .eq('user_id', user.id)
     .single<Trip>()
@@ -190,7 +78,7 @@ export default async function TripDashboardPage({ params }: Props) {
   const { data: activitiesData, error: activitiesError } = dayIds.length
     ? await supabase
         .from('activities')
-        .select('id, day_id, title, activity_time, type, notes, sort_order')
+        .select('id, day_id, title, activity_time, type, notes, sort_order, place_id')
         .in('day_id', dayIds)
         .order('sort_order', { ascending: true })
         .order('activity_time', { ascending: true })
@@ -211,204 +99,135 @@ export default async function TripDashboardPage({ params }: Props) {
 
   const { data: places } = await supabase
     .from('places')
-    .select('id, name, category, place_type, city, visited')
+    .select('id, name, address')
     .eq('trip_id', tripId)
     .returns<Place[]>()
 
   const safePlaces = places || []
+  const placeNameById = new Map(safePlaces.map((place) => [place.id, place.name]))
 
-  const hotel =
-    safePlaces.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
+  const daySections = safeDays.map((day) => {
+    const dayActivities = activities
+      .filter((activity) => activity.day_id === day.id)
+      .map((activity) => ({
+        id: activity.id,
+        title: activity.title,
+        time: activity.activity_time,
+        location: activity.place_id ? placeNameById.get(activity.place_id) || null : null,
+        notes: activity.notes,
+      }))
 
-  const destinations = trip.destination
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean)
+    const morning = dayActivities.filter((item) => getStoryPeriod(item.time) === 'morning')
+    const afternoon = dayActivities.filter((item) => getStoryPeriod(item.time) === 'afternoon')
+    const evening = dayActivities.filter((item) => getStoryPeriod(item.time) === 'evening')
+    const anytime = dayActivities.filter((item) => getStoryPeriod(item.time) === 'anytime')
 
-  const tripShareInput = {
-    tripTitle: trip.title,
-    startDate: trip.start_date,
-    endDate: trip.end_date,
-    destinations,
-    hotel,
-    days: safeDays.map((day) => ({
-      dayNumber: day.day_number,
-      date: day.date,
-      city: destinations[0] ?? trip.destination,
-      title: day.title,
-      hotel,
-      activities: activities
-        .filter((activity) => activity.day_id === day.id)
-        .map((activity) => ({
-          title: activity.title,
-          type: activity.type,
-          activity_time: activity.activity_time,
-          notes: activity.notes,
-        })),
-    })),
-  }
-
-  const shortShareText = formatTripForWhatsApp(tripShareInput, {
-    length: 'short',
+    return {
+      day,
+      groups: [
+        { label: 'Morning', description: 'Ease into the day with a clear beginning.', items: morning },
+        { label: 'Afternoon', description: 'The middle chapter where the journey opens up.', items: afternoon },
+        { label: 'Evening', description: 'A softer ending, dinner, notes, and atmosphere.', items: evening },
+        { label: 'Anytime', description: 'Moments without a fixed time still belong in the story.', items: anytime },
+      ],
+    }
   })
-  const detailedShareText = formatTripForWhatsApp(tripShareInput, {
-    length: 'detailed',
-  })
-
-  const activeDay = pickActiveDay(safeDays)
-  const activeDayActivities = activeDay
-    ? activities.filter((activity) => activity.day_id === activeDay.id)
-    : []
-  const nowNext = getNowNext(activeDayActivities)
-
-  const placeGroups = [
-    {
-      label: 'Attractions',
-      emoji: '📍',
-      places: toPlacePreview(
-        safePlaces.filter((place) => resolvePlaceType(place) === 'attraction')
-      ),
-    },
-    {
-      label: 'Restaurants',
-      emoji: '🍜',
-      places: toPlacePreview(
-        safePlaces.filter((place) => resolvePlaceType(place) === 'restaurant')
-      ),
-    },
-    {
-      label: 'Shopping',
-      emoji: '🛍️',
-      places: toPlacePreview(
-        safePlaces.filter((place) => resolvePlaceType(place) === 'shopping')
-      ),
-    },
-  ]
-
-  const quickActions = [
-    {
-      label: 'Plan today',
-      subtitle: 'Open your live day timeline',
-      icon: '📍',
-      href: `/trips/${tripId}/today`,
-    },
-    {
-      label: 'Add place',
-      subtitle: 'Save a must-visit spot',
-      icon: '➕',
-      href: `/trips/${tripId}/places/new`,
-    },
-    {
-      label: 'Find food nearby',
-      subtitle: 'Search restaurants quickly',
-      icon: '🍽️',
-      href: `/trips/${tripId}/places/new?placeType=restaurant`,
-    },
-    {
-      label: 'Explore attractions',
-      subtitle: 'Find highlights around you',
-      icon: '🧭',
-      href: `/trips/${tripId}/places/new?placeType=attraction`,
-    },
-  ]
 
   return (
-    <main className="mx-auto max-w-5xl p-4 sm:p-6">
-      <div className="mb-4">
-        <Link href="/trips" className={buttonClass({ size: 'sm', variant: 'ghost' })}>
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <div className="mb-5">
+        <Link
+          href="/trips"
+          className={buttonClass({
+            size: 'sm',
+            variant: 'ghost',
+            className: 'rounded-full text-stone-700 hover:bg-white/70',
+          })}
+        >
           ← Back to Trips
         </Link>
       </div>
 
-      <div className="space-y-6">
-        <TripHeroCard
-          destination={trip.destination}
-          dateRangeLabel={formatDateRange(trip.start_date, trip.end_date)}
-          tripTitle={trip.title}
-          hotel={hotel}
-          tripId={tripId}
-          shareButton={
-            <WhatsAppShareSheet
-              title="Share full itinerary"
-              shortText={shortShareText}
-              detailedText={detailedShareText}
-              triggerLabel="Share"
-              triggerClassName={buttonClass({
-                variant: 'secondary',
-                className: 'border-white/50 bg-white/10 text-white hover:bg-white/20',
-              })}
-            />
-          }
+      <div className="space-y-8">
+        <TripHeader
+          trip={{
+            id: trip.id,
+            title: trip.title,
+            destination: trip.destination,
+            startDate: trip.start_date,
+            endDate: trip.end_date,
+            coverImage: trip.cover_image,
+          }}
         />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <BrandLine className="text-gray-500" />
-            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-gray-500">
-              <span className="rounded-full border border-gray-200 px-2 py-1">Plan</span>
-              <span className="rounded-full border border-gray-200 px-2 py-1">Go</span>
-              <span className="rounded-full border border-gray-200 px-2 py-1">Share</span>
-            </div>
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+          <div className="space-y-8">
+            {daySections.length > 0 ? (
+              daySections.map(({ day, groups }, index) => (
+                <DaySection
+                  key={day.id}
+                  tripId={tripId}
+                  day={{
+                    id: day.id,
+                    dayNumber: day.day_number,
+                    date: day.date,
+                    title: day.title,
+                  }}
+                  groups={groups}
+                  isLast={index === daySections.length - 1}
+                />
+              ))
+            ) : (
+              <Card className="rounded-[2rem] border-dashed border-stone-200 bg-white p-8">
+                <h2 className="font-serif text-3xl text-stone-900">This is your story.</h2>
+                <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">
+                  Your trip exists, but the day-by-day chapters still need their first moments.
+                </p>
+                <div className="mt-5">
+                  <Link
+                    href={`/trips/${tripId}/ai-itinerary`}
+                    className={buttonClass({
+                      variant: 'primary',
+                      className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800',
+                    })}
+                  >
+                    Add your first moment
+                  </Link>
+                </div>
+              </Card>
+            )}
           </div>
-        </section>
 
-        <section>
-          <SectionHeader
-            title="Today"
-            subtitle="Go make today count — see what’s happening now and what’s next"
-          />
-          {activeDay ? (
-            <TodayCard
-              dayLabel={`Day ${activeDay.day_number}${activeDay.title ? ` · ${activeDay.title}` : ''}`}
-              nowActivity={nowNext.now}
-              nextActivity={nowNext.next}
-              todayHref={`/trips/${tripId}/today`}
-            />
-          ) : (
-            <EmptyState
-              title="No day planned yet"
-              description="Create or generate your itinerary to unlock Today planning."
-            />
-          )}
-        </section>
+          <div className="space-y-6 xl:sticky xl:top-6">
+            <StoryGenerator tripId={tripId} tripTitle={trip.title} />
 
-        <section>
-          <SectionHeader
-            title="Quick Actions"
-            subtitle="Plan your next move in one tap"
-          />
-          <QuickActionsGrid actions={quickActions} />
-        </section>
-
-        <section>
-          <SectionHeader
-            title="Saved Places"
-            subtitle="Your curated spots by category"
-            actionLabel="View all"
-            actionHref={`/trips/${tripId}/places`}
-          />
-          <SavedPlacesCarousel
-            groups={placeGroups}
-            viewAllHref={`/trips/${tripId}/places`}
-          />
-        </section>
-
-        <section>
-          <SectionHeader title="Trip Stats" subtitle="A quick pulse check" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard label="Saved Places" value={safePlaces.length} />
-            <StatCard label="Planned Days" value={safeDays.length} />
-            <StatCard label="Activities" value={activities.length} />
+            <Card className="space-y-4 rounded-[2rem] border-stone-200 bg-white p-6">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Story notes</p>
+                <h2 className="mt-3 font-serif text-3xl text-stone-900">The structure behind the journey</h2>
+              </div>
+              <div className="space-y-3 text-sm leading-7 text-stone-600 sm:text-base">
+                <p>{safeDays.length} planned day{safeDays.length === 1 ? '' : 's'}.</p>
+                <p>{activities.length} saved moment{activities.length === 1 ? '' : 's'}.</p>
+                <p>{safePlaces.length} saved place{safePlaces.length === 1 ? '' : 's'} helping shape the narrative.</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href={`/trips/${tripId}/today`}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100' })}
+                >
+                  View today
+                </Link>
+                <Link
+                  href={`/trips/${tripId}/places`}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100' })}
+                >
+                  Explore places
+                </Link>
+              </div>
+            </Card>
           </div>
-        </section>
-
-        <section>
-          <SectionHeader title="Memories" subtitle="Future-ready" />
-          <EmptyState
-            title="Memories and summaries coming soon"
-            description="Share the moments that mattered with stories, day recaps, and highlights."
-          />
-        </section>
+        </div>
       </div>
     </main>
   )

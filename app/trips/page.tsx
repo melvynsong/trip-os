@@ -2,15 +2,17 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUserEntitlements } from '@/lib/membership/server'
-import PageHeader from '@/app/components/shared/PageHeader'
+import { getCurrentUserEntitlements, getCurrentUserMembership } from '@/lib/membership/server'
 import TripCard from '@/app/components/trips/TripCard'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
-import BrandLine from '@/app/components/shared/BrandLine'
+import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
 import { Trip as TripType } from '@/types/trip'
 
-type TripListItem = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
+type TripListItem = Pick<
+  TripType,
+  'id' | 'title' | 'destination' | 'start_date' | 'end_date' | 'cover_image'
+>
 
 type TripsPageProps = {
   searchParams?: Promise<{ error?: string }>
@@ -89,54 +91,139 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
     redirect('/')
   }
 
+  const membership = await getCurrentUserMembership()
+
   const { data: trips, error } = await supabase
     .from('trips')
-    .select('id, title, destination, start_date, end_date')
-    .order('start_date', { ascending: true })
+    .select('id, title, destination, start_date, end_date, cover_image')
+    .order('updated_at', { ascending: false })
     .returns<TripListItem[]>()
 
   if (error) {
     return <div className="p-6">Failed to load trips.</div>
   }
 
+  const tripIds = (trips || []).map((trip) => trip.id)
+  const { data: days } = tripIds.length
+    ? await supabase
+        .from('days')
+        .select('id, trip_id')
+        .in('trip_id', tripIds)
+    : { data: [] }
+
+  const dayIds = (days || []).map((day) => day.id)
+  const { data: activities } = dayIds.length
+    ? await supabase
+        .from('activities')
+        .select('id, day_id')
+        .in('day_id', dayIds)
+    : { data: [] }
+
+  const { data: stories } = tripIds.length
+    ? await supabase
+        .from('stories')
+        .select('id, trip_id')
+        .in('trip_id', tripIds)
+    : { data: [] }
+
+  const dayCountByTrip = new Map<string, number>()
+  const tripIdByDayId = new Map<string, string>()
+
+  for (const day of days || []) {
+    tripIdByDayId.set(day.id, day.trip_id)
+    dayCountByTrip.set(day.trip_id, (dayCountByTrip.get(day.trip_id) || 0) + 1)
+  }
+
+  const activityCountByTrip = new Map<string, number>()
+  for (const activity of activities || []) {
+    const tripId = tripIdByDayId.get(activity.day_id)
+    if (!tripId) continue
+    activityCountByTrip.set(tripId, (activityCountByTrip.get(tripId) || 0) + 1)
+  }
+
+  const storyCountByTrip = new Map<string, number>()
+  for (const story of stories || []) {
+    storyCountByTrip.set(story.trip_id, (storyCountByTrip.get(story.trip_id) || 0) + 1)
+  }
+
+  const displayName = getUserDisplayName(user)
+  const tierLabel = getTierLabel(membership.tier)
+
   return (
-    <main className="mx-auto max-w-5xl p-6">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       {deleteBlockedMessage ? (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           {deleteBlockedMessage}
         </div>
       ) : null}
 
-      <PageHeader
-        title="My Trips"
-        subtitle={
-          <span className="inline-flex items-center gap-2">
-            <span>Create and manage your travel plans.</span>
-            <BrandLine className="text-gray-400" />
-          </span>
-        }
-        actions={
+      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_rgba(41,31,24,0.06)] sm:p-8 lg:p-10">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Your stories</p>
+            <h1 className="font-serif text-4xl leading-tight text-stone-900 sm:text-5xl">
+              Welcome back, {displayName}
+            </h1>
+            <p className="text-lg text-stone-700">Your next story starts here.</p>
+            <div className="inline-flex rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700">
+              {tierLabel}
+            </div>
+          </div>
+
           <Link
             href="/trips/new"
-            className={buttonClass({ variant: 'primary' })}
+            className={buttonClass({
+              variant: 'primary',
+              className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800',
+            })}
           >
-            + Create Trip
+            Start a new story
           </Link>
-        }
-      />
-
-      {trips && trips.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {trips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} onDeleteTrip={deleteTripAction} />
-          ))}
         </div>
-      ) : (
-        <EmptyState
-          title="No trips yet"
-          description="Plan your next escape by creating your first trip."
-        />
-      )}
+      </section>
+
+      <section className="mt-8 space-y-5">
+        <div>
+          <h2 className="font-serif text-3xl text-stone-900">Your stories</h2>
+          <p className="mt-2 text-sm leading-7 text-stone-600 sm:text-base">
+            A warm view of the trips you’re shaping, revisiting, and turning into memories.
+          </p>
+        </div>
+
+        {trips && trips.length > 0 ? (
+          <div className="grid gap-5 xl:grid-cols-2">
+            {trips.map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={{
+                  ...trip,
+                  dayCount: dayCountByTrip.get(trip.id) || 0,
+                  momentCount: activityCountByTrip.get(trip.id) || 0,
+                  storyCount: storyCountByTrip.get(trip.id) || 0,
+                }}
+                onDeleteTrip={deleteTripAction}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="You haven’t started a story yet."
+            description="Every journey begins with a plan."
+            action={
+              <Link
+                href="/trips/new"
+                className={buttonClass({
+                  variant: 'primary',
+                  className: 'rounded-full bg-stone-900 text-white hover:bg-stone-800',
+                })}
+              >
+                Start your first story
+              </Link>
+            }
+            className="rounded-[2rem] border-stone-200 bg-white p-8 shadow-[0_18px_50px_rgba(41,31,24,0.05)]"
+          />
+        )}
+      </section>
     </main>
   )
 }

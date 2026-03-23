@@ -34,10 +34,11 @@ export default function StoryPreviewCard({ title, content }: StoryPreviewCardPro
   }
 
   return (
-    <div className="relative rounded-xl border bg-gray-50 p-4">
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-stone-200 bg-[linear-gradient(180deg,rgba(255,252,247,1),rgba(248,242,233,0.92))] p-5 shadow-[0_18px_50px_rgba(41,31,24,0.05)] sm:p-6">
+      <div className="absolute left-0 top-0 h-24 w-24 rounded-full bg-amber-200/20 blur-2xl" />
       <button
         onClick={handleCopy}
-        className="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50 active:scale-95 transition-all"
+        className="absolute right-4 top-4 z-10 flex items-center gap-1.5 rounded-full border border-stone-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-stone-600 shadow-sm backdrop-blur transition-all hover:bg-white active:scale-95"
       >
         {copied ? (
           <>
@@ -57,8 +58,16 @@ export default function StoryPreviewCard({ title, content }: StoryPreviewCardPro
         )}
       </button>
 
-      {title ? <h3 className="mb-2 pr-20 font-semibold text-gray-900">{title}</h3> : null}
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800 pt-1">{content}</p>
+      <div className="relative space-y-4 pr-20">
+        <div className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-amber-900/80">
+          Story draft
+        </div>
+        {title ? <h3 className="font-serif text-3xl leading-tight text-stone-900">{title}</h3> : null}
+      </div>
+
+      <div className="relative mt-5 rounded-[1.5rem] border border-white/70 bg-white/65 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-5">
+        <p className="whitespace-pre-wrap text-sm leading-8 text-stone-700 sm:text-[15px]">{content}</p>
+      </div>
     </div>
   )
 }

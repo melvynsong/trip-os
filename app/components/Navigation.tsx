@@ -1,82 +1,85 @@
-'use client'
-
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { redirect } from 'next/navigation'
 import BrandLine from '@/app/components/shared/BrandLine'
+import { buttonClass } from '@/app/components/ui/Button'
 import { branding } from '@/lib/branding'
+import type { MembershipTier } from '@/lib/membership/types'
+import { createClient } from '@/lib/supabase/server'
+import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
 
-export default function Navigation() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
+export default async function Navigation() {
+  const supabase = await createClient()
 
-  const [user, setUser] = useState<{ email: string } | null>(null)
-  const [loading, setLoading] = useState(true)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+  let viewer: { name: string; tierLabel: string } | null = null
 
-      setUser(
-        user
-          ? { email: user.email ?? '' }
-          : null
-      )
-      setLoading(false)
+  if (user) {
+    const { data: member } = await supabase
+      .from('members')
+      .select('tier')
+      .eq('id', user.id)
+      .maybeSingle<{ tier: MembershipTier }>()
+
+    viewer = {
+      name: getUserDisplayName(user),
+      tierLabel: getTierLabel(member?.tier ?? 'free'),
     }
-
-    checkUser()
-  }, [supabase])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    router.push('/')
   }
 
-  const isActive = (href: string) => pathname === href
+  async function logoutAction() {
+    'use server'
+
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    redirect('/')
+  }
 
   return (
-    <nav className="bg-blue-600 text-white shadow-lg">
-      <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:py-4">
+    <nav className="border-b border-stone-200/80 bg-[#f7f1e8]/95 text-stone-900 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="rounded-lg px-2 py-1 transition hover:bg-white/10 active:scale-[0.98]"
+          className="rounded-2xl px-2 py-1 transition hover:bg-white/50 active:scale-[0.98]"
         >
-          <div className="text-2xl font-bold">{branding.appName}</div>
-          <BrandLine compact className="mt-0.5 text-white/80" />
+          <div className="font-serif text-3xl text-stone-900">{branding.appName}</div>
+          <BrandLine compact className="mt-1 text-stone-500" />
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <Link
-            href="/"
-            className={`rounded-lg px-3 py-2 text-sm transition active:scale-[0.98] ${
-              isActive('/') ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
-            }`}
+            href={user ? '/trips' : '/'}
+            className={buttonClass({
+              variant: 'ghost',
+              size: 'sm',
+              className: 'rounded-full text-stone-700 hover:bg-white/70',
+            })}
           >
-            Home
-          </Link>
-          <Link
-            href="/trips"
-            className={`rounded-lg px-3 py-2 text-sm transition active:scale-[0.98] ${
-              isActive('/trips') ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
-            }`}
-          >
-            Trips
+            {user ? 'Stories' : 'Home'}
           </Link>
 
-          {!loading && user && (
-            <button
-              onClick={handleLogout}
-              className="min-h-10 rounded-lg px-3 py-2 text-sm transition hover:bg-white/10 active:scale-[0.98]"
-            >
-              Logout
-            </button>
-          )}
+          {viewer ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="rounded-full border border-stone-200 bg-white/80 px-4 py-2 text-sm text-stone-700 shadow-sm">
+                {viewer.name} - {viewer.tierLabel}
+              </div>
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className={buttonClass({
+                    variant: 'secondary',
+                    size: 'sm',
+                    className:
+                      'rounded-full border-stone-200 bg-white text-stone-700 hover:bg-stone-50',
+                  })}
+                >
+                  Logout
+                </button>
+              </form>
+            </div>
+          ) : null}
         </div>
       </div>
     </nav>

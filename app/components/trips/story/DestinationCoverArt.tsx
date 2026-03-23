@@ -1,0 +1,68 @@
+function hashString(value: string) {
+  let hash = 0
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(index)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+function getInitials(value: string) {
+  const words = value
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter(Boolean)
+
+  if (words.length === 0) return 'TG'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return `${words[0][0] || ''}${words[1][0] || ''}`.toUpperCase()
+}
+
+function paletteFromSeed(seed: number) {
+  const palettes = [
+    ['from-amber-100 via-orange-50 to-rose-100', 'bg-amber-300/35', 'bg-orange-300/30'],
+    ['from-sky-100 via-cyan-50 to-emerald-100', 'bg-sky-300/35', 'bg-emerald-300/25'],
+    ['from-violet-100 via-fuchsia-50 to-rose-100', 'bg-violet-300/35', 'bg-fuchsia-300/25'],
+    ['from-stone-100 via-amber-50 to-yellow-100', 'bg-stone-300/30', 'bg-yellow-300/25'],
+    ['from-teal-100 via-cyan-50 to-indigo-100', 'bg-teal-300/30', 'bg-indigo-300/25'],
+  ] as const
+
+  return palettes[seed % palettes.length]
+}
+
+export default function DestinationCoverArt({
+  destination,
+  title,
+  compact = false,
+}: {
+  destination: string
+  title?: string
+  compact?: boolean
+}) {
+  const seed = hashString(`${destination}-${title || ''}`)
+  const [gradient, accentOne, accentTwo] = paletteFromSeed(seed)
+  const initials = getInitials(destination || title || 'ToGoStory')
+
+  return (
+    <div aria-hidden className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${gradient}`}>
+      <div className={`absolute ${compact ? '-left-6 -top-8 h-24 w-24' : '-left-12 top-0 h-40 w-40'} rounded-full blur-2xl ${accentOne}`} />
+      <div className={`absolute ${compact ? 'right-0 top-6 h-20 w-20' : 'right-4 top-10 h-36 w-36'} rounded-full blur-2xl ${accentTwo}`} />
+      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.45))]" />
+      <div className={`absolute ${compact ? 'bottom-3 left-4 right-4' : 'bottom-6 left-6 right-6'} flex items-end justify-between gap-4`}>
+        <div className="min-w-0">
+          <p className={`font-medium uppercase tracking-[0.2em] text-stone-700/70 ${compact ? 'text-[10px]' : 'text-xs'}`}>
+            {destination || 'Travel story'}
+          </p>
+          {title ? (
+            <p className={`mt-1 max-w-[14rem] truncate font-serif text-stone-900/70 ${compact ? 'text-base' : 'text-2xl'}`}>
+              {title}
+            </p>
+          ) : null}
+        </div>
+        <div className={`flex shrink-0 items-center justify-center rounded-full border border-white/70 bg-white/60 font-serif text-stone-700 shadow-sm backdrop-blur ${compact ? 'h-12 w-12 text-sm' : 'h-20 w-20 text-2xl'}`}>
+          {initials}
+        </div>
+      </div>
+    </div>
+  )
+}

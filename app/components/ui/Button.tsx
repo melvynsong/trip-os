@@ -6,11 +6,11 @@ type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border-transparent bg-black text-white shadow-sm hover:bg-gray-800 active:bg-gray-900 active:shadow-none',
+    'border-transparent bg-stone-900 text-white shadow-[0_14px_30px_rgba(41,31,24,0.16)] hover:bg-stone-800 active:bg-stone-950 active:shadow-none',
   secondary:
-    'border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 active:shadow-none',
+    'border-stone-200 bg-white text-stone-700 shadow-sm hover:border-stone-300 hover:bg-stone-50 active:bg-stone-100 active:shadow-none',
   ghost:
-    'border-transparent bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+    'border-transparent bg-transparent text-stone-700 hover:bg-stone-100 active:bg-stone-200',
   danger:
     'border-transparent bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800 active:shadow-none',
 }
@@ -31,7 +31,7 @@ export function buttonClass(options?: {
   const size = options?.size ?? 'md'
 
   return cn(
-    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-xl border font-medium transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-2xl border font-medium transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-950/15 disabled:pointer-events-none disabled:opacity-50',
     variantClasses[variant],
     sizeClasses[size],
     options?.className

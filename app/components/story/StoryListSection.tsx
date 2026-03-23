@@ -72,12 +72,15 @@ export default function StoryListSection({
   }, [tripId, scope, dayId, placeId, activityId, limit, refreshKey])
 
   return (
-    <section className="space-y-3">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-400">{title}</h3>
+    <section className="space-y-4">
+      <div className="space-y-2">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Memories</p>
+        <h3 className="font-serif text-3xl text-stone-900">{title}</h3>
+      </div>
 
       {loading ? <StoryListSkeleton /> : null}
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       ) : null}
@@ -86,7 +89,7 @@ export default function StoryListSection({
         <EmptyState
           title="No saved stories yet"
           description="Generate a story and save it to build your memory timeline."
-          className="p-4"
+          className="bg-white p-6"
         />
       ) : null}
 
