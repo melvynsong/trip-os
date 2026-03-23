@@ -16,11 +16,30 @@ type SavedPlace = {
   name: string
 }
 
+type ActivityType = 'food' | 'attraction' | 'shopping' | 'transport' | 'hotel' | 'note' | 'other'
+
+function placeTypeToActivityType(pt: PlaceType): ActivityType {
+  switch (pt) {
+    case 'restaurant':
+    case 'cafe':
+      return 'food'
+    case 'attraction':
+      return 'attraction'
+    case 'shopping':
+      return 'shopping'
+    case 'hotel':
+      return 'hotel'
+    default:
+      return 'other'
+  }
+}
+
 type GooglePlacePickerProps = {
   tripId: string
   destination: string
   initialPlaceType?: PlaceType
   hiddenInputName?: string
+  activityTypeInputName?: string
   initialSavedPlaceId?: string | null
   afterSaveHref?: string
   saveButtonText?: string
@@ -44,6 +63,7 @@ export default function GooglePlacePicker({
   destination,
   initialPlaceType = 'attraction',
   hiddenInputName,
+  activityTypeInputName,
   initialSavedPlaceId = null,
   afterSaveHref,
   saveButtonText = 'Save Place',
@@ -233,6 +253,9 @@ export default function GooglePlacePicker({
   return (
     <div className={cn('space-y-4', className)}>
       {hiddenInputName ? <input type="hidden" name={hiddenInputName} value={savedPlaceId} /> : null}
+      {activityTypeInputName ? (
+        <input type="hidden" name={activityTypeInputName} value={placeTypeToActivityType(placeType)} />
+      ) : null}
 
       <Card className="space-y-4 p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

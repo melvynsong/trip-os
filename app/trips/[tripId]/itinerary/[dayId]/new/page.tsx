@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getCurrentUserEntitlements } from '@/lib/membership/server'
 import type { MembershipTier } from '@/lib/membership/types'
 import { createClient } from '@/lib/supabase/server'
+import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
 
 type Props = {
@@ -42,6 +43,8 @@ export default async function NewActivityPage({ params }: Props) {
   if (dayError || !day) {
     notFound()
   }
+
+  const isPremiumUser = hasAccess(userTier, PREMIUM_FIND_PLACE_TIERS)
 
   const { data: places } = await supabase
     .from('places')
@@ -119,22 +122,24 @@ export default async function NewActivityPage({ params }: Props) {
           />
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
-          <select
-            name="type"
-            defaultValue="other"
-            className="w-full rounded-xl border px-3 py-2"
-          >
-            <option value="food">Food</option>
-            <option value="attraction">Attraction</option>
-            <option value="shopping">Shopping</option>
-            <option value="transport">Transport</option>
-            <option value="hotel">Hotel</option>
-            <option value="note">Note</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+        {!isPremiumUser && (
+          <div>
+            <label className="mb-1 block text-sm font-medium">Type</label>
+            <select
+              name="type"
+              defaultValue="other"
+              className="w-full rounded-xl border px-3 py-2"
+            >
+              <option value="food">Food</option>
+              <option value="attraction">Attraction</option>
+              <option value="shopping">Shopping</option>
+              <option value="transport">Transport</option>
+              <option value="hotel">Hotel</option>
+              <option value="note">Note</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        )}
 
         <ActivityPlacePickerField
           tripId={tripId}
