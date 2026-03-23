@@ -96,6 +96,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
   const { data: trips, error } = await supabase
     .from('trips')
     .select('id, title, destination, start_date, end_date, cover_image')
+    .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
     .returns<TripListItem[]>()
 

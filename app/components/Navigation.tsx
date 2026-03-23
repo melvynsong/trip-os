@@ -38,7 +38,7 @@ export default async function Navigation() {
   }
 
   return (
-    <nav className="border-b border-stone-200/80 bg-[#f7f1e8]/95 text-stone-900 backdrop-blur">
+    <nav className="border-b border-stone-200/80 bg-white/95 text-stone-900 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
         <Link
           href="/"

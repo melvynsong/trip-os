@@ -56,7 +56,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${dmSerif.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-[#f7f1e8] text-stone-900">
+      <body className="flex min-h-full flex-col bg-white text-stone-900">
         <ToastProvider>
           <Navigation />
           {children}
