@@ -87,6 +87,7 @@ export async function POST(
       .from('trips')
       .select('id, title, destination, start_date, end_date')
       .eq('id', tripId)
+      .eq('user_id', user.id)
       .single<AiTripContext & { id: string }>()
 
     if (tripError || !trip) {

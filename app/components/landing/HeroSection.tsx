@@ -41,20 +41,20 @@ export default function HeroSection() {
           </p>
         </div>
 
-        <div className="rounded-[1.75rem] border border-slate-200 bg-white/85 p-6 shadow-[0_18px_50px_rgba(14,116,144,0.12)] backdrop-blur sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <div className="rounded-[1.75rem] border border-sky-300/50 bg-gradient-to-br from-sky-50 to-sky-100/60 p-6 shadow-[0_24px_60px_rgba(14,116,144,0.22)] backdrop-blur sm:p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">
             Start here
           </p>
           <h2 className="mt-3 font-serif text-3xl leading-tight text-slate-900">
             Bring planning, moments, and memories into one thoughtful home.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
+          <p className="mt-4 text-sm leading-7 text-slate-700 sm:text-base">
             Sign in once, plan with calm clarity, and turn the details of your journey into something worth sharing.
           </p>
           <div className="mt-8">
-            <LoginButton className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-sky-200/70 bg-[linear-gradient(135deg,#ffffff,#ecfeff)] px-6 py-3 text-sm font-semibold text-slate-900 shadow-[0_14px_30px_rgba(14,116,144,0.18)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_20px_40px_rgba(37,99,235,0.24)]" />
+            <LoginButton className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-sky-400 bg-gradient-to-r from-sky-500 to-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(14,165,233,0.35)] transition hover:-translate-y-0.5 hover:from-sky-600 hover:to-sky-700 hover:shadow-[0_24px_50px_rgba(14,165,233,0.45)]" />
           </div>
-          <p className="mt-4 text-xs leading-6 text-slate-500">
+          <p className="mt-4 text-xs leading-6 text-sky-900/70">
             Google sign-in only. Your trip planning stays tied to your account and tier access.
           </p>
         </div>

@@ -20,6 +20,7 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'OPENAI_API_KEY is not configured.' }, { status: 500 })
     }
 
+    const { tripId } = await params
     const body = (await request.json()) as Record<string, unknown>
     const tone = asString(body.tone) as StoryTone
     const length = asString(body.length) as StoryLength
@@ -27,8 +28,6 @@ export async function POST(request: Request, { params }: Params) {
     if (!VALID_TONES.has(tone) || !VALID_LENGTHS.has(length)) {
       return NextResponse.json({ error: 'Invalid tone or length.' }, { status: 400 })
     }
-
-    const { tripId } = await params
     const supabase = await createClient()
 
     const {
