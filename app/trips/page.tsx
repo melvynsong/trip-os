@@ -14,6 +14,8 @@ type TripListItem = Pick<
   'id' | 'title' | 'destination' | 'start_date' | 'end_date' | 'cover_image'
 >
 
+type TripListItemWithoutCover = Omit<TripListItem, 'cover_image'>
+
 type TripsPageProps = {
   searchParams?: Promise<{ error?: string }>
 }
@@ -93,12 +95,26 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
 
   const membership = await getCurrentUserMembership()
 
-  const { data: trips, error } = await supabase
+  let { data: trips, error } = await supabase
     .from('trips')
     .select('id, title, destination, start_date, end_date, cover_image')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
     .returns<TripListItem[]>()
+
+  if (error && /cover_image/i.test(error.message)) {
+    const fallback = await supabase
+      .from('trips')
+      .select('id, title, destination, start_date, end_date')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .returns<TripListItemWithoutCover[]>()
+
+    if (!fallback.error) {
+      trips = (fallback.data || []).map((trip) => ({ ...trip, cover_image: null }))
+      error = null
+    }
+  }
 
   if (error) {
     return <div className="p-6">Failed to load trips.</div>

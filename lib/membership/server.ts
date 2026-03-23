@@ -16,6 +16,14 @@ export type CurrentUserMembership = {
   isGmailAllowed: boolean
 }
 
+export type TripCreationEntitlements = {
+  tier: MembershipTier
+  tripLimitPerYear: number | null
+  currentYearTripCount: number
+  remainingTripsThisYear: number | null
+  isGmailAllowed: boolean
+}
+
 function getTripLimitPerYear(tier: MembershipTier): number | null {
   if (tier === 'owner') return null
   if (tier === 'friend') return 3
@@ -156,6 +164,39 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
     itineraryAiUsed: safeAiUsed,
     itineraryAiRemaining,
     canUseItineraryAi,
+    isGmailAllowed: membership.isGmailAllowed,
+  }
+}
+
+export async function getCurrentUserTripCreationEntitlements(): Promise<TripCreationEntitlements> {
+  const supabase = await createClient()
+  const membership = await getCurrentUserMembership()
+
+  const { start, end } = getUtcYearBounds()
+
+  const { count: currentYearTripCount, error: tripsError } = await supabase
+    .from('trips')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', membership.userId)
+    .gte('created_at', start)
+    .lt('created_at', end)
+
+  if (tripsError) {
+    throw new Error(`Failed to count current year trips: ${tripsError.message}`)
+  }
+
+  const tier = membership.tier
+  const tripLimitPerYear = getTripLimitPerYear(tier)
+  const safeTripCount = currentYearTripCount || 0
+
+  const remainingTripsThisYear =
+    tripLimitPerYear === null ? null : Math.max(tripLimitPerYear - safeTripCount, 0)
+
+  return {
+    tier,
+    tripLimitPerYear,
+    currentYearTripCount: safeTripCount,
+    remainingTripsThisYear,
     isGmailAllowed: membership.isGmailAllowed,
   }
 }

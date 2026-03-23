@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUserEntitlements } from '@/lib/membership/server'
+import { getCurrentUserTripCreationEntitlements } from '@/lib/membership/server'
 
 export const runtime = 'nodejs'
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Start date must be before end date.' }, { status: 400 })
     }
 
-    const entitlements = await getCurrentUserEntitlements()
+    const entitlements = await getCurrentUserTripCreationEntitlements()
 
     if (!entitlements.isGmailAllowed) {
       return NextResponse.json(

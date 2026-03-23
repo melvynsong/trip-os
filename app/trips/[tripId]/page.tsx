@@ -20,6 +20,8 @@ type Props = {
 
 type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date' | 'cover_image'>
 
+type TripWithoutCover = Omit<Trip, 'cover_image'>
+
 type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
 type Activity = Pick<
@@ -44,12 +46,26 @@ export default async function TripDashboardPage({ params }: Props) {
     redirect('/')
   }
 
-  const { data: trip, error: tripError } = await supabase
+  let { data: trip, error: tripError } = await supabase
     .from('trips')
     .select('id, title, destination, start_date, end_date, cover_image')
     .eq('id', tripId)
     .eq('user_id', user.id)
     .single<Trip>()
+
+  if (tripError && /cover_image/i.test(tripError.message)) {
+    const fallback = await supabase
+      .from('trips')
+      .select('id, title, destination, start_date, end_date')
+      .eq('id', tripId)
+      .eq('user_id', user.id)
+      .single<TripWithoutCover>()
+
+    if (!fallback.error && fallback.data) {
+      trip = { ...fallback.data, cover_image: null }
+      tripError = null
+    }
+  }
 
   if (tripError || !trip) {
     notFound()
