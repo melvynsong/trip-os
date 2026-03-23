@@ -371,8 +371,8 @@ export default function GooglePlacePicker({
               </div>
             ) : selectedPlace ? (
               <>
-                <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                  {mapEmbedUrl ? (
+                {mapEmbedUrl ? (
+                  <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                     <iframe
                       title={`Map preview for ${selectedPlace.name}`}
                       src={mapEmbedUrl}
@@ -380,17 +380,8 @@ export default function GooglePlacePicker({
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                     />
-                  ) : (
-                    <div className="flex h-56 items-center justify-center bg-[linear-gradient(135deg,#eff6ff_0%,#f8fafc_45%,#ecfeff_100%)] p-6 text-center">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Map preview unavailable</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          Add NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable the embedded Google map preview.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : null}
 
                 <Card className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
