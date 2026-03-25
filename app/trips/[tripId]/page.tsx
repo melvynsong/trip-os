@@ -220,7 +220,7 @@ export default async function TripDashboardPage({ params }: Props) {
             <Card className="space-y-4 rounded-[2rem] border-slate-200 bg-white p-6">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Story notes</p>
-                <h2 className="mt-3 font-serif text-3xl text-slate-900">The structure behind the journey</h2>
+                <h2 className="mt-3 font-serif text-3xl text-slate-900">Your trip at a glance</h2>
               </div>
               <div className="space-y-3 text-sm leading-7 text-slate-600 sm:text-base">
                 <p>{safeDays.length} planned day{safeDays.length === 1 ? '' : 's'}.</p>

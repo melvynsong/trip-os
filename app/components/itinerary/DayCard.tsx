@@ -35,6 +35,11 @@ export default function DayCard({
   activities,
   moveActivityAction,
 }: DayCardProps) {
+  const normalizedDayTitle =
+    day.title && !new RegExp(`^\\s*day\\s*${day.day_number}\\b`, 'i').test(day.title)
+      ? day.title
+      : null
+
   const shortShareText = formatDayForWhatsApp(
     {
       tripTitle,
@@ -79,7 +84,7 @@ export default function DayCard({
         <div>
           <div className="font-semibold text-lg">
             Day {day.day_number}
-            {day.title ? ` — ${day.title}` : ''}
+            {normalizedDayTitle ? ` — ${normalizedDayTitle}` : ''}
           </div>
           <div className="text-sm text-gray-500">{day.date}</div>
         </div>

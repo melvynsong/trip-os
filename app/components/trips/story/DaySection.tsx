@@ -30,7 +30,11 @@ export default function DaySection({
   isLast: boolean
 }) {
   const hasMoments = groups.some((group) => group.items.length > 0)
-  const heading = day.title ? `Day ${day.dayNumber} — ${day.title}` : `Day ${day.dayNumber}`
+  const normalizedDayTitle =
+    day.title && !new RegExp(`^\\s*day\\s*${day.dayNumber}\\b`, 'i').test(day.title)
+      ? day.title
+      : null
+  const heading = normalizedDayTitle ? `Day ${day.dayNumber} — ${normalizedDayTitle}` : `Day ${day.dayNumber}`
 
   return (
     <section className="space-y-6">

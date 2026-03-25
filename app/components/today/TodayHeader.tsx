@@ -31,6 +31,11 @@ export default function TodayHeader({
   hotel,
   tripStatus,
 }: TodayHeaderProps) {
+  const normalizedDayTitle =
+    dayTitle && !new RegExp(`^\\s*day\\s*${dayNumber}\\b`, 'i').test(dayTitle)
+      ? dayTitle
+      : null
+
   const formatted = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -52,7 +57,7 @@ export default function TodayHeader({
 
           <h1 className="mt-1.5 text-2xl font-bold leading-tight">
             Day {dayNumber}
-            {dayTitle ? ` — ${dayTitle}` : ''}
+            {normalizedDayTitle ? ` — ${normalizedDayTitle}` : ''}
           </h1>
 
           <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-500">

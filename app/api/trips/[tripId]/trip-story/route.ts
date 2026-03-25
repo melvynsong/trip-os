@@ -14,6 +14,15 @@ function asString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function extractJsonObjectString(value: string) {
+  const start = value.indexOf('{')
+  const end = value.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) {
+    return null
+  }
+  return value.slice(start, end + 1)
+}
+
 export async function POST(request: Request, { params }: Params) {
   try {
     if (!process.env.OPENAI_API_KEY) {
@@ -57,6 +66,13 @@ export async function POST(request: Request, { params }: Params) {
 
     if (daysError) {
       return NextResponse.json({ error: daysError.message }, { status: 500 })
+    }
+
+    if (!days || days.length === 0) {
+      return NextResponse.json(
+        { error: 'Add at least one day to this trip before generating a story.' },
+        { status: 400 }
+      )
     }
 
     const dayIds = (days || []).map((day) => day.id)
@@ -147,7 +163,33 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'AI returned an empty response.' }, { status: 500 })
     }
 
-    const story = parseTripStoryDraft(JSON.parse(content) as unknown)
+    const jsonString = extractJsonObjectString(content)
+    if (!jsonString) {
+      return NextResponse.json(
+        { error: 'The story response format was invalid. Please try generating again.' },
+        { status: 502 }
+      )
+    }
+
+    let parsedContent: unknown
+    try {
+      parsedContent = JSON.parse(jsonString) as unknown
+    } catch {
+      return NextResponse.json(
+        { error: 'The story response could not be read. Please try again.' },
+        { status: 502 }
+      )
+    }
+
+    let story
+    try {
+      story = parseTripStoryDraft(parsedContent)
+    } catch {
+      return NextResponse.json(
+        { error: 'Generated story was incomplete. Please try again.' },
+        { status: 502 }
+      )
+    }
 
     return NextResponse.json({ story })
   } catch (error) {

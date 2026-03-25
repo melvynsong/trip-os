@@ -40,6 +40,14 @@ type GeneratedMeta = {
   relatedActivityId: string | null
 }
 
+async function safeReadJson(res: Response) {
+  try {
+    return (await res.json()) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
 async function copyText(text: string) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text)
@@ -115,11 +123,21 @@ export default function StoryGenerationSheet({
         body: JSON.stringify(generatePayload),
       })
 
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Failed to generate story.')
+      const json = await safeReadJson(res)
+      if (!res.ok) {
+        const message =
+          typeof json?.error === 'string' && json.error
+            ? json.error
+            : 'We could not generate a story right now. Please try again.'
+        throw new Error(message)
+      }
 
-      setDraft(json.draft)
-      setMeta(json.meta)
+      if (!json || typeof json !== 'object' || !('draft' in json)) {
+        throw new Error('Story generation returned an unexpected response. Please try again.')
+      }
+
+      setDraft(json.draft as StoryDraft)
+      setMeta((json.meta as GeneratedMeta) ?? null)
       showToast('Story draft generated.', 'success')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Story generation failed.'
@@ -163,8 +181,14 @@ export default function StoryGenerationSheet({
         body: JSON.stringify(savePayload),
       })
 
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Failed to save story.')
+      const json = await safeReadJson(res)
+      if (!res.ok) {
+        const message =
+          typeof json?.error === 'string' && json.error
+            ? json.error
+            : 'We could not save this story right now. Please try again.'
+        throw new Error(message)
+      }
 
       onSaved?.()
       showToast('Story saved to memories.', 'success')
@@ -249,13 +273,13 @@ export default function StoryGenerationSheet({
               </div>
             </div>
 
-            <div className="border-t px-5 py-4">
-              <div className="grid gap-3 sm:grid-cols-3">
+            <div className="relative z-10 border-t bg-white/95 px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   onClick={handleCopy}
                   disabled={!draft}
                   variant="secondary"
-                  className="w-full"
+                  className="w-full sm:flex-1"
                 >
                   {copyState === 'copied' ? 'Copied' : 'Copy'}
                 </Button>
@@ -264,7 +288,7 @@ export default function StoryGenerationSheet({
                   onClick={handleSave}
                   disabled={!draft}
                   loading={saving}
-                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800"
+                  className="w-full sm:flex-1 bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800"
                 >
                   Save to Memories
                 </Button>
@@ -272,7 +296,7 @@ export default function StoryGenerationSheet({
                 <Button
                   onClick={() => setIsOpen(false)}
                   variant="ghost"
-                  className="w-full"
+                  className="w-full sm:flex-1"
                 >
                   Close
                 </Button>

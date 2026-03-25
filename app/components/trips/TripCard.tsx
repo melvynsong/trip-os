@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import Card from '@/app/components/ui/Card'
 import DestinationCoverArt from '@/app/components/trips/story/DestinationCoverArt'
@@ -22,10 +22,12 @@ type Trip = {
 type TripCardProps = {
   trip: Trip
   onDeleteTrip: (formData: FormData) => Promise<void>
+  canDelete: boolean
 }
 
-export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
+export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProps) {
   const formRef = useRef<HTMLFormElement>(null)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const totalStories = trip.storyCount ?? 0
   const totalDays = trip.dayCount ?? 0
   const totalMoments = trip.momentCount ?? 0
@@ -33,10 +35,11 @@ export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
   function handleDeleteClick(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     event.stopPropagation()
+    setIsConfirmOpen(true)
+  }
 
-    const ok = confirm('Delete this trip? This will remove all days, activities, and places.')
-    if (!ok) return
-
+  function handleConfirmDelete() {
+    setIsConfirmOpen(false)
     formRef.current?.requestSubmit()
   }
 
@@ -104,16 +107,51 @@ export default function TripCard({ trip, onDeleteTrip }: TripCardProps) {
 
       <form ref={formRef} action={onDeleteTrip} className="relative z-20">
         <input type="hidden" name="trip_id" value={trip.id} />
-        <button
-          type="button"
-          onClick={handleDeleteClick}
-          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-sm text-slate-400 shadow-sm transition hover:bg-red-50 hover:text-red-600"
-          aria-label={`Delete ${trip.title}`}
-          title="Delete trip"
-        >
-          🗑️
-        </button>
+        {canDelete ? (
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            className="absolute bottom-4 right-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/85 text-slate-500 shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            aria-label={`Delete ${trip.title}`}
+            title="Delete story"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+              <path
+                fillRule="evenodd"
+                d="M7 3a1 1 0 00-1 1v1H4a1 1 0 100 2h.2l.72 8.02A2 2 0 006.91 17h6.18a2 2 0 001.99-1.98L15.8 7H16a1 1 0 100-2h-2V4a1 1 0 00-1-1H7zm2 2V5h2v0H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        ) : null}
       </form>
+
+      {isConfirmOpen ? (
+        <div className="absolute inset-0 z-30 flex items-end justify-center bg-slate-900/35 p-4 sm:items-center">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+            <h4 className="font-semibold text-slate-900">Delete this story?</h4>
+            <p className="mt-2 text-sm text-slate-600">
+              This will permanently remove the trip and its related content.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmOpen(false)}
+                className={buttonClass({ variant: 'secondary', size: 'sm', className: 'rounded-full' })}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className={buttonClass({ variant: 'danger', size: 'sm', className: 'rounded-full' })}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </Card>
   )
 }

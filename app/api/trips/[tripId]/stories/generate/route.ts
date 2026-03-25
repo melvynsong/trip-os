@@ -49,6 +49,15 @@ function parseLength(value: unknown): StoryLength | null {
   return VALID_LENGTHS.has(v) ? v : null
 }
 
+function extractJsonObjectString(value: string) {
+  const start = value.indexOf('{')
+  const end = value.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) {
+    return null
+  }
+  return value.slice(start, end + 1)
+}
+
 export async function POST(request: Request, { params }: Params) {
   try {
     if (!process.env.OPENAI_API_KEY) {
@@ -135,6 +144,16 @@ export async function POST(request: Request, { params }: Params) {
         .eq('trip_id', tripId)
         .order('name', { ascending: true })
 
+      if ((activities || []).length === 0 && (places || []).length === 0) {
+        return NextResponse.json(
+          {
+            error:
+              'Add at least one activity or place to this day before generating a story.',
+          },
+          { status: 400 }
+        )
+      }
+
       const hotel = (places || []).find((place) => resolvePlaceType(place) === 'hotel')
 
       const context: DayStoryContext = {
@@ -187,7 +206,6 @@ export async function POST(request: Request, { params }: Params) {
 
       const placeId = asString(body.placeId) || null
       const activityId = asString(body.activityId) || null
-      const dayId = asString(body.dayId) || null
 
       if (!placeId && !activityId) {
         return NextResponse.json(
@@ -359,7 +377,33 @@ export async function POST(request: Request, { params }: Params) {
       )
     }
 
-    const parsed = parseStoryDraft(JSON.parse(content) as unknown)
+    const jsonString = extractJsonObjectString(content)
+    if (!jsonString) {
+      return NextResponse.json(
+        { error: 'The story response format was invalid. Please try generating again.' },
+        { status: 502 }
+      )
+    }
+
+    let parsedContent: unknown
+    try {
+      parsedContent = JSON.parse(jsonString) as unknown
+    } catch {
+      return NextResponse.json(
+        { error: 'The story response could not be read. Please try again.' },
+        { status: 502 }
+      )
+    }
+
+    let parsed
+    try {
+      parsed = parseStoryDraft(parsedContent)
+    } catch {
+      return NextResponse.json(
+        { error: 'Generated story was incomplete. Please try again.' },
+        { status: 502 }
+      )
+    }
 
     return NextResponse.json({
       draft: {

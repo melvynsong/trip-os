@@ -87,20 +87,26 @@ async function loadTripsForUser(supabase: Awaited<ReturnType<typeof createClient
 }
 
 type TripsPageProps = {
-  searchParams?: Promise<{ error?: string }>
+  searchParams?: Promise<{ error?: string; status?: string }>
 }
 
 export default async function TripsPage({ searchParams }: TripsPageProps) {
   const supabase = await createClient()
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const pageError = resolvedSearchParams?.error
+  const pageStatus = resolvedSearchParams?.status
 
   const deleteBlockedMessage =
     pageError === 'delete_not_allowed'
       ? 'Free tier cannot delete trips. Upgrade to Friend tier to enable trip deletion.'
+      : pageError === 'delete_failed'
+        ? 'We could not delete that story right now. Please try again.'
       : pageError === 'gmail_not_allowed'
         ? 'Only gmail.com accounts are currently allowed to manage trips.'
         : null
+
+  const deleteSuccessMessage =
+    pageStatus === 'deleted' ? 'Story deleted successfully.' : null
 
   async function deleteTripAction(formData: FormData) {
     'use server'
@@ -134,7 +140,9 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
       .eq('user_id', user.id)
       .maybeSingle<{ id: string }>()
 
-    if (!ownedTrip) return
+    if (!ownedTrip) {
+      redirect('/trips?error=delete_failed')
+    }
 
     const { data: days } = await supabase
       .from('days')
@@ -145,14 +153,37 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
     const dayIds = (days || []).map((day) => day.id)
 
     if (dayIds.length > 0) {
-      await supabase.from('activities').delete().in('day_id', dayIds)
+      const { error: activitiesDeleteError } = await supabase
+        .from('activities')
+        .delete()
+        .in('day_id', dayIds)
+      if (activitiesDeleteError) {
+        redirect('/trips?error=delete_failed')
+      }
     }
 
-    await supabase.from('days').delete().eq('trip_id', tripId)
-    await supabase.from('places').delete().eq('trip_id', tripId)
-    await supabase.from('trips').delete().eq('id', tripId).eq('user_id', user.id)
+    const { error: daysDeleteError } = await supabase.from('days').delete().eq('trip_id', tripId)
+    if (daysDeleteError) {
+      redirect('/trips?error=delete_failed')
+    }
+
+    const { error: placesDeleteError } = await supabase.from('places').delete().eq('trip_id', tripId)
+    if (placesDeleteError) {
+      redirect('/trips?error=delete_failed')
+    }
+
+    const { error: tripDeleteError } = await supabase
+      .from('trips')
+      .delete()
+      .eq('id', tripId)
+      .eq('user_id', user.id)
+
+    if (tripDeleteError) {
+      redirect('/trips?error=delete_failed')
+    }
 
     revalidatePath('/trips')
+    redirect('/trips?status=deleted')
   }
 
   const {
@@ -163,6 +194,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
     redirect('/')
   }
 
+  const entitlements = await getCurrentUserEntitlements()
   const membership = await getCurrentUserMembership()
 
   const { data: trips, error } = await loadTripsForUser(supabase, user.id)
@@ -224,6 +256,12 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      {deleteSuccessMessage ? (
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {deleteSuccessMessage}
+        </div>
+      ) : null}
+
       {deleteBlockedMessage ? (
         <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
           {deleteBlockedMessage}
@@ -275,6 +313,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                   storyCount: storyCountByTrip.get(trip.id) || 0,
                 }}
                 onDeleteTrip={deleteTripAction}
+                canDelete={entitlements.canDeleteTrip}
               />
             ))}
           </div>
