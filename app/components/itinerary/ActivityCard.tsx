@@ -29,25 +29,27 @@ export default function ActivityCard({
   return (
     <div
       key={activity.id}
-      className="rounded-xl border-l-4 border-blue-500 bg-blue-50/30 px-3 py-3 transition-colors hover:bg-blue-50/50"
+      className="rounded-[1.4rem] border border-slate-200 bg-slate-50/60 p-4 transition-colors hover:bg-sky-50/60"
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="font-medium">
+        <div className="min-w-0 text-base font-semibold text-slate-900 sm:text-[1.1rem]">
           {getEmoji(activity.type)} {activity.title}
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="shrink-0 text-sm font-medium text-slate-500">
           {activity.activity_time || 'No time'}
         </div>
       </div>
 
-      <div className="mt-1 text-sm text-gray-500 capitalize">{activity.type}</div>
+      <div className="mt-1 text-sm text-slate-500 capitalize">{activity.type}</div>
 
       {activity.places && (
-        <div className="mt-1 text-xs text-blue-600">📍 {activity.places.name}</div>
+        <div className="mt-2 inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800 ring-1 ring-sky-200">
+          📍 {activity.places.name}
+        </div>
       )}
 
       {activity.notes ? (
-        <div className="mt-2 text-sm text-gray-700">{activity.notes}</div>
+        <div className="mt-3 text-sm leading-7 text-slate-600">{activity.notes}</div>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -58,7 +60,7 @@ export default function ActivityCard({
           activityId={activity.id}
           title="Write Activity Story"
           triggerLabel="Write Story"
-          triggerClassName={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs' })}
+          triggerClassName={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
         />
         <form action={moveActivityAction}>
           <input type="hidden" name="day_id" value={activity.day_id} />
@@ -67,7 +69,7 @@ export default function ActivityCard({
           <button
             type="submit"
             disabled={!canMoveUp}
-            className={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs' })}
+            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
           >
             ↑ Up
           </button>
@@ -80,7 +82,7 @@ export default function ActivityCard({
           <button
             type="submit"
             disabled={!canMoveDown}
-            className={buttonClass({ size: 'sm', className: 'h-8 px-2.5 text-xs' })}
+            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
           >
             ↓ Down
           </button>
@@ -88,7 +90,7 @@ export default function ActivityCard({
 
         <Link
           href={`/trips/${tripId}/itinerary/${activity.day_id}/activities/${activity.id}/edit`}
-          className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 px-2.5 text-xs' })}
+          className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 rounded-full text-xs text-slate-700 hover:bg-sky-50/70' })}
         >
           Edit
         </Link>

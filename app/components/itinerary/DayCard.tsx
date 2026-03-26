@@ -79,17 +79,17 @@ export default function DayCard({
   )
 
   return (
-    <Card key={day.id} className="p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <div className="font-semibold text-lg">
+    <Card key={day.id} className="rounded-[2rem] border-slate-200 bg-white p-5 sm:p-6">
+      <div className="mb-5 flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2">
+          <div className="font-serif text-3xl text-slate-900">
             Day {day.day_number}
             {normalizedDayTitle ? ` — ${normalizedDayTitle}` : ''}
           </div>
-          <div className="text-sm text-gray-500">{day.date}</div>
+          <div className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">{day.date}</div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StoryGenerationSheet
             tripId={tripId}
             scope="day"
@@ -97,18 +97,18 @@ export default function DayCard({
             relatedDate={day.date}
             title={`Generate Day ${day.day_number} Story`}
             triggerLabel="Generate Day Story"
-            triggerClassName={buttonClass({ size: 'sm' })}
+            triggerClassName={buttonClass({ size: 'sm', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
           />
           <WhatsAppShareSheet
             title={`Share Day ${day.day_number}`}
             shortText={shortShareText}
             detailedText={detailedShareText}
             triggerLabel="Share"
-            triggerClassName={buttonClass({ size: 'sm' })}
+            triggerClassName={buttonClass({ size: 'sm', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
           />
           <Link
             href={`/trips/${tripId}/itinerary/${day.id}/new`}
-            className={buttonClass({ size: 'sm' })}
+            className={buttonClass({ size: 'sm', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
           >
             + Add Activity
           </Link>
@@ -129,7 +129,9 @@ export default function DayCard({
           ))}
         </div>
       ) : (
-        <div className="text-sm text-gray-400">No activities yet</div>
+        <div className="rounded-[1.25rem] border border-dashed border-slate-200 bg-slate-50/60 px-4 py-5 text-sm text-slate-500">
+          No activities yet
+        </div>
       )}
     </Card>
   )

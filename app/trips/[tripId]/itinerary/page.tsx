@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
+import { buttonClass } from '@/app/components/ui/Button'
 import { resolvePlaceType } from '@/lib/places'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
 
@@ -133,7 +134,7 @@ export default async function ItineraryPage({ params }: Props) {
 
   if (daysError) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load itinerary days: {daysError.message}
         </div>
@@ -143,13 +144,13 @@ export default async function ItineraryPage({ params }: Props) {
 
   if (!days || days.length === 0) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">{trip.title}</h1>
-          <p className="text-gray-600">{trip.destination}</p>
+          <h1 className="font-serif text-4xl text-slate-900">{trip.title}</h1>
+          <p className="mt-2 text-base text-slate-600">{trip.destination}</p>
         </div>
 
-        <div className="rounded-2xl border border-dashed p-6 text-gray-500">
+        <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50/70 p-6 text-slate-500">
           No itinerary days found for this trip.
         </div>
       </main>
@@ -190,57 +191,71 @@ export default async function ItineraryPage({ params }: Props) {
     places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{trip.title}</h1>
-        <p className="text-gray-600">{trip.destination}</p>
-        <p className="text-sm text-gray-500">
-          {trip.start_date} → {trip.end_date}
-        </p>
-      </div>
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <div className="space-y-8">
+        <div className="space-y-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+            {trip.start_date} → {trip.end_date}
+          </p>
+          <div>
+            <h1 className="font-serif text-4xl text-slate-900 sm:text-5xl">{trip.title}</h1>
+            <p className="mt-2 text-base text-slate-600 sm:text-lg">{trip.destination}</p>
+          </div>
+        </div>
 
-      <div className="mb-6">
         <div className="flex flex-wrap gap-3">
           <Link
             href={`/trips/${tripId}`}
-            className="rounded-xl border px-4 py-2"
+            className={buttonClass({
+              size: 'sm',
+              variant: 'ghost',
+              className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
+            })}
           >
             ← Back to Trip
           </Link>
           <Link
             href={`/trips/${tripId}/today`}
-            className="rounded-xl bg-black px-4 py-2 text-white"
+            className={buttonClass({
+              size: 'sm',
+              variant: 'primary',
+              className: 'rounded-full',
+            })}
           >
             📍 Today
           </Link>
           <Link
             href={`/trips/${tripId}/ai-itinerary`}
-            className="rounded-xl border px-4 py-2"
+            className={buttonClass({
+              size: 'sm',
+              variant: 'secondary',
+              className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
+            })}
           >
             AI Generate Itinerary
           </Link>
         </div>
-      </div>
 
-      <div className="space-y-6">
-        {days.map((day) => {
-          const dayActivities = activities.filter(
-            (activity) => activity.day_id === day.id
-          )
+        <div className="space-y-6">
+          {days.map((day) => {
+            const dayActivities = activities.filter(
+              (activity) => activity.day_id === day.id
+            )
 
-          return (
-            <DayCard
-              key={day.id}
-              tripId={tripId}
-              tripTitle={trip.title}
-              destination={trip.destination}
-              hotel={hotel}
-              day={day}
-              activities={dayActivities}
-              moveActivityAction={moveActivity}
-            />
-          )
-        })}
+            return (
+              <DayCard
+                key={day.id}
+                tripId={tripId}
+                tripTitle={trip.title}
+                destination={trip.destination}
+                hotel={hotel}
+                day={day}
+                activities={dayActivities}
+                moveActivityAction={moveActivity}
+              />
+            )
+          })}
+        </div>
       </div>
     </main>
   )
