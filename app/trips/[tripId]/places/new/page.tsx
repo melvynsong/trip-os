@@ -72,6 +72,7 @@ export default async function NewPlacePage({ params, searchParams }: Props) {
         <div className="mx-auto max-w-5xl p-4 sm:p-6">
           <GooglePlacePicker
             tripId={tripId}
+            tripTitle={trip.title}
             destination={trip.destination}
             initialPlaceType={parsePlaceType(parsedSearch?.placeType)}
             afterSaveHref={`/trips/${tripId}/places`}

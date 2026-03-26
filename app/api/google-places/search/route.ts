@@ -27,6 +27,8 @@ export async function GET(request: Request) {
     const query = String(searchParams.get('q') || '').trim()
     const destination = String(searchParams.get('destination') || '').trim()
     const sessionToken = String(searchParams.get('sessionToken') || '').trim() || undefined
+    const modeRaw = String(searchParams.get('mode') || 'search').trim().toLowerCase()
+    const mode = modeRaw === 'starter' ? 'starter' : 'search'
     const placeTypeRaw = String(searchParams.get('placeType') || 'other').trim().toLowerCase()
     const placeType = VALID_PLACE_TYPES.includes(placeTypeRaw as PlaceType)
       ? (placeTypeRaw as PlaceType)
@@ -43,6 +45,7 @@ export async function GET(request: Request) {
       destination,
       placeType,
       sessionToken,
+      mode,
     })
 
     return NextResponse.json({ results })

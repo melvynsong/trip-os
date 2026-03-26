@@ -18,6 +18,7 @@ type PlaceOption = {
 
 type ActivityPlacePickerFieldProps = {
   tripId: string
+  tripTitle: string
   destination: string
   initialPlaces: PlaceOption[]
   initialSelectedPlaceId?: string | null
@@ -36,6 +37,7 @@ const COPY = {
 
 export default function ActivityPlacePickerField({
   tripId,
+  tripTitle,
   destination,
   initialPlaces,
   initialSelectedPlaceId,
@@ -278,6 +280,7 @@ export default function ActivityPlacePickerField({
 
           <GooglePlacePicker
             tripId={tripId}
+            tripTitle={tripTitle}
             destination={destination}
             initialPlaceType={placeType}
             hiddenInputName="place_id"

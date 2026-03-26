@@ -143,6 +143,7 @@ export default async function NewActivityPage({ params }: Props) {
 
         <ActivityPlacePickerField
           tripId={tripId}
+          tripTitle={trip.title}
           destination={trip.destination}
           initialPlaces={places || []}
           initialSelectedPlaceId={null}

@@ -4,6 +4,8 @@ export type GooglePlaceSearchResult = {
   placeId: string
   name: string
   formattedAddress: string
+  rating: number | null
+  userRatingsTotal: number | null
   types: string[]
   primaryType: string | null
   primaryTypeDisplayName: string | null
@@ -230,9 +232,95 @@ async function requestGoogleAutocomplete(input: {
         placeId: prediction.placeId,
         name,
         formattedAddress,
+        rating: null,
+        userRatingsTotal: null,
         types: prediction.types || [],
         primaryType: prediction.types?.[0] || null,
         primaryTypeDisplayName: null,
+      } satisfies GooglePlaceSearchResult,
+    ]
+  })
+}
+
+async function requestGoogleTextSearch(input: {
+  query: string
+  destination: string
+  placeType: PlaceType
+  maxResultCount?: number
+}) {
+  const queryValue = input.query.trim() || fallbackQueryByPlaceType(input.placeType)
+  const destinationValue = input.destination.trim()
+  const composedInput = [queryValue, destinationValue].filter(Boolean).join(' ')
+  const includedType = normalizePlaceTypeForGoogle(input.placeType)
+
+  const body: {
+    textQuery: string
+    languageCode: string
+    maxResultCount?: number
+    includedType?: string
+  } = {
+    textQuery: composedInput,
+    languageCode: 'en',
+    maxResultCount: input.maxResultCount ?? 10,
+  }
+
+  if (includedType) {
+    body.includedType = includedType
+  }
+
+  const response = await fetch(`${GOOGLE_PLACES_BASE_URL}/places:searchText`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': getApiKey(),
+      'X-Goog-FieldMask': [
+        'places.id',
+        'places.displayName.text',
+        'places.formattedAddress',
+        'places.types',
+        'places.primaryType',
+        'places.primaryTypeDisplayName.text',
+        'places.rating',
+        'places.userRatingCount',
+      ].join(','),
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const payload = await response.text()
+    throw new Error(`Google text search failed: ${payload}`)
+  }
+
+  const payload = (await response.json()) as {
+    places?: Array<{
+      id?: string
+      displayName?: { text?: string }
+      formattedAddress?: string
+      types?: string[]
+      primaryType?: string
+      primaryTypeDisplayName?: { text?: string }
+      rating?: number
+      userRatingCount?: number
+    }>
+  }
+
+  return (payload.places || []).flatMap((place) => {
+    if (!place.id || !place.displayName?.text) {
+      return []
+    }
+
+    return [
+      {
+        placeId: place.id,
+        name: place.displayName.text,
+        formattedAddress: place.formattedAddress || '',
+        rating: typeof place.rating === 'number' ? place.rating : null,
+        userRatingsTotal: typeof place.userRatingCount === 'number' ? place.userRatingCount : null,
+        types: place.types || [],
+        primaryType: place.primaryType || null,
+        primaryTypeDisplayName: place.primaryTypeDisplayName?.text || null,
       } satisfies GooglePlaceSearchResult,
     ]
   })
@@ -243,16 +331,47 @@ export async function searchGooglePlaces(input: {
   destination: string
   placeType: PlaceType
   sessionToken?: string
+  mode?: 'search' | 'starter'
 }) {
   const queryText = input.query.trim() || fallbackQueryByPlaceType(input.placeType)
   const normalizedQuery = normalizeQuery(queryText)
   const normalizedDestination = normalizeQuery(input.destination)
+  const mode = input.mode || 'search'
   const includedPrimaryType = normalizePlaceTypeForGoogle(input.placeType)
-  const cacheKey = `${normalizedQuery}|${normalizedDestination}|${input.placeType}`
+  const cacheKey = `${mode}|${normalizedQuery}|${normalizedDestination}|${input.placeType}`
 
   const cached = getCachedSearch(cacheKey)
   if (cached) {
     return cached
+  }
+
+  if (mode === 'starter') {
+    const starterResults = await requestGoogleTextSearch({
+      query: queryText,
+      destination: input.destination,
+      placeType: input.placeType,
+      maxResultCount: 10,
+    })
+
+    const sortedStarter = [...starterResults].sort((left, right) => {
+      const leftRating = left.rating ?? -1
+      const rightRating = right.rating ?? -1
+      if (rightRating !== leftRating) {
+        return rightRating - leftRating
+      }
+
+      const leftReviews = left.userRatingsTotal ?? -1
+      const rightReviews = right.userRatingsTotal ?? -1
+      if (rightReviews !== leftReviews) {
+        return rightReviews - leftReviews
+      }
+
+      return left.name.localeCompare(right.name)
+    })
+
+    const topRated = sortedStarter.slice(0, 5)
+    setCachedSearch(cacheKey, topRated)
+    return topRated
   }
 
   const strictResults = await requestGoogleAutocomplete({

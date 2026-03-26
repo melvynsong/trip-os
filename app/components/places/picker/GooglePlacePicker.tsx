@@ -36,6 +36,7 @@ function placeTypeToActivityType(pt: PlaceType): ActivityType {
 
 type GooglePlacePickerProps = {
   tripId: string
+  tripTitle: string
   destination: string
   initialPlaceType?: PlaceType
   hiddenInputName?: string
@@ -66,6 +67,10 @@ function defaultQueryForPlaceType(placeType: PlaceType) {
   }
 }
 
+function placeTypeLabel(placeType: PlaceType) {
+  return PLACE_TYPE_OPTIONS.find((option) => option.value === placeType)?.label || 'places'
+}
+
 function formatRating(rating: number | null, total: number | null) {
   if (rating === null) return 'Rating not available yet'
   if (total === null) return `★ ${rating.toFixed(1)}`
@@ -78,6 +83,7 @@ function formatPrimaryType(place: GooglePlaceDetails | GooglePlaceSearchResult) 
 
 export default function GooglePlacePicker({
   tripId,
+  tripTitle,
   destination,
   initialPlaceType = 'attraction',
   hiddenInputName,
@@ -110,9 +116,26 @@ export default function GooglePlacePicker({
   const trimmedQuery = query.trim()
   const hasTypedQuery = trimmedQuery.length > 0
   const minCharsMet = trimmedQuery.length >= MIN_QUERY_LENGTH
-  const effectiveQuery = hasTypedQuery ? trimmedQuery : defaultQueryForPlaceType(placeType)
+  const starterQuery = `${tripTitle} ${placeTypeLabel(placeType)} ${defaultQueryForPlaceType(placeType)}`.trim()
+  const effectiveQuery = hasTypedQuery ? trimmedQuery : starterQuery
+  const searchMode = hasTypedQuery ? 'search' : 'starter'
   const shouldSearch = !hasTypedQuery || minCharsMet
   const embedKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || ''
+
+  const visibleResults = useMemo(() => {
+    if (!hasTypedQuery || minCharsMet) {
+      return results
+    }
+
+    const keyword = trimmedQuery.toLowerCase()
+    return results
+      .filter((result) => {
+        const name = result.name.toLowerCase()
+        const address = (result.formattedAddress || '').toLowerCase()
+        return name.includes(keyword) || address.includes(keyword)
+      })
+      .slice(0, 5)
+  }, [hasTypedQuery, minCharsMet, results, trimmedQuery])
 
   const mapEmbedUrl = useMemo(() => {
     if (!selectedPlace || !embedKey) return null
@@ -138,7 +161,6 @@ export default function GooglePlacePicker({
     setSearchError(null)
 
     if (!shouldSearch) {
-      setResults([])
       return
     }
 
@@ -160,6 +182,7 @@ export default function GooglePlacePicker({
           q: effectiveQuery,
           destination,
           placeType,
+          mode: searchMode,
         })
 
         if (sessionToken) {
@@ -192,7 +215,7 @@ export default function GooglePlacePicker({
         clearTimeout(debounceTimer.current)
       }
     }
-  }, [destination, effectiveQuery, placeType, sessionToken, shouldSearch])
+  }, [destination, effectiveQuery, placeType, searchMode, sessionToken, shouldSearch])
 
   async function handleSelectResult(result: GooglePlaceSearchResult) {
     setSelectedPlace(null)
@@ -319,7 +342,7 @@ export default function GooglePlacePicker({
             placeholder="Search places, restaurants, and attractions"
           />
           <p className="text-xs text-gray-400">
-            Type at least {MIN_QUERY_LENGTH} characters to refine, or browse starter results for the selected place type.
+            Starter results are loaded from trip title + destination + place type. Type at least {MIN_QUERY_LENGTH} characters to refine.
           </p>
         </div>
 
@@ -339,17 +362,17 @@ export default function GooglePlacePicker({
                 <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   {searchError}
                 </div>
-              ) : !shouldSearch ? (
+              ) : !shouldSearch && visibleResults.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-white p-4 text-sm text-gray-500">
                   Keep typing to refine search near {destination}.
                 </div>
-              ) : results.length === 0 ? (
+              ) : visibleResults.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-white p-4 text-sm text-gray-500">
                   No matching Google places found. Try a shorter or broader search.
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {results.map((result) => {
+                  {visibleResults.map((result) => {
                     const isSelected = selectedPlace?.placeId === result.placeId
                     return (
                       <button
@@ -365,6 +388,7 @@ export default function GooglePlacePicker({
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-gray-900">{result.name}</p>
                             <p className="mt-1 text-xs text-gray-500">{result.formattedAddress || 'Address available after selection'}</p>
+                            <p className="mt-1 text-[11px] text-gray-500">{formatRating(result.rating, result.userRatingsTotal)}</p>
                           </div>
                           <span className="rounded-full bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-600 ring-1 ring-inset ring-gray-200">
                             {formatPrimaryType(result)}
