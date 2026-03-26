@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { branding } from '@/lib/branding'
 
 type LoginButtonProps = {
   label?: string
@@ -14,27 +13,35 @@ export default function LoginButton({
   className = 'inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-sky-200/70 bg-[linear-gradient(135deg,#ffffff,#f0f9ff)] px-6 py-3 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(14,116,144,0.15)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_16px_30px_rgba(59,130,246,0.22)]',
 }: LoginButtonProps) {
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   const handleLogin = async () => {
     if (isRedirecting) return
 
     setIsRedirecting(true)
-    const supabase = createClient()
-    const callbackOrigin =
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? window.location.origin
-        : `https://${branding.domain}`
+    setAuthError(null)
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${callbackOrigin}/auth/callback`,
-      },
-    })
+    try {
+      const supabase = createClient()
+      const callbackUrl = new URL('/auth/callback', window.location.origin).toString()
 
-    if (error) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: callbackUrl,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+    } catch (error) {
       setIsRedirecting(false)
+      setAuthError(
+        error instanceof Error
+          ? error.message
+          : 'Secure sign-in took too long. Please try again.'
+      )
     }
   }
 
@@ -53,6 +60,11 @@ export default function LoginButton({
       {isRedirecting ? (
         <p className="text-xs text-slate-500" aria-live="polite">
           Google or Apple passkey prompts are expected during secure sign-in.
+        </p>
+      ) : null}
+      {authError ? (
+        <p className="text-xs text-red-600" aria-live="polite">
+          {authError}
         </p>
       ) : null}
     </div>
