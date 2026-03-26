@@ -111,6 +111,7 @@ export default function ActivityPlacePickerField({
         })
 
         const response = await fetch(`/api/places/autocomplete?${params.toString()}`, {
+          credentials: 'include',
           signal: controller.signal,
         })
         const payload = await response.json()
@@ -144,7 +145,9 @@ export default function ActivityPlacePickerField({
 
     try {
       const params = new URLSearchParams({ placeId: suggestion.placeId })
-      const response = await fetch(`/api/places/details?${params.toString()}`)
+      const response = await fetch(`/api/places/details?${params.toString()}`, {
+        credentials: 'include',
+      })
       const payload = await response.json()
 
       if (!response.ok) {
@@ -171,6 +174,7 @@ export default function ActivityPlacePickerField({
       const response = await fetch(`/api/trips/${tripId}/places`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           place_type: placeType,
           name: selectedPlace.name,
@@ -223,6 +227,7 @@ export default function ActivityPlacePickerField({
       const response = await fetch(`/api/trips/${tripId}/places`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           place_type: placeType,
           name: manualName.trim(),

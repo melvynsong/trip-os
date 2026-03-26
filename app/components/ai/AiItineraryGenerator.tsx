@@ -45,6 +45,7 @@ export default function AiItineraryGenerator({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ prompt }),
       })
 
@@ -78,6 +79,7 @@ export default function AiItineraryGenerator({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ draft }),
       })
 

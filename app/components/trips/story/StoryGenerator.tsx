@@ -66,6 +66,7 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
       const res = await fetch(`/api/trips/${tripId}/trip-story`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ tone, length }),
       })
       const json = await res.json()

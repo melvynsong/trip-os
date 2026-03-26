@@ -167,6 +167,7 @@ export default function GooglePlacePicker({
         }
 
         const response = await fetch(`/api/google-places/search?${params.toString()}`, {
+          credentials: 'include',
           signal: controller.signal,
         })
         const payload = await response.json()
@@ -204,7 +205,9 @@ export default function GooglePlacePicker({
       if (sessionToken) {
         params.set('sessionToken', sessionToken)
       }
-      const response = await fetch(`/api/google-places/details?${params.toString()}`)
+      const response = await fetch(`/api/google-places/details?${params.toString()}`, {
+        credentials: 'include',
+      })
       const payload = await response.json()
 
       if (!response.ok) {
@@ -230,6 +233,7 @@ export default function GooglePlacePicker({
       const response = await fetch(`/api/trips/${tripId}/places`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: selectedPlace.name,
           place_type: placeType,

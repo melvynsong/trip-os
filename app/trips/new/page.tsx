@@ -45,6 +45,7 @@ export default function NewTripPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           title: title.trim(),
           destination: destination.trim(),

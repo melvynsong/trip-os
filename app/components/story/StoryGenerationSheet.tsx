@@ -122,6 +122,7 @@ export default function StoryGenerationSheet({
       const res = await fetch(`/api/trips/${tripId}/stories/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(generatePayload),
       })
 
@@ -182,6 +183,7 @@ export default function StoryGenerationSheet({
       const res = await fetch(`/api/trips/${tripId}/stories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(savePayload),
       })
 

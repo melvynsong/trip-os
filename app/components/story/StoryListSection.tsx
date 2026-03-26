@@ -53,7 +53,9 @@ export default function StoryListSection({
       if (activityId) query.set('activityId', activityId)
 
       try {
-        const res = await fetch(`/api/trips/${tripId}/stories?${query.toString()}`)
+        const res = await fetch(`/api/trips/${tripId}/stories?${query.toString()}`, {
+          credentials: 'include',
+        })
         const json = await res.json()
         if (!res.ok) throw new Error(json.error || 'Failed to load stories.')
         if (!cancelled) setItems(json.stories || [])
