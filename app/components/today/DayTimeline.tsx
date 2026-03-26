@@ -42,9 +42,9 @@ export default function DayTimeline({
 }: DayTimelineProps) {
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed p-10 text-center text-gray-400">
+      <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50/70 p-10 text-center text-slate-500">
         <div className="text-3xl">📭</div>
-        <div className="mt-2 font-medium">No activities yet</div>
+        <div className="mt-2 font-medium text-slate-800">No activities yet</div>
         <div className="mt-1 text-sm">Add your first item below</div>
       </div>
     )
@@ -77,7 +77,7 @@ export default function DayTimeline({
 
         return (
           <div key={period}>
-            <div className="mb-2 text-sm font-semibold text-gray-500">
+            <div className="mb-2 text-sm font-semibold text-slate-500">
               {PERIOD_LABELS[period]}
             </div>
             <div className="space-y-2">

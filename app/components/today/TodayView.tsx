@@ -11,6 +11,7 @@ import AddManualItemForm from '@/app/components/today/AddManualItemForm'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import StoryListSection from '@/app/components/story/StoryListSection'
+import { buttonClass } from '@/app/components/ui/Button'
 import { type TodayItem } from '@/app/components/today/TimelineItemCard'
 import { type AiReplanResult, type QuickActionType } from '@/lib/ai/today'
 import { formatTodayForWhatsApp } from '@/lib/share/whatsapp'
@@ -370,17 +371,22 @@ export default function TodayView({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 space-y-5">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <div className="mx-auto max-w-3xl space-y-6">
       {/* Back + title row */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             href={`/trips/${tripId}`}
-            className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+            className={buttonClass({
+              size: 'sm',
+              variant: 'ghost',
+              className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
+            })}
           >
             ← Back
           </Link>
-          <span className="text-sm font-medium text-gray-400">Today</span>
+          <span className="text-sm font-medium text-slate-400">Today</span>
         </div>
 
         <WhatsAppShareSheet
@@ -388,6 +394,11 @@ export default function TodayView({
           shortText={shortShareText}
           detailedText={detailedShareText}
           triggerLabel="Share"
+          triggerClassName={buttonClass({
+            size: 'sm',
+            variant: 'secondary',
+            className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
+          })}
         />
       </div>
 
@@ -399,7 +410,11 @@ export default function TodayView({
           relatedDate={date}
           title="Generate Day Story"
           triggerLabel="Generate Day Story"
-          triggerClassName="rounded-lg border px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+          triggerClassName={buttonClass({
+            size: 'sm',
+            variant: 'secondary',
+            className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
+          })}
           onSaved={() => setStoryRefreshKey((k) => k + 1)}
         />
       </div>
@@ -417,7 +432,7 @@ export default function TodayView({
 
       {/* Global error */}
       {globalError && (
-        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <span>{globalError}</span>
           <button
             onClick={() => setGlobalError(null)}
@@ -433,7 +448,7 @@ export default function TodayView({
 
       {/* AI loading indicator */}
       {isReplanning && (
-        <div className="rounded-xl border bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           ✨ AI is replanning your day…
         </div>
       )}
@@ -443,7 +458,7 @@ export default function TodayView({
 
       {/* Timeline */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
           Today&apos;s Plan
         </h2>
         <DayTimeline
@@ -467,7 +482,7 @@ export default function TodayView({
       ) : (
         <button
           onClick={() => setIsAddingItem(true)}
-          className="w-full rounded-2xl border border-dashed py-4 text-sm font-medium text-gray-500 hover:border-gray-400 hover:bg-gray-50 hover:text-gray-700"
+          className="w-full rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 py-4 text-sm font-medium text-slate-600 hover:border-slate-300 hover:bg-sky-50/70 hover:text-slate-700"
         >
           + Add item to today
         </button>
@@ -491,6 +506,7 @@ export default function TodayView({
         title="Saved Day Stories"
         refreshKey={storyRefreshKey}
       />
+      </div>
     </div>
   )
 }

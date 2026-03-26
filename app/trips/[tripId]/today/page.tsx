@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TodayView from '@/app/components/today/TodayView'
+import { buttonClass } from '@/app/components/ui/Button'
 import { type TodayItem } from '@/app/components/today/TimelineItemCard'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
 import { resolvePlaceType } from '@/lib/places'
@@ -86,7 +87,7 @@ export default async function TodayPage({ params }: Props) {
 
   if (daysError) {
     return (
-      <main className="mx-auto max-w-2xl p-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Failed to load trip days: {daysError.message}
         </div>
@@ -96,19 +97,30 @@ export default async function TodayPage({ params }: Props) {
 
   if (!days || days.length === 0) {
     return (
-      <main className="mx-auto max-w-2xl p-6 space-y-4">
-        <Link href={`/trips/${tripId}`} className="inline-block rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10 space-y-4">
+        <Link
+          href={`/trips/${tripId}`}
+          className={buttonClass({
+            size: 'sm',
+            variant: 'ghost',
+            className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
+          })}
+        >
           ← Back to Trip
         </Link>
-        <div className="rounded-2xl border border-dashed p-10 text-center text-gray-500">
+        <div className="rounded-[2rem] border border-dashed border-slate-200 bg-slate-50/70 p-10 text-center text-slate-500">
           <div className="text-3xl">📅</div>
-          <div className="mt-2 font-medium">No itinerary days found</div>
-          <div className="mt-1 text-sm">
+          <div className="mt-2 font-medium text-slate-800">No itinerary days found</div>
+          <div className="mt-1 text-sm leading-7">
             Go make today count — generate your itinerary first, then come back to Today View.
           </div>
           <Link
             href={`/trips/${tripId}/ai-itinerary`}
-            className="mt-4 inline-block rounded-xl bg-black px-4 py-2 text-sm text-white"
+            className={`${buttonClass({
+              size: 'sm',
+              variant: 'primary',
+              className: 'mt-4 rounded-full',
+            })} inline-flex`}
           >
             AI Generate Itinerary
           </Link>
@@ -134,7 +146,7 @@ export default async function TodayPage({ params }: Props) {
 
   if (activitiesError) {
     return (
-      <main className="mx-auto max-w-2xl p-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Failed to load activities: {activitiesError.message}
         </div>

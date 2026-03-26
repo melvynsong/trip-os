@@ -61,14 +61,14 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-dashed border-gray-300 bg-white p-5 shadow-sm"
+      className="rounded-[1.75rem] border border-dashed border-slate-200 bg-white p-5 shadow-[0_16px_46px_rgba(15,23,42,0.08)]"
     >
-      <h3 className="mb-4 font-semibold">Add Item</h3>
+      <h3 className="mb-4 font-serif text-2xl text-slate-900">Add Item</h3>
 
       <div className="space-y-3">
         {/* Title */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">
+          <label className="mb-1 block text-xs font-medium text-slate-600">
             Title <span className="text-red-400">*</span>
           </label>
           <input
@@ -76,7 +76,7 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Lunch at Tsukiji Market"
-            className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
+            className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-500/20"
             autoFocus
           />
         </div>
@@ -84,20 +84,20 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
         {/* Time + Type */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Time</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Time</label>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
+              className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-500/20"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Type</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Type</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as ActivityType)}
-              className="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
+              className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-500/20"
             >
               {ACTIVITY_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -110,13 +110,13 @@ export default function AddManualItemForm({ onAdd, isAdding, onCancel }: AddManu
 
         {/* Notes */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Notes (optional)</label>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Notes (optional)</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             placeholder="Any details…"
-            className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-black/10"
+            className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-500/20"
           />
         </div>
 

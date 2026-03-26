@@ -24,45 +24,45 @@ export default function TodayNowNextCard({ now, next }: TodayNowNextCardProps) {
   if (!now && !next) return null
 
   return (
-    <div className="rounded-2xl border bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
+    <div className="rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(239,246,255,0.92))] p-5 shadow-[0_16px_46px_rgba(15,23,42,0.08)] sm:p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         {/* NOW */}
         <div>
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-green-600">
+          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-green-500" />
             Now
           </div>
           {now ? (
             <div className="mt-1.5">
-              <div className="font-semibold">
+              <div className="font-semibold text-slate-900">
                 {getEmoji(now.type)} {now.title}
               </div>
               {now.activity_time && (
-                <div className="mt-0.5 text-sm text-gray-500">{formatTime(now.activity_time)}</div>
+                <div className="mt-0.5 text-sm text-slate-500">{formatTime(now.activity_time)}</div>
               )}
               {now.notes && (
-                <div className="mt-1 text-xs text-gray-400 line-clamp-2">{now.notes}</div>
+                <div className="mt-1 text-xs text-slate-500 line-clamp-2">{now.notes}</div>
               )}
             </div>
           ) : (
-            <div className="mt-1.5 text-sm text-gray-400">Nothing scheduled right now</div>
+            <div className="mt-1.5 text-sm text-slate-500">Nothing scheduled right now</div>
           )}
         </div>
 
         {/* NEXT */}
-        <div className="border-t pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
-          <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Next</div>
+        <div className="border-t border-slate-200 pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Next</div>
           {next ? (
             <div className="mt-1.5">
-              <div className="font-semibold">
+              <div className="font-semibold text-slate-900">
                 {getEmoji(next.type)} {next.title}
               </div>
               {next.activity_time && (
-                <div className="mt-0.5 text-sm text-gray-500">{formatTime(next.activity_time)}</div>
+                <div className="mt-0.5 text-sm text-slate-500">{formatTime(next.activity_time)}</div>
               )}
             </div>
           ) : (
-            <div className="mt-1.5 text-sm text-gray-400">Nothing else scheduled</div>
+            <div className="mt-1.5 text-sm text-slate-500">Nothing else scheduled</div>
           )}
         </div>
       </div>

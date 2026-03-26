@@ -11,9 +11,9 @@ type TodayHeaderProps = {
 }
 
 const STATUS_BADGE: Record<TodayHeaderProps['tripStatus'], string> = {
-  upcoming: 'bg-blue-100 text-blue-700',
-  active: 'bg-green-100 text-green-700',
-  past: 'bg-gray-100 text-gray-500',
+  upcoming: 'bg-sky-50 text-sky-800 ring-1 ring-sky-200',
+  active: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200',
+  past: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
 const STATUS_LABEL: Record<TodayHeaderProps['tripStatus'], string> = {
@@ -43,7 +43,7 @@ export default function TodayHeader({
   })
 
   return (
-    <div className="rounded-2xl border bg-white p-5 shadow-sm">
+    <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_16px_46px_rgba(15,23,42,0.08)] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -52,22 +52,22 @@ export default function TodayHeader({
             >
               {STATUS_LABEL[tripStatus]}
             </span>
-            <span className="text-sm text-gray-400">{tripTitle}</span>
+            <span className="text-sm text-slate-400">{tripTitle}</span>
           </div>
 
-          <h1 className="mt-1.5 text-2xl font-bold leading-tight">
+          <h1 className="mt-2 font-serif text-4xl leading-tight text-slate-900 sm:text-[2.5rem]">
             Day {dayNumber}
             {normalizedDayTitle ? ` — ${normalizedDayTitle}` : ''}
           </h1>
 
-          <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500 sm:text-base">
             <span>📍 {destination}</span>
             <span>·</span>
             <span>{formatted}</span>
           </div>
 
           {hotel && (
-            <div className="mt-1.5 text-sm text-gray-500">
+            <div className="mt-2 text-sm text-slate-500 sm:text-base">
               🏨 {hotel}
             </div>
           )}
