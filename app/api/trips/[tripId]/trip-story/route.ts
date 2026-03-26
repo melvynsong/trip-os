@@ -47,14 +47,32 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
     }
 
-    const { data: trip, error: tripError } = await supabase
+    let { data: trip, error: tripError } = await supabase
       .from('trips')
       .select('id, title, destination, start_date, end_date, notes')
       .eq('id', tripId)
       .eq('user_id', user.id)
       .single()
 
-    if (tripError || !trip) {
+    if (tripError && /notes/i.test(tripError.message)) {
+      const fallback = await supabase
+        .from('trips')
+        .select('id, title, destination, start_date, end_date')
+        .eq('id', tripId)
+        .eq('user_id', user.id)
+        .single()
+
+      if (!fallback.error && fallback.data) {
+        trip = { ...fallback.data, notes: null }
+        tripError = null
+      }
+    }
+
+    if (tripError) {
+      return NextResponse.json({ error: tripError.message }, { status: 500 })
+    }
+
+    if (!trip) {
       return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
     }
 
