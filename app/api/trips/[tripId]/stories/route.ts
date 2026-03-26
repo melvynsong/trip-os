@@ -215,7 +215,11 @@ export async function POST(request: Request, { params }: Params) {
       .single()
 
     if (error || !data) {
-      return NextResponse.json({ error: error?.message || 'Failed to save story.' }, { status: 500 })
+      const rawMessage = error?.message || 'Failed to save story.'
+      const message = /permission denied for table stories/i.test(rawMessage)
+        ? 'Stories feature is not fully provisioned yet. Apply the storytelling SQL migration and retry.'
+        : rawMessage
+      return NextResponse.json({ error: message }, { status: 500 })
     }
 
     return NextResponse.json({ story: data })

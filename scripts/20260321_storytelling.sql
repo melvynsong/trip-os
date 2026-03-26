@@ -72,6 +72,9 @@ execute function public.set_stories_updated_at();
 
 alter table public.stories enable row level security;
 
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on table public.stories to authenticated;
+
 drop policy if exists stories_select_own on public.stories;
 create policy stories_select_own
   on public.stories
