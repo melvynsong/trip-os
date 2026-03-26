@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type LoginButtonProps = {
@@ -12,8 +13,11 @@ export default function LoginButton({
   label = 'Continue with Google',
   className = 'inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-sky-200/70 bg-[linear-gradient(135deg,#ffffff,#f0f9ff)] px-6 py-3 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(14,116,144,0.15)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_16px_30px_rgba(59,130,246,0.22)]',
 }: LoginButtonProps) {
+  const searchParams = useSearchParams()
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
+  const authErrorFromUrl = searchParams.get('authError')
+  const visibleError = authError || authErrorFromUrl
 
   const handleLogin = async () => {
     if (isRedirecting) return
@@ -62,9 +66,9 @@ export default function LoginButton({
           Google or Apple passkey prompts are expected during secure sign-in.
         </p>
       ) : null}
-      {authError ? (
+      {visibleError ? (
         <p className="text-xs text-red-600" aria-live="polite">
-          {authError}
+          {visibleError}
         </p>
       ) : null}
     </div>

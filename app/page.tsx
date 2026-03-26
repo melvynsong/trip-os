@@ -6,7 +6,31 @@ import HeroSection from '@/app/components/landing/HeroSection'
 import ValueSection from '@/app/components/landing/ValueSection'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams?: Promise<{
+    code?: string
+    error?: string
+    error_code?: string
+    error_description?: string
+    state?: string
+  }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const code = resolvedSearchParams?.code?.trim()
+
+  if (code) {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(resolvedSearchParams ?? {})) {
+      if (typeof value === 'string' && value.trim()) {
+        params.set(key, value)
+      }
+    }
+
+    redirect(`/auth/callback?${params.toString()}`)
+  }
+
   const supabase = await createClient()
 
   const {
