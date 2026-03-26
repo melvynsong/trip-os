@@ -89,6 +89,8 @@ export default function StoryGenerationSheet({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
+  const [isDraftOptionsCollapsed, setIsDraftOptionsCollapsed] = useState(false)
+  const [savedAt, setSavedAt] = useState<string | null>(null)
 
   const generatePayload = useMemo(() => {
     if (scope === 'day') {
@@ -138,6 +140,8 @@ export default function StoryGenerationSheet({
 
       setDraft(json.draft as StoryDraft)
       setMeta((json.meta as GeneratedMeta) ?? null)
+      setIsDraftOptionsCollapsed(true)
+      setSavedAt(null)
       showToast('Story draft generated.', 'success')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Story generation failed.'
@@ -190,6 +194,8 @@ export default function StoryGenerationSheet({
         throw new Error(message)
       }
 
+      setSavedAt(new Date().toISOString())
+      setIsDraftOptionsCollapsed(true)
       onSaved?.()
       showToast('Story saved to memories.', 'success')
     } catch (err) {
@@ -233,27 +239,70 @@ export default function StoryGenerationSheet({
 
             <div className="grid flex-1 gap-4 overflow-y-auto px-5 py-4 md:grid-cols-[280px_1fr]">
               <div className="space-y-3 rounded-xl border p-3">
-                <StoryOptionsForm
-                  scope={scope}
-                  tone={tone}
-                  length={length}
-                  dayFocus={dayFocus}
-                  placeStoryType={placeStoryType}
-                  onToneChange={setTone}
-                  onLengthChange={setLength}
-                  onDayFocusChange={setDayFocus}
-                  onPlaceStoryTypeChange={setPlaceStoryType}
-                />
+                {draft && isDraftOptionsCollapsed ? (
+                  <div className="space-y-3">
+                    <div className="rounded-lg border border-sky-100 bg-sky-50/70 px-3 py-2 text-sm text-slate-700">
+                      <p className="font-medium text-slate-800">Story drafter hidden</p>
+                      <p className="mt-1 text-xs text-slate-600">
+                        Tone: {tone.replace(/_/g, ' ')} · Length: {length}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setIsDraftOptionsCollapsed(false)}
+                      className="w-full"
+                    >
+                      Edit Draft Options
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={handleGenerate}
+                      loading={loading}
+                      className="w-full"
+                    >
+                      Regenerate Story
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <StoryOptionsForm
+                      scope={scope}
+                      tone={tone}
+                      length={length}
+                      dayFocus={dayFocus}
+                      placeStoryType={placeStoryType}
+                      onToneChange={setTone}
+                      onLengthChange={setLength}
+                      onDayFocusChange={setDayFocus}
+                      onPlaceStoryTypeChange={setPlaceStoryType}
+                    />
 
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleGenerate}
-                  loading={loading}
-                  className="w-full"
-                >
-                  {draft ? 'Regenerate Story' : 'Generate Story'}
-                </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={handleGenerate}
+                      loading={loading}
+                      className="w-full"
+                    >
+                      {draft ? 'Regenerate Story' : 'Generate Story'}
+                    </Button>
+
+                    {draft ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsDraftOptionsCollapsed(true)}
+                        className="w-full"
+                      >
+                        Hide Drafter
+                      </Button>
+                    ) : null}
+                  </>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -290,7 +339,7 @@ export default function StoryGenerationSheet({
                   loading={saving}
                   className="w-full sm:flex-1 bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800"
                 >
-                  Save to Memories
+                  Save to Memory
                 </Button>
 
                 <Button
@@ -302,6 +351,11 @@ export default function StoryGenerationSheet({
                 </Button>
               </div>
             </div>
+            {savedAt ? (
+              <div className="border-t border-emerald-100 bg-emerald-50/70 px-5 py-2 text-xs font-medium text-emerald-700">
+                Saved to memory.
+              </div>
+            ) : null}
           </div>
         </>
       )}

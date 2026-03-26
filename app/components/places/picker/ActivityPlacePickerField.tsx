@@ -21,6 +21,7 @@ type ActivityPlacePickerFieldProps = {
   destination: string
   initialPlaces: PlaceOption[]
   initialSelectedPlaceId?: string | null
+  initialPlaceType?: PlaceType
   userTier?: MembershipTier
 }
 
@@ -38,6 +39,7 @@ export default function ActivityPlacePickerField({
   destination,
   initialPlaces,
   initialSelectedPlaceId,
+  initialPlaceType = 'attraction',
   userTier = 'free',
 }: ActivityPlacePickerFieldProps) {
   const [placeId, setPlaceId] = useState(initialSelectedPlaceId || '')
@@ -45,7 +47,7 @@ export default function ActivityPlacePickerField({
 
   const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [mode, setMode] = useState<'search' | 'manual'>('search')
-  const [placeType, setPlaceType] = useState<PlaceType>('attraction')
+  const [placeType, setPlaceType] = useState<PlaceType>(initialPlaceType)
 
   const [query, setQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)

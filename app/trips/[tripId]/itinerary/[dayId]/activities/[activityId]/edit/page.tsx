@@ -1,9 +1,25 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserEntitlements } from '@/lib/membership/server'
+import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
 import type { MembershipTier } from '@/lib/membership/types'
+import { createClient } from '@/lib/supabase/server'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
+
+function activityTypeToPlaceType(type: string) {
+  switch (type) {
+    case 'food':
+      return 'restaurant' as const
+    case 'attraction':
+      return 'attraction' as const
+    case 'shopping':
+      return 'shopping' as const
+    case 'hotel':
+      return 'hotel' as const
+    default:
+      return 'other' as const
+  }
+}
 
 type Props = {
   params: Promise<{
@@ -16,7 +32,6 @@ type Props = {
 export default async function EditActivityPage({ params }: Props) {
   const { tripId, dayId, activityId } = await params
   let userTier: MembershipTier
-
   try {
     const entitlements = await getCurrentUserEntitlements()
     userTier = entitlements.tier
@@ -71,6 +86,8 @@ export default async function EditActivityPage({ params }: Props) {
     .select('id, name')
     .eq('trip_id', tripId)
     .order('name', { ascending: true })
+
+  const isPremiumUser = hasAccess(userTier, PREMIUM_FIND_PLACE_TIERS)
 
   async function updateActivity(formData: FormData) {
     'use server'
@@ -171,28 +188,31 @@ export default async function EditActivityPage({ params }: Props) {
           />
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
-          <select
-            name="type"
-            defaultValue={activity.type}
-            className="w-full rounded-xl border px-3 py-2"
-          >
-            <option value="food">Food</option>
-            <option value="attraction">Attraction</option>
-            <option value="shopping">Shopping</option>
-            <option value="transport">Transport</option>
-            <option value="hotel">Hotel</option>
-            <option value="note">Note</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+        {!isPremiumUser ? (
+          <div>
+            <label className="mb-1 block text-sm font-medium">Type</label>
+            <select
+              name="type"
+              defaultValue={activity.type}
+              className="w-full rounded-xl border px-3 py-2"
+            >
+              <option value="food">Food</option>
+              <option value="attraction">Attraction</option>
+              <option value="shopping">Shopping</option>
+              <option value="transport">Transport</option>
+              <option value="hotel">Hotel</option>
+              <option value="note">Note</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        ) : null}
 
         <ActivityPlacePickerField
           tripId={tripId}
           destination={trip.destination}
           initialPlaces={places || []}
           initialSelectedPlaceId={activity.place_id}
+          initialPlaceType={activityTypeToPlaceType(activity.type)}
           userTier={userTier}
         />
 

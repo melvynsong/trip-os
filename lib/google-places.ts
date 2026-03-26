@@ -134,21 +134,34 @@ function formatAddress(value?: string | null) {
   return value?.trim() || ''
 }
 
-export async function searchGooglePlaces(input: {
+function fallbackQueryByPlaceType(placeType: PlaceType) {
+  switch (placeType) {
+    case 'restaurant':
+      return 'best restaurants'
+    case 'cafe':
+      return 'popular cafes'
+    case 'hotel':
+      return 'hotels'
+    case 'shopping':
+      return 'shopping mall'
+    case 'attraction':
+      return 'top attractions'
+    case 'other':
+    default:
+      return 'popular places'
+  }
+}
+
+async function requestGoogleAutocomplete(input: {
   query: string
   destination: string
-  placeType: PlaceType
+  includedPrimaryType: string | null
   sessionToken?: string
+  strictType: boolean
 }) {
-  const normalizedQuery = normalizeQuery(input.query)
-  const normalizedDestination = normalizeQuery(input.destination)
-  const includedPrimaryType = normalizePlaceTypeForGoogle(input.placeType)
-  const cacheKey = `${normalizedQuery}|${normalizedDestination}|${input.placeType}`
-
-  const cached = getCachedSearch(cacheKey)
-  if (cached) {
-    return cached
-  }
+  const queryValue = input.query.trim() || fallbackQueryByPlaceType('other')
+  const destinationValue = input.destination.trim()
+  const composedInput = [queryValue, destinationValue].filter(Boolean).join(' ')
 
   const body: {
     input: string
@@ -156,12 +169,12 @@ export async function searchGooglePlaces(input: {
     languageCode: string
     sessionToken?: string
   } = {
-    input: [input.query.trim(), input.destination.trim()].filter(Boolean).join(' '),
+    input: composedInput,
     languageCode: 'en',
   }
 
-  if (includedPrimaryType) {
-    body.includedPrimaryTypes = [includedPrimaryType]
+  if (input.strictType && input.includedPrimaryType) {
+    body.includedPrimaryTypes = [input.includedPrimaryType]
   }
 
   if (input.sessionToken) {
@@ -204,27 +217,66 @@ export async function searchGooglePlaces(input: {
     }>
   }
 
-  const results = (payload.suggestions || [])
-    .flatMap((item) => {
-      const prediction = item.placePrediction
-      if (!prediction?.placeId || !prediction.text?.text) {
-        return []
-      }
+  return (payload.suggestions || []).flatMap((item) => {
+    const prediction = item.placePrediction
+    if (!prediction?.placeId || !prediction.text?.text) {
+      return []
+    }
 
-      const name = prediction.structuredFormat?.mainText?.text || prediction.text.text
-      const formattedAddress = prediction.structuredFormat?.secondaryText?.text || ''
-      return [
-        {
-          placeId: prediction.placeId,
-          name,
-          formattedAddress,
-          types: prediction.types || [],
-          primaryType: prediction.types?.[0] || null,
-          primaryTypeDisplayName: null,
-        } satisfies GooglePlaceSearchResult,
-      ]
-    })
-    .slice(0, 5)
+    const name = prediction.structuredFormat?.mainText?.text || prediction.text.text
+    const formattedAddress = prediction.structuredFormat?.secondaryText?.text || ''
+    return [
+      {
+        placeId: prediction.placeId,
+        name,
+        formattedAddress,
+        types: prediction.types || [],
+        primaryType: prediction.types?.[0] || null,
+        primaryTypeDisplayName: null,
+      } satisfies GooglePlaceSearchResult,
+    ]
+  })
+}
+
+export async function searchGooglePlaces(input: {
+  query: string
+  destination: string
+  placeType: PlaceType
+  sessionToken?: string
+}) {
+  const queryText = input.query.trim() || fallbackQueryByPlaceType(input.placeType)
+  const normalizedQuery = normalizeQuery(queryText)
+  const normalizedDestination = normalizeQuery(input.destination)
+  const includedPrimaryType = normalizePlaceTypeForGoogle(input.placeType)
+  const cacheKey = `${normalizedQuery}|${normalizedDestination}|${input.placeType}`
+
+  const cached = getCachedSearch(cacheKey)
+  if (cached) {
+    return cached
+  }
+
+  const strictResults = await requestGoogleAutocomplete({
+    query: queryText,
+    destination: input.destination,
+    includedPrimaryType,
+    sessionToken: input.sessionToken,
+    strictType: Boolean(includedPrimaryType),
+  })
+
+  const needsFallback = strictResults.length < 6
+  const broadResults = needsFallback
+    ? await requestGoogleAutocomplete({
+        query: queryText,
+        destination: input.destination,
+        includedPrimaryType,
+        sessionToken: input.sessionToken,
+        strictType: false,
+      })
+    : []
+
+  const merged = [...strictResults, ...broadResults]
+  const deduped = Array.from(new Map(merged.map((item) => [item.placeId, item])).values())
+  const results = deduped.slice(0, 8)
 
   setCachedSearch(cacheKey, results)
   return results
