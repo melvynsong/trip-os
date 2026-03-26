@@ -45,7 +45,7 @@ export default function TripHeader({
               {trip.title}
             </h1>
           </div>
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="hidden flex-wrap gap-3 pt-2 sm:flex">
             <Link
               href="#trip-story-generator"
               className={buttonClass({ variant: 'primary', className: 'rounded-full' })}
@@ -60,6 +60,21 @@ export default function TripHeader({
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3 border-t border-slate-100 px-6 py-4 sm:hidden">
+        <Link
+          href="#trip-story-generator"
+          className={buttonClass({ variant: 'primary', className: 'w-full rounded-full' })}
+        >
+          Turn this into a story
+        </Link>
+        <Link
+          href={`/trips/${trip.id}/itinerary`}
+          className={buttonClass({ variant: 'secondary', className: 'w-full rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
+        >
+          Continue planning
+        </Link>
       </div>
     </section>
   )
