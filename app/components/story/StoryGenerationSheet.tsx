@@ -339,7 +339,8 @@ export default function StoryGenerationSheet({
                   onClick={handleSave}
                   disabled={!draft}
                   loading={saving}
-                  className="w-full sm:flex-1 bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800"
+                  variant="primary"
+                  className="w-full sm:flex-1"
                 >
                   Save to Memory
                 </Button>
@@ -354,7 +355,7 @@ export default function StoryGenerationSheet({
               </div>
             </div>
             {savedAt ? (
-              <div className="border-t border-emerald-100 bg-emerald-50/70 px-5 py-2 text-xs font-medium text-emerald-700">
+              <div className="border-t border-sky-100 bg-sky-50/70 px-5 py-2 text-xs font-medium text-sky-700">
                 Saved to memory.
               </div>
             ) : null}
