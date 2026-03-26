@@ -115,7 +115,7 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
       id="trip-story-generator"
       className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-7"
     >
-      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-1">
         <div className="space-y-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">AI Story</p>
@@ -149,7 +149,7 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {error ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}

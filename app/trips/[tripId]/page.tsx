@@ -214,7 +214,7 @@ export default async function TripDashboardPage({ params }: Props) {
             )}
           </div>
 
-          <div className="space-y-6 xl:sticky xl:top-6">
+          <div className="min-w-0 space-y-6 xl:sticky xl:top-6">
             <StoryGenerator tripId={tripId} tripTitle={trip.title} />
 
             <Card className="space-y-4 rounded-[2rem] border-slate-200 bg-white p-6">

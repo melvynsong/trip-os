@@ -58,15 +58,15 @@ export default function StoryPreviewCard({ title, content }: StoryPreviewCardPro
         )}
       </button>
 
-      <div className="relative space-y-4 pr-20">
+      <div className="relative min-w-0 space-y-4 pr-20">
         <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-sky-800">
           Story draft
         </div>
-        {title ? <h3 className="font-serif text-3xl leading-tight text-slate-900">{title}</h3> : null}
+        {title ? <h3 className="break-words font-serif text-3xl leading-tight text-slate-900">{title}</h3> : null}
       </div>
 
       <div className="relative mt-5 rounded-[1.5rem] border border-white/70 bg-white/65 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-5">
-        <p className="whitespace-pre-wrap text-sm leading-8 text-slate-700 sm:text-[15px]">{content}</p>
+        <p className="whitespace-pre-wrap break-words text-sm leading-8 text-slate-700 sm:text-[15px]">{content}</p>
       </div>
     </div>
   )
