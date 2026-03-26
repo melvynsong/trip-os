@@ -3,8 +3,10 @@ import { redirect, notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
+import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import { buttonClass } from '@/app/components/ui/Button'
 import { resolvePlaceType } from '@/lib/places'
+import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
 
 type Props = {
@@ -190,6 +192,39 @@ export default async function ItineraryPage({ params }: Props) {
   const hotel =
     places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
 
+  const shareDays = days.map((day) => {
+    const dayActivities = activities
+      .filter((activity) => activity.day_id === day.id)
+      .map((activity) => ({
+        title: activity.title,
+        activity_time: activity.activity_time,
+        type: activity.type,
+        notes: activity.notes,
+        placeName: activity.places?.name ?? null,
+      }))
+
+    return {
+      dayNumber: day.day_number,
+      date: day.date,
+      city: trip.destination,
+      title: day.title,
+      hotel,
+      activities: dayActivities,
+    }
+  })
+
+  const tripShareInput = {
+    tripTitle: trip.title,
+    startDate: trip.start_date,
+    endDate: trip.end_date,
+    destinations: [trip.destination],
+    hotel,
+    days: shareDays,
+  }
+
+  const shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' })
+  const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <div className="space-y-8">
@@ -234,6 +269,17 @@ export default async function ItineraryPage({ params }: Props) {
           >
             AI Generate Itinerary
           </Link>
+          <WhatsAppShareSheet
+            title={`Share ${trip.title} itinerary`}
+            shortText={shortTripShareText}
+            detailedText={detailedTripShareText}
+            triggerLabel="Share itinerary"
+            triggerClassName={buttonClass({
+              size: 'sm',
+              variant: 'secondary',
+              className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
+            })}
+          />
         </div>
 
         <div className="space-y-6">
