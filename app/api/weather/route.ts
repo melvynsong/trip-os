@@ -52,12 +52,27 @@ export async function GET(request: Request) {
     }
 
     const geocoded = await geocodeDestination(destination)
-    const rawForecast = await fetchOpenMeteoDailyForecast(
-      geocoded.latitude,
-      geocoded.longitude,
-      startDate,
-      endDate
-    )
+    let rawForecast
+
+    try {
+      rawForecast = await fetchOpenMeteoDailyForecast(
+        geocoded.latitude,
+        geocoded.longitude,
+        startDate,
+        endDate
+      )
+    } catch (error) {
+      if (error instanceof WeatherProviderError && error.code === 'no_forecast_for_dates') {
+        const summary = buildTripWeatherSummary([])
+        return NextResponse.json({
+          locationLabel: buildLocationLabel(geocoded.name, geocoded.region, geocoded.country),
+          summary,
+          days: [],
+        })
+      }
+
+      throw error
+    }
 
     const transformedDays = transformOpenMeteoDailyForecast(rawForecast)
     const days = filterForecastByDateRange(transformedDays, startDate, endDate)

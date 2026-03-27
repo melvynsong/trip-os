@@ -51,9 +51,12 @@ export type WeatherForecastResult = {
 export type WeatherApiResponse = WeatherForecastResult
 
 export class WeatherProviderError extends Error {
-  code: 'destination_not_found' | 'fetch_failed' | 'malformed_response'
+  code: 'destination_not_found' | 'fetch_failed' | 'malformed_response' | 'no_forecast_for_dates'
 
-  constructor(code: 'destination_not_found' | 'fetch_failed' | 'malformed_response', message: string) {
+  constructor(
+    code: 'destination_not_found' | 'fetch_failed' | 'malformed_response' | 'no_forecast_for_dates',
+    message: string
+  ) {
     super(message)
     this.code = code
     this.name = 'WeatherProviderError'

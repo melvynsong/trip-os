@@ -24,6 +24,22 @@ async function fetchJson<T>(url: string): Promise<T> {
   }
 
   if (!response.ok) {
+    if (response.status === 400) {
+      const bodyText = await response.text().catch(() => '')
+      const normalized = bodyText.toLowerCase()
+      if (
+        normalized.includes('date range') ||
+        normalized.includes('forecast_days') ||
+        normalized.includes('out of allowed range') ||
+        normalized.includes('invalid date')
+      ) {
+        throw new WeatherProviderError(
+          'no_forecast_for_dates',
+          'Forecast is unavailable for the requested date range.'
+        )
+      }
+    }
+
     throw new WeatherProviderError('fetch_failed', 'Weather service returned an unexpected response.')
   }
 
