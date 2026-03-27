@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   description: BRAND.description,
   metadataBase: new URL(BRAND.siteUrl),
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/branding/icon.png',
+    apple: '/branding/icon.png',
   },
   robots: {
     index: false,
