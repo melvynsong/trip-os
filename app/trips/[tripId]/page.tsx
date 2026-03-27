@@ -157,7 +157,7 @@ export default async function TripDashboardPage({ params }: Props) {
           className={buttonClass({
             size: 'sm',
             variant: 'ghost',
-            className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
+            className: 'rounded-full text-[var(--text-strong)] hover:bg-[var(--brand-primary-soft)]',
           })}
         >
           ← Back to Trips
@@ -217,10 +217,10 @@ export default async function TripDashboardPage({ params }: Props) {
           <div className="min-w-0 space-y-6 xl:sticky xl:top-6">
             <StoryGenerator tripId={tripId} tripTitle={trip.title} />
 
-            <Card className="space-y-4 rounded-[2rem] border-slate-200 bg-white p-6">
+            <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Story notes</p>
-                <h2 className="mt-3 font-serif text-3xl text-slate-900">Your trip at a glance</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Story notes</p>
+                <h2 className="mt-3 text-3xl font-semibold text-[var(--text-strong)]">Your trip at a glance</h2>
               </div>
               <div className="space-y-3 text-sm leading-7 text-slate-600 sm:text-base">
                 <p>{safeDays.length} planned day{safeDays.length === 1 ? '' : 's'}.</p>
@@ -230,13 +230,13 @@ export default async function TripDashboardPage({ params }: Props) {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href={`/trips/${tripId}/today`}
-                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
                 >
                   View today
                 </Link>
                 <Link
                   href={`/trips/${tripId}/places`}
-                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
                 >
                   Explore places
                 </Link>

@@ -6,11 +6,11 @@ type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border-transparent bg-[linear-gradient(135deg,#0ea5e9,#2563eb)] text-white shadow-[0_14px_34px_rgba(37,99,235,0.26)] hover:bg-[linear-gradient(135deg,#0284c7,#1d4ed8)] active:bg-[linear-gradient(135deg,#0369a1,#1e40af)] active:shadow-none',
+    'border-transparent bg-[var(--brand-primary)] text-white shadow-[0_10px_24px_rgba(51,104,255,0.28)] hover:bg-[#2f61ed] active:bg-[var(--brand-primary-press)] active:shadow-none',
   secondary:
-    'border-slate-200 bg-white text-slate-700 shadow-sm hover:border-sky-200 hover:bg-sky-50/60 active:bg-sky-100/70 active:shadow-none',
+    'border-[var(--border-soft)] bg-[var(--surface-panel)] text-[var(--text-strong)] shadow-sm hover:bg-[var(--surface-muted)] active:bg-[#e8edf7] active:shadow-none',
   ghost:
-    'border-transparent bg-transparent text-slate-700 hover:bg-sky-50/70 active:bg-sky-100/80',
+    'border-transparent bg-transparent text-[var(--text-strong)] hover:bg-[var(--brand-primary-soft)] active:bg-[#dfe8ff]',
   danger:
     'border-transparent bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800 active:shadow-none',
 }
@@ -31,7 +31,7 @@ export function buttonClass(options?: {
   const size = options?.size ?? 'md'
 
   return cn(
-    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-2xl border font-medium transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/30 disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-2xl border font-medium transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)] disabled:pointer-events-none disabled:opacity-50',
     variantClasses[variant],
     sizeClasses[size],
     options?.className

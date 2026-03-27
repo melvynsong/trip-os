@@ -35,12 +35,12 @@ export default function SavedPlacesCarousel({ groups, viewAllHref }: SavedPlaces
     <div className="space-y-4">
       {groups.map((group) => (
         <section key={group.label} className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-800">
+          <h3 className="text-sm font-semibold text-[var(--text-strong)]">
             {group.emoji} {group.label}
           </h3>
 
           {group.places.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-3 text-sm text-gray-500">
+            <div className="rounded-xl border border-dashed border-[var(--border-soft)] bg-[var(--surface-muted)] p-3 text-sm text-[var(--text-subtle)]">
               No places yet in this category.
             </div>
           ) : (
@@ -48,17 +48,17 @@ export default function SavedPlacesCarousel({ groups, viewAllHref }: SavedPlaces
               {group.places.map((place) => (
                 <div
                   key={place.id}
-                  className="w-[220px] shrink-0 snap-start rounded-2xl border bg-white p-4 shadow-sm"
+                  className="w-[220px] shrink-0 snap-start rounded-2xl border border-[var(--border-soft)] bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="line-clamp-2 text-sm font-semibold text-gray-900">{place.name}</p>
+                    <p className="line-clamp-2 text-sm font-semibold text-[var(--text-strong)]">{place.name}</p>
                     {place.visited ? (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
                         Visited
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">{place.city || 'City unknown'}</p>
+                  <p className="mt-1 text-xs text-[var(--text-subtle)]">{place.city || 'City unknown'}</p>
                 </div>
               ))}
             </div>
@@ -66,7 +66,7 @@ export default function SavedPlacesCarousel({ groups, viewAllHref }: SavedPlaces
         </section>
       ))}
 
-      <Link href={viewAllHref} className="inline-flex text-sm font-medium text-blue-600 hover:text-blue-700">
+      <Link href={viewAllHref} className="inline-flex text-sm font-semibold text-[var(--brand-primary)] hover:text-[#2f61ed]">
         View all saved places →
       </Link>
     </div>

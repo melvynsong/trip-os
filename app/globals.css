@@ -3,6 +3,15 @@
 :root {
   --background: #f7faff;
   --foreground: #0f172a;
+  --brand-primary: #3368ff;
+  --brand-primary-press: #2854d6;
+  --brand-primary-soft: #eef3ff;
+  --surface-muted: #f3f5f9;
+  --surface-panel: #ffffff;
+  --text-strong: #14213d;
+  --text-subtle: #64748b;
+  --border-soft: #dbe2ef;
+  --ring-brand: rgba(51, 104, 255, 0.28);
   color-scheme: light;
 }
 
@@ -30,7 +39,7 @@ body {
 }
 
 *::selection {
-  background: rgba(56, 189, 248, 0.28);
+  background: var(--ring-brand);
 }
 
 a,

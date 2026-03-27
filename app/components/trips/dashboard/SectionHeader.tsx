@@ -17,11 +17,11 @@ export default function SectionHeader({
   return (
     <div className="mb-3 flex items-end justify-between gap-3">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        {subtitle ? <p className="text-sm text-gray-500">{subtitle}</p> : null}
+        <h2 className="text-lg font-semibold text-[var(--text-strong)]">{title}</h2>
+        {subtitle ? <p className="text-sm text-[var(--text-subtle)]">{subtitle}</p> : null}
       </div>
       {actionLabel && actionHref ? (
-        <Link href={actionHref} className={buttonClass({ size: 'sm', variant: 'ghost' })}>
+        <Link href={actionHref} className={buttonClass({ size: 'sm', variant: 'ghost', className: 'rounded-full' })}>
           {actionLabel}
         </Link>
       ) : null}

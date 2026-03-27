@@ -20,8 +20,11 @@ export default function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</p>
-      <div className="grid grid-cols-2 gap-2">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">{label}</p>
+      <div
+        className="grid gap-2 rounded-2xl bg-[var(--surface-muted)] p-1"
+        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      >
         {options.map((option) => {
           const selected = option.value === value
           return (
@@ -30,10 +33,10 @@ export default function SegmentedControl<T extends string>({
               type="button"
               onClick={() => onChange(option.value)}
               className={cn(
-                'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20',
+                'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
                 selected
-                  ? 'border-black bg-black text-white shadow-sm'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100'
+                  ? 'border-[var(--border-soft)] bg-white text-[var(--text-strong)] shadow-sm'
+                  : 'border-transparent bg-transparent text-[var(--text-subtle)] hover:bg-white/70 active:bg-white'
               )}
             >
               {option.label}

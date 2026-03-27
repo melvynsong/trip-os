@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import BrandLine from '@/app/components/shared/BrandLine'
 import { buttonClass } from '@/app/components/ui/Button'
 import { branding } from '@/lib/branding'
+import { isOwnerTier } from '@/lib/membership/access'
 import type { MembershipTier } from '@/lib/membership/types'
 import { createClient } from '@/lib/supabase/server'
 import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
@@ -14,7 +15,7 @@ export default async function Navigation() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  let viewer: { name: string; tierLabel: string } | null = null
+  let viewer: { name: string; tier: MembershipTier; tierLabel: string } | null = null
 
   if (user) {
     const { data: member } = await supabase
@@ -23,9 +24,12 @@ export default async function Navigation() {
       .eq('id', user.id)
       .maybeSingle<{ tier: MembershipTier }>()
 
+    const resolvedTier = member?.tier ?? 'free'
+
     viewer = {
       name: getUserDisplayName(user),
-      tierLabel: getTierLabel(member?.tier ?? 'free'),
+      tier: resolvedTier,
+      tierLabel: getTierLabel(resolvedTier),
     }
   }
 
@@ -59,6 +63,19 @@ export default async function Navigation() {
           >
             {user ? 'Stories' : 'Home'}
           </Link>
+
+          {viewer && isOwnerTier(viewer.tier) ? (
+            <Link
+              href="/owner/history"
+              className={buttonClass({
+                variant: 'ghost',
+                size: 'sm',
+                className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
+              })}
+            >
+              Owner History
+            </Link>
+          ) : null}
 
           {viewer ? (
             <div className="flex flex-wrap items-center gap-2">
