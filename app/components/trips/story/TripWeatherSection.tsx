@@ -122,8 +122,10 @@ export default function TripWeatherSection({
           <h2 className="text-2xl font-semibold text-[var(--text-strong)]">No forecast yet</h2>
         </div>
         <EmptyState
-          title="No weather data available"
-          description="Weather usually appears closer to the travel dates. Try again later."
+          title={payload?.summary.headline || 'No weather data available'}
+          description={
+            payload?.summary.note || 'Weather usually appears closer to the travel dates. Try again later.'
+          }
           className="p-5"
         />
       </Card>

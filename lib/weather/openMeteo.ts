@@ -8,6 +8,31 @@ import {
 const OPEN_METEO_GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search'
 const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast'
 
+function buildDestinationCandidates(destination: string) {
+  const normalized = destination.trim().replace(/\s+/g, ' ')
+  if (!normalized) return []
+
+  const candidates = new Set<string>([normalized])
+
+  const withoutParentheses = normalized.replace(/\([^)]*\)/g, '').trim()
+  if (withoutParentheses) candidates.add(withoutParentheses)
+
+  const separatorParts = withoutParentheses
+    .split(/\s*(?:\||·|\/|→|->|&|\+)\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  if (separatorParts[0]) candidates.add(separatorParts[0])
+
+  const toParts = withoutParentheses
+    .split(/\s+to\s+/i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (toParts[0]) candidates.add(toParts[0])
+
+  return Array.from(candidates)
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   let response: Response
 
@@ -51,43 +76,47 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 export async function geocodeDestination(destination: string): Promise<WeatherGeocodeResult> {
-  const normalizedDestination = destination.trim()
-  if (!normalizedDestination) {
+  const candidateDestinations = buildDestinationCandidates(destination)
+  if (candidateDestinations.length === 0) {
     throw new WeatherProviderError('destination_not_found', 'Destination is required.')
   }
 
-  const searchParams = new URLSearchParams({
-    name: normalizedDestination,
-    count: '1',
-    language: 'en',
-    format: 'json',
-  })
+  for (const candidate of candidateDestinations) {
+    const searchParams = new URLSearchParams({
+      name: candidate,
+      count: '3',
+      language: 'en',
+      format: 'json',
+    })
 
-  const payload = await fetchJson<OpenMeteoGeocodeResponse>(
-    `${OPEN_METEO_GEOCODE_URL}?${searchParams.toString()}`
-  )
+    const payload = await fetchJson<OpenMeteoGeocodeResponse>(
+      `${OPEN_METEO_GEOCODE_URL}?${searchParams.toString()}`
+    )
 
-  const first = payload.results?.[0]
-  if (!first) {
-    throw new WeatherProviderError('destination_not_found', 'We could not find that destination.')
+    const first = payload.results?.[0]
+    if (!first) {
+      continue
+    }
+
+    if (
+      typeof first.name !== 'string' ||
+      typeof first.latitude !== 'number' ||
+      typeof first.longitude !== 'number'
+    ) {
+      throw new WeatherProviderError('malformed_response', 'Weather geocoding response is malformed.')
+    }
+
+    return {
+      name: first.name,
+      latitude: first.latitude,
+      longitude: first.longitude,
+      country: first.country ?? null,
+      region: first.admin1 ?? null,
+      timezone: first.timezone ?? null,
+    }
   }
 
-  if (
-    typeof first.name !== 'string' ||
-    typeof first.latitude !== 'number' ||
-    typeof first.longitude !== 'number'
-  ) {
-    throw new WeatherProviderError('malformed_response', 'Weather geocoding response is malformed.')
-  }
-
-  return {
-    name: first.name,
-    latitude: first.latitude,
-    longitude: first.longitude,
-    country: first.country ?? null,
-    region: first.admin1 ?? null,
-    timezone: first.timezone ?? null,
-  }
+  throw new WeatherProviderError('destination_not_found', 'We could not find that destination.')
 }
 
 export async function fetchOpenMeteoDailyForecast(
