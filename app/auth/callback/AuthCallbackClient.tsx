@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function AuthCallbackClient() {
   const router = useRouter()
@@ -33,7 +33,17 @@ export default function AuthCallbackClient() {
       }
 
       try {
-        const supabase = createClient()
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            isSingleton: false,
+            auth: {
+              detectSessionInUrl: false,
+            },
+          }
+        )
+
         const { error } = await supabase.auth.exchangeCodeForSession(code)
 
         if (error) {
