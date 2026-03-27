@@ -76,7 +76,7 @@ export default async function OwnerHistoryPage() {
           <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Owner View</p>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Version & Improvement History</h1>
           <p className="text-sm text-slate-600">
-            Internal timeline of major changes shipped to Trip-OS. Visible only to owner accounts.
+            Internal timeline of major changes shipped to ToGoStory. Visible only to owner accounts.
           </p>
         </header>
 

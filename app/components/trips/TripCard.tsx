@@ -60,9 +60,9 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
       }`}
     >
       <div
-        className="relative h-32 overflow-hidden bg-[var(--surface-muted)]"
+        className={`relative overflow-hidden ${isPrimaryUpcoming ? 'h-36 bg-slate-900' : 'h-32 bg-[var(--surface-muted)]'}`}
         style={
-          trip.cover_image
+          trip.cover_image && !isPrimaryUpcoming
             ? {
                 backgroundImage: `linear-gradient(180deg,rgba(25,20,17,0.18),rgba(25,20,17,0.38)), url(${trip.cover_image})`,
                 backgroundSize: 'cover',
@@ -71,8 +71,13 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
             : undefined
         }
       >
-        {!trip.cover_image ? (
-          <DestinationCoverArt destination={trip.destination} title={trip.title} compact />
+        {!trip.cover_image || isPrimaryUpcoming ? (
+          <DestinationCoverArt
+            destination={trip.destination}
+            title={trip.title}
+            compact
+            dark={isPrimaryUpcoming}
+          />
         ) : null}
       </div>
 
@@ -113,7 +118,12 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
           </Link>
           <Link
             href={`/trips/${trip.id}/itinerary`}
-            className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
+            className={buttonClass({
+              variant: 'secondary',
+              className: isPrimaryUpcoming
+                ? 'rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20'
+                : 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]',
+            })}
           >
             Continue planning
           </Link>
@@ -126,7 +136,7 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
           <button
             type="button"
             onClick={handleDeleteClick}
-            className="absolute bottom-4 right-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-soft)] bg-white/90 text-[var(--text-subtle)] shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            className={`absolute bottom-4 right-4 inline-flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition ${isPrimaryUpcoming ? 'border border-white/20 bg-white/10 text-white/70 hover:bg-red-500/20 hover:text-red-300' : 'border border-[var(--border-soft)] bg-white/90 text-[var(--text-subtle)] hover:border-red-200 hover:bg-red-50 hover:text-red-600'}`}
             aria-label={`Delete ${trip.title}`}
             title="Delete story"
           >

@@ -20,34 +20,53 @@ const dmSerif = DM_Serif_Display({
 export const metadata: Metadata = {
   title: {
     default: BRAND.appName,
-    template: `%s | ${BRAND.shortName}`,
+    template: `%s | ${BRAND.appName}`,
   },
   description: BRAND.description,
-  metadataBase: new URL(BRAND.siteUrl),
+  applicationName: BRAND.appName,
+  metadataBase: new URL(BRAND.canonicalUrl),
+  alternates: {
+    canonical: BRAND.canonicalUrl,
+  },
   icons: {
     icon: '/branding/icon.png',
     apple: '/branding/icon.png',
+    shortcut: '/branding/icon.png',
   },
+  // Allow public landing pages to be indexed; protected app pages
+  // each override this at the page level (or are served behind auth).
   robots: {
-    index: false,
-    follow: false,
-    nocache: true,
+    index: true,
+    follow: true,
+    nocache: false,
     googleBot: {
-      index: false,
-      follow: false,
-      noimageindex: true,
+      index: true,
+      follow: true,
+      noimageindex: false,
       'max-snippet': -1,
-      'max-image-preview': 'none',
+      'max-image-preview': 'large',
       'max-video-preview': -1,
     },
   },
   openGraph: {
     type: 'website',
-    url: BRAND.siteUrl,
+    url: BRAND.canonicalUrl,
     siteName: BRAND.appName,
     title: BRAND.appName,
     description: BRAND.description,
-    images: [],
+    images: [
+      {
+        url: BRAND.logoUrl,
+        width: 512,
+        height: 512,
+        alt: BRAND.appName,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: BRAND.appName,
+    description: BRAND.description,
   },
 }
 

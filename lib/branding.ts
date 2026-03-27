@@ -62,8 +62,13 @@ export const branding = {
   appName,
   shortName: appName,
   domain: 'togostory.com',
+  /** Primary canonical domain — used for JSON-LD, OG, and sitemap */
+  canonicalUrl: 'https://www.togostory.com',
   siteUrl: resolveSiteUrl(),
-  description: 'Plan, go, share.',
+  description:
+    'Plan trips you love, go with confidence, share stories that matter.',
+  tagline: 'Plan · Go · Share',
+  logoUrl: 'https://www.togostory.com/branding/logo.png',
 } as const
 
 export type BrandingConfig = typeof branding
