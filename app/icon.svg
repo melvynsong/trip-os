@@ -1,7 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="#F8FAFC" stroke="#DDE1E6" stroke-width="4"/>
-  <path d="M39 42C31 52 30 65 37 72C45 80 57 76 67 64L79 50C87 41 96 36 107 36" stroke="#1A4F8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M22 48C27 39 36 33 47 33C59 33 70 38 79 48L88 58C94 64 100 67 106 67" stroke="#1A4F8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M25 82C32 88 43 89 53 82L67 71C77 63 88 59 98 59" stroke="#1A4F8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="92" cy="34" r="3.5" fill="#F4A261"/>
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="#F8FAFC" stroke="#DDE1E6" stroke-width="3"/>
+  <!-- Path 1 – upper-left dominant loop -->
+  <path
+    d="M 70,64 C 67,48 54,36 38,42 C 22,48 20,68 32,80 C 44,92 62,90 70,76 C 78,62 74,44 64,36"
+    stroke="#1A4F8A"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Path 2 – lower-right dominant loop -->
+  <path
+    d="M 58,64 C 61,80 74,92 90,86 C 106,80 108,60 96,48 C 84,36 64,38 56,52 C 48,66 52,82 62,90"
+    stroke="#1A4F8A"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
 </svg>

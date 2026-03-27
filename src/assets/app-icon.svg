@@ -1,9 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-labelledby="iconTitle iconDesc">
-  <title id="iconTitle">ToGoStory app icon</title>
-  <desc id="iconDesc">A rounded square app icon with an abstract interwoven journey mark.</desc>
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="#F8FAFC" stroke="#DDE1E6" stroke-width="4"/>
-  <path d="M39 42C31 52 30 65 37 72C45 80 57 76 67 64L79 50C87 41 96 36 107 36" stroke="#1A4F8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M34 48C39 39 48 33 59 33C71 33 82 38 91 48L100 58C106 64 112 67 118 67" stroke="#1A4F8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-12 0)"/>
-  <path d="M35 84C42 90 53 91 63 84L77 73C87 65 98 61 108 61" stroke="#1A4F8A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10 -2)"/>
-  <circle cx="92" cy="34" r="3.5" fill="#F4A261"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="ToGoStory app icon">
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="#F8FAFC" stroke="#DDE1E6" stroke-width="3"/>
+  <path d="M 70,64 C 67,48 54,36 38,42 C 22,48 20,68 32,80 C 44,92 62,90 70,76 C 78,62 74,44 64,36" stroke="#1A4F8A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 58,64 C 61,80 74,92 90,86 C 106,80 108,60 96,48 C 84,36 64,38 56,52 C 48,66 52,82 62,90" stroke="#1A4F8A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
