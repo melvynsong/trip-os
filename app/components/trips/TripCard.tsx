@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Card from '@/app/components/ui/Card'
 import DestinationCoverArt from '@/app/components/trips/story/DestinationCoverArt'
 import { buttonClass } from '@/app/components/ui/Button'
+import CountdownBadge from '@/app/components/trips/CountdownBadge'
 import { formatDisplayDateRange } from '@/lib/trip-storytelling'
 
 type Trip = {
@@ -17,6 +18,8 @@ type Trip = {
   dayCount?: number
   momentCount?: number
   storyCount?: number
+  countdownLabel?: string | null
+  isPrimaryUpcoming?: boolean
 }
 
 type TripCardProps = {
@@ -31,6 +34,8 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
   const totalStories = trip.storyCount ?? 0
   const totalDays = trip.dayCount ?? 0
   const totalMoments = trip.momentCount ?? 0
+  const countdownLabel = trip.countdownLabel ?? null
+  const isPrimaryUpcoming = trip.isPrimaryUpcoming ?? false
 
   function handleDeleteClick(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
@@ -44,7 +49,14 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
   }
 
   return (
-    <Card interactive className="relative overflow-hidden border-[var(--border-soft)] p-0">
+    <Card
+      interactive
+      className={`relative overflow-hidden p-0 ${
+        isPrimaryUpcoming
+          ? 'border-[var(--brand-primary)]/40 bg-[var(--brand-primary-soft)]/40'
+          : 'border-[var(--border-soft)]'
+      }`}
+    >
       <div
         className="relative h-32 overflow-hidden bg-[var(--surface-muted)]"
         style={
@@ -67,6 +79,7 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
           <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-subtle)]">
             <span>Your story</span>
             {totalStories > 0 ? <span className="rounded-full border border-[var(--border-soft)] bg-[var(--brand-primary-soft)] px-2.5 py-1 text-[11px] text-[var(--text-strong)]">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span> : null}
+            <CountdownBadge label={countdownLabel} emphasized={isPrimaryUpcoming} />
           </div>
           <div>
             <h3 className="text-3xl font-semibold text-[var(--text-strong)]">{trip.title}</h3>

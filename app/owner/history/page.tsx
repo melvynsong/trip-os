@@ -5,6 +5,18 @@ import { isOwnerTier } from '@/lib/membership/access'
 
 const VERSION_HISTORY = [
   {
+    date: '28 March 2026',
+    version: 'v2026.03.28',
+    title: 'Trip creation UX + itinerary intelligence enhancements',
+    improvements: [
+      'Introduced reusable TripDateRangePicker with smarter defaults, strict end-date validation, and clearer inline feedback.',
+      'Replaced free-text destination entry with structured multi-select LocationSelector for city/country chips, keyboard navigation, duplicate prevention, and loading/empty states.',
+      'Added reusable location clustering service to group selected destinations by country for planning and itinerary use cases.',
+      'Upgraded Trips homepage with upcoming-first sorting, nearest-trip highlight, and countdown labels (today/tomorrow/in X days).',
+      'Refactored shared trip utilities/components to improve consistency, scalability, and maintenance without breaking existing flows.',
+    ],
+  },
+  {
     date: '27 March 2026',
     version: 'v2026.03.27',
     title: 'Beta controls + packing share improvements',

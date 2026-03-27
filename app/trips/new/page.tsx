@@ -6,13 +6,18 @@ import { useRouter } from 'next/navigation'
 import Button from '@/app/components/ui/Button'
 import SectionContainer from '@/app/components/ui/SectionContainer'
 import { FormField } from '@/app/components/ui/FormField'
+import TripDateRangePicker from '@/app/components/trips/new-trip/TripDateRangePicker'
+import LocationSelector from '@/app/components/trips/new-trip/LocationSelector'
+import { isEndDateAfterStartDate } from '@/lib/trips/date'
+import { clusterLocationsByCountry } from '@/lib/trips/location-clustering'
+import { buildPrimaryDestination, formatTripLocationLabel, type TripLocation } from '@/lib/trips/locations'
 
 export default function NewTripPage() {
   const router = useRouter()
 
   // Form state
   const [title, setTitle] = useState('')
-  const [destination, setDestination] = useState('')
+  const [destinations, setDestinations] = useState<TripLocation[]>([])
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
@@ -30,8 +35,8 @@ export default function NewTripPage() {
       if (!title.trim()) {
         throw new Error('Trip title is required')
       }
-      if (!destination.trim()) {
-        throw new Error('Destination is required')
+      if (destinations.length === 0) {
+        throw new Error('Add at least one destination')
       }
       if (!startDate) {
         throw new Error('Start date is required')
@@ -39,9 +44,11 @@ export default function NewTripPage() {
       if (!endDate) {
         throw new Error('End date is required')
       }
-      if (new Date(startDate) > new Date(endDate)) {
-        throw new Error('Start date must be before end date')
+      if (!isEndDateAfterStartDate(startDate, endDate)) {
+        throw new Error('End date must be after start date')
       }
+
+      const primaryDestination = buildPrimaryDestination(destinations)
 
       const response = await fetch('/api/trips/create', {
         method: 'POST',
@@ -51,7 +58,8 @@ export default function NewTripPage() {
         credentials: 'include',
         body: JSON.stringify({
           title: title.trim(),
-          destination: destination.trim(),
+          destination: primaryDestination,
+          destinations,
           start_date: startDate,
           end_date: endDate,
         }),
@@ -98,6 +106,8 @@ export default function NewTripPage() {
     }
   }
 
+  const locationClusters = clusterLocationsByCountry(destinations)
+
   return (
     <main className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-2xl items-center px-4 py-8 sm:px-6 lg:px-8">
       <SectionContainer className="w-full">
@@ -117,7 +127,7 @@ export default function NewTripPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <FormField
             type="text"
             id="title"
@@ -128,34 +138,33 @@ export default function NewTripPage() {
             disabled={loading}
           />
 
-          <FormField
-            type="text"
-            id="destination"
-            label="Destination"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            placeholder="e.g. Paris, France"
+          <LocationSelector value={destinations} onChange={setDestinations} disabled={loading} />
+
+          {locationClusters.length > 0 ? (
+            <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-subtle)]">
+                Itinerary clusters
+              </p>
+              <div className="mt-3 space-y-2">
+                {locationClusters.map((cluster) => (
+                  <div key={cluster.clusterName} className="rounded-lg border border-[var(--border-soft)] bg-white p-3">
+                    <p className="text-sm font-medium text-[var(--text-strong)]">{cluster.clusterName}</p>
+                    <p className="mt-1 text-xs text-[var(--text-subtle)]">
+                      {cluster.locations.map((location) => formatTripLocationLabel(location)).join(' · ')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <TripDateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
             disabled={loading}
           />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              type="date"
-              id="startDate"
-              label="Start date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              disabled={loading}
-            />
-            <FormField
-              type="date"
-              id="endDate"
-              label="End date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              disabled={loading}
-            />
-          </div>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/trips" className="text-sm font-medium text-[var(--brand-primary)] hover:underline">

@@ -9,6 +9,7 @@ import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
 import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
 import { Trip as TripType } from '@/types/trip'
+import { getCountdownLabel, sortTripsByStartDate } from '@/lib/trips/date'
 
 type TripListItem = Pick<
   TripType,
@@ -249,6 +250,10 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
   const displayName = getUserDisplayName(user)
   const tierLabel = getTierLabel(membership.tier)
 
+  const sortedTrips = sortTripsByStartDate(trips || [])
+  const primaryUpcomingTripId =
+    sortedTrips.find((trip) => getCountdownLabel(trip.start_date) !== null)?.id ?? null
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       {deleteSuccessMessage ? (
@@ -301,9 +306,9 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
           </p>
         </div>
 
-        {trips && trips.length > 0 ? (
+        {sortedTrips.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
-            {trips.map((trip) => (
+            {sortedTrips.map((trip) => (
               <TripCard
                 key={trip.id}
                 trip={{
@@ -311,6 +316,8 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                   dayCount: dayCountByTrip.get(trip.id) || 0,
                   momentCount: activityCountByTrip.get(trip.id) || 0,
                   storyCount: storyCountByTrip.get(trip.id) || 0,
+                  countdownLabel: getCountdownLabel(trip.start_date),
+                  isPrimaryUpcoming: trip.id === primaryUpcomingTripId,
                 }}
                 onDeleteTrip={deleteTripAction}
                 canDelete={true}
