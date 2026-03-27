@@ -269,7 +269,7 @@ export default async function TripDashboardPage({ params }: Props) {
                     href={`/trips/${tripId}/packing`}
                     className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
                   >
-                    Packing list
+                    Packing list <span className="rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--brand-accent)]">Beta</span>
                   </Link>
                 ) : null}
               </div>
