@@ -5,6 +5,18 @@ import { isOwnerTier } from '@/lib/membership/access'
 
 const VERSION_HISTORY = [
   {
+    date: '27 March 2026',
+    version: 'v2026.03.27',
+    title: 'Beta controls + packing share improvements',
+    improvements: [
+      'Stabilized Admin save flow with better validation, owner-only protection, and clear success/error feedback.',
+      'Added centralized feature toggle support and shipped global packing_beta_enabled control via app settings.',
+      'Enforced Packing (Beta) access using both membership tier (Friend/Owner) and admin toggle across UI and API.',
+      'Added WhatsApp sharing for generated packing lists with concise formatted message output.',
+      'Updated UI labels from Alpha to Beta and marked Packing list entry with a Beta pill for consistency.',
+    ],
+  },
+  {
     date: '26 March 2026',
     version: 'v2026.03.26',
     title: 'Story permissions stability fix',
