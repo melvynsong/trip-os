@@ -6,19 +6,19 @@ type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border-transparent bg-[var(--brand-primary)] text-white shadow-[0_10px_24px_rgba(51,104,255,0.28)] hover:bg-[#2f61ed] active:bg-[var(--brand-primary-press)] active:shadow-none',
+    'border-transparent bg-[var(--brand-primary)] text-white shadow-[0_6px_20px_rgba(30,107,114,0.32)] hover:bg-[var(--brand-primary-hover)] active:bg-[var(--brand-primary-press)] active:shadow-none',
   secondary:
-    'border-[var(--border-soft)] bg-[var(--surface-panel)] text-[var(--text-strong)] shadow-sm hover:bg-[var(--surface-muted)] active:bg-[#e8edf7] active:shadow-none',
+    'border-[var(--border-soft)] bg-[var(--surface-panel)] text-[var(--text-strong)] shadow-sm hover:bg-[var(--surface-muted)] active:shadow-none',
   ghost:
-    'border-transparent bg-transparent text-[var(--text-strong)] hover:bg-[var(--brand-primary-soft)] active:bg-[#dfe8ff]',
+    'border-transparent bg-transparent text-[var(--text-strong)] hover:bg-[var(--surface-muted)] active:bg-[var(--border-soft)]',
   danger:
-    'border-transparent bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800 active:shadow-none',
+    'border-transparent bg-red-700 text-white shadow-sm hover:bg-red-800 active:bg-red-900 active:shadow-none',
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-9 px-3 text-sm',
-  md: 'h-11 px-4 text-sm',
-  lg: 'h-12 px-5 text-base',
+  sm: 'h-9 px-3.5 text-sm',
+  md: 'h-11 px-5 text-sm',
+  lg: 'h-12 px-6 text-base',
 }
 
 export function buttonClass(options?: {
@@ -31,7 +31,7 @@ export function buttonClass(options?: {
   const size = options?.size ?? 'md'
 
   return cn(
-    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-2xl border font-medium transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)] disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex min-w-[44px] items-center justify-center gap-2 rounded-2xl border font-medium tracking-[-0.01em] transition-all duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)] focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50',
     variantClasses[variant],
     sizeClasses[size],
     options?.className

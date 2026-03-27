@@ -11,7 +11,7 @@ type LoginButtonProps = {
 
 export default function LoginButton({
   label = 'Continue with Google',
-  className = 'inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-sky-200/70 bg-[linear-gradient(135deg,#ffffff,#f0f9ff)] px-6 py-3 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(14,116,144,0.15)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_16px_30px_rgba(59,130,246,0.22)]',
+  className = 'inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-transparent bg-[var(--brand-primary)] px-6 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(30,107,114,0.35)] transition hover:bg-[var(--brand-primary-hover)] active:bg-[var(--brand-primary-press)]',
 }: LoginButtonProps) {
   const searchParams = useSearchParams()
   const [isRedirecting, setIsRedirecting] = useState(false)
@@ -56,18 +56,18 @@ export default function LoginButton({
         className={className}
         disabled={isRedirecting}
       >
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-blue-600 ring-1 ring-slate-200">
+        <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[var(--brand-primary)] ring-1 ring-white/20">
           G
         </span>
         {isRedirecting ? 'Opening secure sign-in…' : label}
       </button>
       {isRedirecting ? (
-        <p className="text-xs text-slate-500" aria-live="polite">
+        <p className="text-xs text-[var(--text-subtle)]" aria-live="polite">
           Google or Apple passkey prompts are expected during secure sign-in.
         </p>
       ) : null}
       {visibleError ? (
-        <p className="text-xs text-red-600" aria-live="polite">
+        <p className="text-xs text-red-700" aria-live="polite">
           {visibleError}
         </p>
       ) : null}

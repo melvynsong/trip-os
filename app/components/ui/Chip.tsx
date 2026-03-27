@@ -10,10 +10,10 @@ export default function Chip({ className, selected = false, ...props }: ChipProp
     <button
       type="button"
       className={cn(
-        'inline-flex min-h-11 min-w-[44px] items-center justify-center rounded-full border px-3 text-sm font-medium transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20',
+        'inline-flex min-h-11 min-w-[44px] items-center justify-center rounded-full border px-3.5 text-sm font-medium tracking-[-0.01em] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)] focus-visible:ring-offset-1',
         selected
-          ? 'border-black bg-black text-white shadow-sm'
-          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100',
+          ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white shadow-sm'
+          : 'border-[var(--border-soft)] bg-[var(--surface-panel)] text-[var(--text-strong)] hover:bg-[var(--surface-muted)]',
         className
       )}
       {...props}

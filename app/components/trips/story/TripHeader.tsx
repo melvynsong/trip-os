@@ -16,7 +16,7 @@ export default function TripHeader({
   }
 }) {
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.1)]">
+    <section className="overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] shadow-[0_2px_20px_rgba(28,25,23,0.07)]">
       <div
         className="relative overflow-hidden px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12"
         style={
@@ -29,19 +29,19 @@ export default function TripHeader({
             : undefined
         }
       >
-        {!trip.coverImage ? <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.2),transparent_56%)]" /> : null}
+        {!trip.coverImage ? <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(30,107,114,0.1),transparent_56%)]" /> : null}
         {!trip.coverImage ? (
           <DestinationCoverArt destination={trip.destination} title={trip.title} showLabel={false} />
         ) : null}
         <div className="relative max-w-3xl space-y-4">
-          <div className="inline-flex items-center rounded-full border border-white/40 bg-white/75 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-700 backdrop-blur">
+          <div className="inline-flex items-center rounded-full border border-[var(--border-soft)]/60 bg-[var(--surface-panel)]/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-subtle)] backdrop-blur">
             This is your story
           </div>
           <div className="space-y-3">
-            <p className={`text-sm font-medium ${trip.coverImage ? 'text-slate-100/90' : 'text-slate-500'}`}>
+            <p className={`text-sm font-medium ${trip.coverImage ? 'text-slate-100/90' : 'text-[var(--text-subtle)]'}`}>
               {trip.destination} · {formatDisplayDateRange(trip.startDate, trip.endDate)}
             </p>
-            <h1 className={`font-serif text-4xl leading-tight sm:text-5xl ${trip.coverImage ? 'text-white' : 'text-slate-900'}`}>
+            <h1 className={`font-serif text-4xl leading-tight sm:text-5xl ${trip.coverImage ? 'text-white' : 'text-[var(--text-strong)]'}`}>
               {trip.title}
             </h1>
           </div>
@@ -62,7 +62,7 @@ export default function TripHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 border-t border-slate-100 px-6 py-4 sm:hidden">
+      <div className="flex flex-wrap gap-3 border-t border-[var(--border-soft)] px-6 py-4 sm:hidden">
         <Link
           href="#trip-story-generator"
           className={buttonClass({ variant: 'primary', className: 'w-full rounded-full' })}
@@ -71,7 +71,7 @@ export default function TripHeader({
         </Link>
         <Link
           href={`/trips/${trip.id}/itinerary`}
-          className={buttonClass({ variant: 'secondary', className: 'w-full rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70' })}
+            className={buttonClass({ variant: 'secondary', className: 'w-full rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
         >
           Continue planning
         </Link>

@@ -10,6 +10,7 @@ type SegmentedControlProps<T extends string> = {
   value: T
   options: SegmentedOption<T>[]
   onChange: (value: T) => void
+  columns?: number
 }
 
 export default function SegmentedControl<T extends string>({
@@ -17,13 +18,15 @@ export default function SegmentedControl<T extends string>({
   value,
   options,
   onChange,
+  columns,
 }: SegmentedControlProps<T>) {
+  const cols = columns ?? Math.min(options.length, 3)
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">{label}</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{label}</p>
       <div
-        className="grid gap-2 rounded-2xl bg-[var(--surface-muted)] p-1"
-        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+        className="grid gap-1.5 rounded-xl bg-[var(--surface-muted)] p-1"
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       >
         {options.map((option) => {
           const selected = option.value === value
@@ -33,10 +36,10 @@ export default function SegmentedControl<T extends string>({
               type="button"
               onClick={() => onChange(option.value)}
               className={cn(
-                'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
+                'min-h-10 rounded-lg border px-2 py-2 text-center text-sm font-medium tracking-[-0.01em] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
                 selected
                   ? 'border-[var(--border-soft)] bg-white text-[var(--text-strong)] shadow-sm'
-                  : 'border-transparent bg-transparent text-[var(--text-subtle)] hover:bg-white/70 active:bg-white'
+                  : 'border-transparent bg-transparent text-[var(--text-subtle)] hover:text-[var(--text-strong)] hover:bg-white/60'
               )}
             >
               {option.label}

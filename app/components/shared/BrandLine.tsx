@@ -9,12 +9,12 @@ export default function BrandLine({ className, compact = false }: BrandLineProps
   return (
     <p
       className={cn(
-        'font-medium tracking-wide text-gray-500',
-        compact ? 'text-[11px] uppercase' : 'text-xs uppercase',
+        'font-medium tracking-[0.22em] text-[var(--text-subtle)]',
+        compact ? 'text-[10px] uppercase' : 'text-xs uppercase',
         className
       )}
     >
-      Plan. Go. Share.
+      To · Go · Story
     </p>
   )
 }

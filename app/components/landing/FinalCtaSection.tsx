@@ -2,18 +2,25 @@ import LoginButton from '@/app/components/auth/LoginButton'
 
 export default function FinalCtaSection() {
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-sky-500/30 bg-[linear-gradient(135deg,#0ea5e9,#2563eb,#8b5cf6)] px-6 py-8 text-slate-50 shadow-[0_24px_80px_rgba(37,99,235,0.3)] sm:px-8 sm:py-10">
-      <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+    <section className="overflow-hidden rounded-2xl border border-[var(--surface-dark-muted)] bg-[var(--surface-dark)] px-7 py-12 text-[var(--text-on-dark)] shadow-[0_4px_24px_rgba(28,25,23,0.2)] sm:px-10 sm:py-14">
+      <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="max-w-2xl space-y-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-100">Start your story</p>
-          <h2 className="font-serif text-3xl leading-tight sm:text-4xl">
-            Your next trip isn’t just a destination. It’s a story waiting to happen.
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-on-dark-subtle)]">
+            Begin your journey
+          </p>
+          <h2 className="font-serif text-3xl leading-snug sm:text-4xl">
+            Your next trip isn’t just a destination.
+            <br className="hidden sm:block" />
+            It’s a story waiting to happen.
           </h2>
+          <p className="text-sm leading-7 text-[var(--text-on-dark-subtle)] sm:text-base">
+            Plan with people you love. Experience it together. Tell the story.
+          </p>
         </div>
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-xs shrink-0">
           <LoginButton
             label="Start your first story"
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/70 bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-[0_12px_24px_rgba(15,23,42,0.2)] transition hover:-translate-y-0.5 hover:bg-slate-50"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white px-6 py-3 text-sm font-semibold text-[var(--text-strong)] shadow-sm transition hover:bg-[var(--surface-muted)]"
           />
         </div>
       </div>

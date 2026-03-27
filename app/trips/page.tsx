@@ -263,20 +263,20 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
       ) : null}
 
       {deleteBlockedMessage ? (
-        <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           {deleteBlockedMessage}
         </div>
       ) : null}
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.09)] sm:p-8 lg:p-10">
+      <section className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-6 shadow-[0_2px_20px_rgba(28,25,23,0.07)] sm:p-8 lg:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Your stories</p>
-            <h1 className="font-serif text-4xl leading-tight text-slate-900 sm:text-5xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Your stories</p>
+            <h1 className="font-serif text-4xl leading-tight text-[var(--text-strong)] sm:text-5xl">
               Welcome back, {displayName}
             </h1>
-            <p className="text-lg text-slate-700">Your next story starts here.</p>
-            <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">
+            <p className="text-lg text-[var(--text-subtle)]">Your next story starts here.</p>
+            <div className="inline-flex rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-subtle)]">
               {tierLabel}
             </div>
           </div>
@@ -295,8 +295,8 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
 
       <section className="mt-8 space-y-5">
         <div>
-          <h2 className="font-serif text-3xl text-slate-900">Your stories</h2>
-          <p className="mt-2 text-sm leading-7 text-slate-600 sm:text-base">
+          <h2 className="font-serif text-3xl text-[var(--text-strong)]">Your stories</h2>
+          <p className="mt-2 text-sm leading-7 text-[var(--text-subtle)] sm:text-base">
             A warm view of the trips you’re shaping, revisiting, and turning into memories.
           </p>
         </div>
@@ -332,7 +332,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                 Start your first story
               </Link>
             }
-            className="rounded-[2rem] border-slate-200 bg-white p-8 shadow-[0_18px_50px_rgba(15,23,42,0.08)]"
+            className="rounded-2xl border-[var(--border-soft)] bg-[var(--surface-panel)] p-8 shadow-[0_2px_16px_rgba(28,25,23,0.06)]"
           />
         )}
       </section>

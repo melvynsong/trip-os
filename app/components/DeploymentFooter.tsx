@@ -39,12 +39,12 @@ export default async function DeploymentFooter() {
   }
 
   return (
-    <footer className="border-t bg-gray-50 py-4 text-center text-sm text-gray-600 mt-12">
-      <BrandLine className="mb-1 text-gray-400" />
-      <p>Version Deployed: {deploymentTime}</p>
+    <footer className="mt-16 border-t border-[var(--border-soft)] bg-[var(--surface-muted)] py-6 text-center text-xs text-[var(--text-subtle)]">
+      <BrandLine className="mb-2" />
+      <p>{deploymentTime}</p>
       {showOwnerHistory ? (
         <p className="mt-2">
-          <Link href="/owner/history" className="font-medium text-slate-700 underline underline-offset-4 hover:text-slate-900">
+          <Link href="/owner/history" className="font-medium text-[var(--text-strong)] underline underline-offset-4 hover:text-[var(--brand-primary)]">
             Owner History
           </Link>
         </p>

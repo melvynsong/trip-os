@@ -11,7 +11,7 @@ export default function ClickableCard({ href, className, children, ...props }: C
     <Link
       href={href}
       className={cn(
-        'block rounded-2xl border border-[var(--border-soft)] bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-[0_14px_30px_rgba(20,33,61,0.12)] active:scale-[0.995] active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
+        'block rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-5 shadow-[0_2px_12px_rgba(28,25,23,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(28,25,23,0.1)] active:scale-[0.995] active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)] focus-visible:ring-offset-1',
         className
       )}
       {...props}

@@ -46,7 +46,7 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
   return (
     <Card interactive className="relative overflow-hidden border-[var(--border-soft)] p-0">
       <div
-        className="relative h-32 overflow-hidden bg-[linear-gradient(135deg,#eef3ff,#f3f6fc,#ffffff)]"
+        className="relative h-32 overflow-hidden bg-[var(--surface-muted)]"
         style={
           trip.cover_image
             ? {
@@ -70,20 +70,20 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
           </div>
           <div>
             <h3 className="text-3xl font-semibold text-[var(--text-strong)]">{trip.title}</h3>
-            <p className="mt-2 text-sm text-slate-600 sm:text-base">{trip.destination}</p>
+            <p className="mt-2 text-sm text-[var(--text-subtle)] sm:text-base">{trip.destination}</p>
           </div>
           <p className="text-sm text-[var(--text-subtle)]">
             {formatDisplayDateRange(trip.start_date, trip.end_date)}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+        <div className="flex flex-wrap gap-2 text-sm text-[var(--text-subtle)]">
           <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">{totalDays} {totalDays === 1 ? 'day' : 'days'} planned</span>
           <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">{totalMoments} {totalMoments === 1 ? 'moment' : 'moments'}</span>
           <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span>
         </div>
 
-        <p className="text-sm leading-7 text-slate-600">
+        <p className="text-sm leading-7 text-[var(--text-subtle)]">
           {totalStories > 0
             ? 'Plan with clarity. Experience with ease. Share your story.'
             : 'This journey is ready to become something memorable.'}
@@ -128,9 +128,9 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
 
       {isConfirmOpen ? (
         <div className="absolute inset-0 z-30 flex items-end justify-center bg-slate-900/35 p-4 sm:items-center">
-          <div className="w-full max-w-sm rounded-2xl border border-[var(--border-soft)] bg-white p-5 shadow-xl">
+          <div className="w-full max-w-sm rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-5 shadow-xl">
             <h4 className="font-semibold text-[var(--text-strong)]">Delete this story?</h4>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-[var(--text-subtle)]">
               This will permanently remove the trip and its related content.
             </p>
             <div className="mt-4 flex justify-end gap-2">
