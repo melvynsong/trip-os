@@ -36,7 +36,7 @@ export default async function Navigation() {
   return (
     <nav className="border-b border-[var(--border-soft)] bg-[var(--background)]/95 text-[var(--text-strong)] backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-        <Logo href="/" variant="full" size="sm" className="h-auto w-auto" />
+        <Logo href="/" variant="full" size="sm" className="h-10 w-auto" />
 
         <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <Link

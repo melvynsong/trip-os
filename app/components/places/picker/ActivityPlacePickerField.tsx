@@ -28,7 +28,6 @@ export default function ActivityPlacePickerField({
         destination={destination}
         initialPlaceType={initialPlaceType}
         hiddenInputName="place_id"
-        activityTypeInputName="type"
         initialSavedPlaceId={initialSelectedPlaceId}
         saveButtonText="Save and Attach Place"
       />

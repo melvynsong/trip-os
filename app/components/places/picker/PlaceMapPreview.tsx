@@ -11,14 +11,16 @@ export default function PlaceMapPreview({ latitude, longitude, label }: PlaceMap
   const marker = `${latitude}%2C${longitude}`
 
   return (
-    <div className="space-y-2">
-      <div className="overflow-hidden rounded-xl border">
-        <iframe
-          title={`Map preview for ${label}`}
-          className="h-56 w-full"
-          loading="lazy"
-          src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`}
-        />
+    <div className="max-w-full space-y-2 overflow-x-hidden">
+      <div className="max-w-full overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[var(--surface-panel)] shadow-sm">
+        <div className="aspect-[4/3] max-h-[360px] w-full sm:aspect-[16/10]">
+          <iframe
+            title={`Map preview for ${label}`}
+            className="block h-full w-full border-0"
+            loading="lazy"
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`}
+          />
+        </div>
       </div>
 
       <a

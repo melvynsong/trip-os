@@ -1,79 +1,51 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import appIcon from '@/src/assets/app-icon.svg'
+import fullLogo from '@/src/assets/logo.svg'
 import { cn } from '@/lib/utils/cn'
 
 type LogoProps = {
   href?: string
   variant?: 'icon' | 'full' | 'wordmark'
-  theme?: 'light' | 'dark'
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }
 
 const sizeMap = {
-  sm: { icon: 24, full: 120, wordmark: 100 },
-  md: { icon: 32, full: 180, wordmark: 150 },
-  lg: { icon: 48, full: 280, wordmark: 220 },
-}
-
-const wordmarkClassMap = {
-  sm: 'text-[1.9rem]',
-  md: 'text-[2.8rem] sm:text-[3.2rem]',
-  lg: 'text-[3.6rem] sm:text-[4.25rem]',
+  sm: {
+    icon: { width: 40, height: 40 },
+    full: { width: 191, height: 40 },
+    wordmark: { width: 191, height: 40 },
+  },
+  md: {
+    icon: { width: 52, height: 52 },
+    full: { width: 249, height: 52 },
+    wordmark: { width: 249, height: 52 },
+  },
+  lg: {
+    icon: { width: 64, height: 64 },
+    full: { width: 306, height: 64 },
+    wordmark: { width: 306, height: 64 },
+  },
 } as const
 
 export default function Logo({
   href = '/',
   variant = 'full',
-  theme = 'light',
   size = 'md',
   className = '',
 }: LogoProps) {
-  const textTone = theme === 'dark' ? 'text-white' : 'text-[var(--brand-primary)]'
-
-  const wordmark = (
-    <span
-      className={cn(
-        'inline-flex items-baseline font-sans font-semibold leading-none tracking-[-0.05em]',
-        wordmarkClassMap[size],
-        textTone,
-        className
-      )}
-      aria-label="ToGoStory"
-    >
-      <span>ToGoStor</span>
-      <span className="ml-[0.02em] text-[var(--brand-accent)]">y</span>
-    </span>
-  )
-
-  if (variant === 'full' || variant === 'wordmark') {
-    if (href) {
-      return (
-        <Link href={href} className="inline-flex items-center">
-          {wordmark}
-        </Link>
-      )
-    }
-
-    return wordmark
-  }
-
-  const logoPath = {
-    icon: theme === 'dark' ? '/logos/icon-white.svg' : '/logos/icon.svg',
-    full: theme === 'dark' ? '/logos/full-logo-dark.svg' : '/logos/full-logo.svg',
-    wordmark: '/logos/wordmark.svg',
-  }[variant]
-
+  const asset = variant === 'icon' ? appIcon : fullLogo
   const dimensions = sizeMap[size][variant]
 
   const logoImg = (
     <Image
-      src={logoPath}
+      src={asset}
       alt="ToGoStory"
-      width={dimensions}
-      height={variant === 'icon' ? dimensions : Math.round(dimensions * 0.35)}
+      width={dimensions.width}
+      height={dimensions.height}
       priority
-      className={className}
+      className={cn('h-auto w-auto max-w-full', className)}
     />
   )
 

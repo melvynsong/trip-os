@@ -16,31 +16,12 @@ type SavedPlace = {
   name: string
 }
 
-type ActivityType = 'food' | 'attraction' | 'shopping' | 'transport' | 'hotel' | 'note' | 'other'
-
-function placeTypeToActivityType(pt: PlaceType): ActivityType {
-  switch (pt) {
-    case 'restaurant':
-    case 'cafe':
-      return 'food'
-    case 'attraction':
-      return 'attraction'
-    case 'shopping':
-      return 'shopping'
-    case 'hotel':
-      return 'hotel'
-    default:
-      return 'other'
-  }
-}
-
 type GooglePlacePickerProps = {
   tripId: string
   tripTitle: string
   destination: string
   initialPlaceType?: PlaceType
   hiddenInputName?: string
-  activityTypeInputName?: string
   initialSavedPlaceId?: string | null
   afterSaveHref?: string
   saveButtonText?: string
@@ -87,7 +68,6 @@ export default function GooglePlacePicker({
   destination,
   initialPlaceType = 'attraction',
   hiddenInputName,
-  activityTypeInputName,
   initialSavedPlaceId = null,
   afterSaveHref,
   saveButtonText = 'Save Place',
@@ -300,13 +280,10 @@ export default function GooglePlacePicker({
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('max-w-full space-y-4 overflow-x-hidden', className)}>
       {hiddenInputName ? <input type="hidden" name={hiddenInputName} value={savedPlaceId} /> : null}
-      {activityTypeInputName ? (
-        <input type="hidden" name={activityTypeInputName} value={placeTypeToActivityType(placeType)} />
-      ) : null}
 
-      <Card className="space-y-4 p-4 sm:p-5">
+      <Card className="max-w-full space-y-4 overflow-hidden p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h3 className="text-base font-semibold text-gray-900">Google Search & Maps</h3>
@@ -346,8 +323,8 @@ export default function GooglePlacePicker({
           </p>
         </div>
 
-        <div className="grid gap-4 overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-3 overflow-hidden">
+        <div className="grid min-w-0 gap-4 overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="min-w-0 space-y-3 overflow-hidden">
             <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-2">
               {searchLoading ? (
                 <div className="space-y-2 p-2">
@@ -387,10 +364,10 @@ export default function GooglePlacePicker({
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-gray-900">{result.name}</p>
-                            <p className="mt-1 text-xs text-gray-500">{result.formattedAddress || 'Address available after selection'}</p>
+                            <p className="mt-1 break-words text-xs text-gray-500">{result.formattedAddress || 'Address available after selection'}</p>
                             <p className="mt-1 text-[11px] text-gray-500">{formatRating(result.rating, result.userRatingsTotal)}</p>
                           </div>
-                          <span className="rounded-full bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-600 ring-1 ring-inset ring-gray-200">
+                          <span className="max-w-full shrink-0 rounded-full bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-600 ring-1 ring-inset ring-gray-200">
                             {formatPrimaryType(result)}
                           </span>
                         </div>
@@ -402,7 +379,7 @@ export default function GooglePlacePicker({
             </div>
           </div>
 
-          <div className="space-y-3 overflow-hidden">
+          <div className="min-w-0 space-y-3 overflow-hidden">
             {detailsLoading ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-4 text-sm text-gray-500">
                 Loading place details…
@@ -414,14 +391,16 @@ export default function GooglePlacePicker({
             ) : selectedPlace ? (
               <>
                 {mapEmbedUrl ? (
-                  <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                    <iframe
-                      title={`Map preview for ${selectedPlace.name}`}
-                      src={mapEmbedUrl}
-                      className="block h-56 w-full border-0"
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
+                  <div className="max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div className="aspect-[4/3] max-h-[420px] w-full sm:aspect-[16/10]">
+                      <iframe
+                        title={`Map preview for ${selectedPlace.name}`}
+                        src={mapEmbedUrl}
+                        className="block h-full w-full border-0"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
                   </div>
                 ) : null}
 
@@ -429,9 +408,9 @@ export default function GooglePlacePicker({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h4 className="truncate text-base font-semibold text-gray-900">{selectedPlace.name}</h4>
-                      <p className="mt-1 line-clamp-2 text-sm text-gray-500">{selectedPlace.address}</p>
+                      <p className="mt-1 line-clamp-2 break-words text-sm text-gray-500">{selectedPlace.address}</p>
                     </div>
-                    <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                    <span className="max-w-full shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
                       {formatPrimaryType(selectedPlace)}
                     </span>
                   </div>

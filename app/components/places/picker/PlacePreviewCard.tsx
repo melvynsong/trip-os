@@ -21,13 +21,13 @@ type PlacePreviewCardProps = {
 
 export default function PlacePreviewCard({ placeType, place, onClear }: PlacePreviewCardProps) {
   return (
-    <div className="space-y-3 rounded-2xl border bg-white p-4 shadow-sm">
+    <div className="max-w-full space-y-3 overflow-hidden rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-semibold text-lg">
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-semibold">
             {getPlaceTypeEmoji(placeType)} {place.name}
           </h3>
-          <p className="mt-1 text-sm text-gray-600">{place.address}</p>
+          <p className="mt-1 break-words text-sm text-gray-600">{place.address}</p>
         </div>
 
         <button

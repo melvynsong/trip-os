@@ -13,7 +13,7 @@ export default function HeroSection() {
               Travel planning, beautifully told
             </p>
             <div>
-              <Logo variant="full" size="md" />
+              <Logo variant="full" size="md" className="h-12 w-auto sm:h-14" />
             </div>
           </div>
 
