@@ -12,6 +12,7 @@ export default function AuthCallbackClient() {
   const providerError = searchParams.get('error')
   const providerErrorDescription = searchParams.get('error_description')
   const code = searchParams.get('code')
+  const retry = searchParams.get('retry')
 
   const redirectError = useMemo(() => {
     return providerErrorDescription || providerError || null
@@ -54,11 +55,39 @@ export default function AuthCallbackClient() {
           router.replace('/trips')
         }
       } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unable to finish secure sign-in. Please try again.'
+
+        const isPkceMissing = /PKCE code verifier not found/i.test(message)
+
+        if (isPkceMissing && retry !== '1') {
+          const retryCallbackUrl = new URL('/auth/callback', window.location.origin)
+          retryCallbackUrl.searchParams.set('retry', '1')
+
+          const retryClient = createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+              isSingleton: false,
+              auth: {
+                detectSessionInUrl: false,
+              },
+            }
+          )
+
+          await retryClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: retryCallbackUrl.toString(),
+            },
+          })
+
+          return
+        }
+
         if (!isCancelled) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : 'Unable to finish secure sign-in. Please try again.'
           setErrorMessage(message)
         }
       }
@@ -69,7 +98,7 @@ export default function AuthCallbackClient() {
     return () => {
       isCancelled = true
     }
-  }, [code, redirectError, router])
+  }, [code, redirectError, retry, router])
 
   return (
     <main className="mx-auto flex min-h-[50vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
