@@ -5,6 +5,7 @@ import { buttonClass } from '@/app/components/ui/Button'
 import DaySection from '@/app/components/trips/story/DaySection'
 import StoryGenerator from '@/app/components/trips/story/StoryGenerator'
 import TripHeader from '@/app/components/trips/story/TripHeader'
+import TripWeatherSection from '@/app/components/trips/story/TripWeatherSection'
 import Card from '@/app/components/ui/Card'
 import { getStoryPeriod } from '@/lib/trip-storytelling'
 import {
@@ -216,6 +217,12 @@ export default async function TripDashboardPage({ params }: Props) {
 
           <div className="min-w-0 space-y-6 xl:sticky xl:top-6">
             <StoryGenerator tripId={tripId} tripTitle={trip.title} />
+
+            <TripWeatherSection
+              destination={trip.destination}
+              startDate={trip.start_date}
+              endDate={trip.end_date}
+            />
 
             <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
               <div>
