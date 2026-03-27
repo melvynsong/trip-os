@@ -23,7 +23,7 @@ export function addDays(isoDate: string, days: number): string | null {
   return toIsoDate(date)
 }
 
-export function getSuggestedEndDate(startDate: string, tripDays = 4): string | null {
+export function getSuggestedEndDate(startDate: string, tripDays = 2): string | null {
   const offset = Math.max(1, tripDays - 1)
   return addDays(startDate, offset)
 }

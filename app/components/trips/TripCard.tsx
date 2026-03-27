@@ -36,6 +36,8 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
   const totalMoments = trip.momentCount ?? 0
   const countdownLabel = trip.countdownLabel ?? null
   const isPrimaryUpcoming = trip.isPrimaryUpcoming ?? false
+  const strongTextClass = isPrimaryUpcoming ? 'text-white' : 'text-[var(--text-strong)]'
+  const subtleTextClass = isPrimaryUpcoming ? 'text-white/80' : 'text-[var(--text-subtle)]'
 
   function handleDeleteClick(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
@@ -53,7 +55,7 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
       interactive
       className={`relative overflow-hidden p-0 ${
         isPrimaryUpcoming
-          ? 'border-[var(--brand-primary)]/40 bg-[var(--brand-primary-soft)]/40'
+          ? 'border-[var(--text-strong)] bg-[var(--text-strong)]'
           : 'border-[var(--border-soft)]'
       }`}
     >
@@ -76,27 +78,27 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
 
       <div className="relative z-10 space-y-5 p-6">
         <div className="space-y-3 pr-10">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-subtle)]">
+          <div className={`flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] ${subtleTextClass}`}>
             <span>Your story</span>
-            {totalStories > 0 ? <span className="rounded-full border border-[var(--border-soft)] bg-[var(--brand-primary-soft)] px-2.5 py-1 text-[11px] text-[var(--text-strong)]">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span> : null}
+            {totalStories > 0 ? <span className={`rounded-full px-2.5 py-1 text-[11px] ${isPrimaryUpcoming ? 'border border-white/20 bg-white/10 text-white' : 'border border-[var(--border-soft)] bg-[var(--brand-primary-soft)] text-[var(--text-strong)]'}`}>{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span> : null}
             <CountdownBadge label={countdownLabel} emphasized={isPrimaryUpcoming} />
           </div>
           <div>
-            <h3 className="text-3xl font-semibold text-[var(--text-strong)]">{trip.title}</h3>
-            <p className="mt-2 text-sm text-[var(--text-subtle)] sm:text-base">{trip.destination}</p>
+            <h3 className={`text-3xl font-semibold ${strongTextClass}`}>{trip.title}</h3>
+            <p className={`mt-2 text-sm sm:text-base ${subtleTextClass}`}>{trip.destination}</p>
           </div>
-          <p className="text-sm text-[var(--text-subtle)]">
+          <p className={`text-sm ${subtleTextClass}`}>
             {formatDisplayDateRange(trip.start_date, trip.end_date)}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm text-[var(--text-subtle)]">
-          <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">{totalDays} {totalDays === 1 ? 'day' : 'days'} planned</span>
-          <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">{totalMoments} {totalMoments === 1 ? 'moment' : 'moments'}</span>
-          <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span>
+        <div className={`flex flex-wrap gap-2 text-sm ${subtleTextClass}`}>
+          <span className={`rounded-full px-3 py-1.5 ${isPrimaryUpcoming ? 'border border-white/20 bg-white/10 text-white' : 'border border-[var(--border-soft)] bg-[var(--surface-muted)]'}`}>{totalDays} {totalDays === 1 ? 'day' : 'days'} planned</span>
+          <span className={`rounded-full px-3 py-1.5 ${isPrimaryUpcoming ? 'border border-white/20 bg-white/10 text-white' : 'border border-[var(--border-soft)] bg-[var(--surface-muted)]'}`}>{totalMoments} {totalMoments === 1 ? 'moment' : 'moments'}</span>
+          <span className={`rounded-full px-3 py-1.5 ${isPrimaryUpcoming ? 'border border-white/20 bg-white/10 text-white' : 'border border-[var(--border-soft)] bg-[var(--surface-muted)]'}`}>{totalStories} saved {totalStories === 1 ? 'story' : 'stories'}</span>
         </div>
 
-        <p className="text-sm leading-7 text-[var(--text-subtle)]">
+        <p className={`text-sm leading-7 ${subtleTextClass}`}>
           {totalStories > 0
             ? 'Plan with clarity. Experience with ease. Share your story.'
             : 'This journey is ready to become something memorable.'}
