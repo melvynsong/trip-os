@@ -16,27 +16,15 @@ export type CurrentUserMembership = {
   isGmailAllowed: boolean
 }
 
-export type TripCreationEntitlements = {
-  tier: MembershipTier
-  tripLimitPerYear: number | null
-  currentYearTripCount: number
-  remainingTripsThisYear: number | null
-  isGmailAllowed: boolean
-}
-
 function getTripLimitPerYear(tier: MembershipTier): number | null {
   if (tier === 'owner') return null
   if (tier === 'friend') return 3
   return 1
 }
 
-function getItineraryAiLimit(tier: MembershipTier): number | null {
-  if (tier === 'owner' || tier === 'friend') return null
-  return 10
-}
-
-function canDeleteTrip(tier: MembershipTier): boolean {
-  return tier === 'owner' || tier === 'friend'
+// All users can delete trips — no tier restriction.
+function canDeleteTrip(): boolean {
+  return true
 }
 
 function getUtcYearBounds(now = new Date()) {
@@ -128,75 +116,27 @@ export async function getCurrentUserEntitlements(): Promise<EntitlementSnapshot>
     throw new Error(`Failed to count current year trips: ${tripsError.message}`)
   }
 
-  const { count: itineraryAiUsed, error: aiUsageError } = await supabase
-    .from('ai_usage_log')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', membership.userId)
-    .eq('usage_type', 'itinerary')
-
-  if (aiUsageError) {
-    throw new Error(`Failed to count itinerary AI usage: ${aiUsageError.message}`)
-  }
-
   const tier = membership.tier
   const tripLimitPerYear = getTripLimitPerYear(tier)
-  const itineraryAiLimit = getItineraryAiLimit(tier)
+  // AI features are unlimited for all users
+  const itineraryAiLimit: number | null = null
+  const itineraryAiUsed = 0
 
   const safeTripCount = currentYearTripCount || 0
-  const safeAiUsed = itineraryAiUsed || 0
-
   const remainingTripsThisYear =
     tripLimitPerYear === null ? null : Math.max(tripLimitPerYear - safeTripCount, 0)
 
-  const itineraryAiRemaining =
-    itineraryAiLimit === null ? null : Math.max(itineraryAiLimit - safeAiUsed, 0)
-
-  const canUseItineraryAi =
-    itineraryAiLimit === null ? true : safeAiUsed < itineraryAiLimit
-
   return {
     tier,
-    canDeleteTrip: canDeleteTrip(tier),
+    canDeleteTrip: canDeleteTrip(),
     tripLimitPerYear,
     currentYearTripCount: safeTripCount,
     remainingTripsThisYear,
     itineraryAiLimit,
-    itineraryAiUsed: safeAiUsed,
-    itineraryAiRemaining,
-    canUseItineraryAi,
+    itineraryAiUsed,
+    itineraryAiRemaining: null,
+    canUseItineraryAi: true,
     isGmailAllowed: membership.isGmailAllowed,
   }
 }
 
-export async function getCurrentUserTripCreationEntitlements(): Promise<TripCreationEntitlements> {
-  const supabase = await createClient()
-  const membership = await getCurrentUserMembership()
-
-  const { start, end } = getUtcYearBounds()
-
-  const { count: currentYearTripCount, error: tripsError } = await supabase
-    .from('trips')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', membership.userId)
-    .gte('created_at', start)
-    .lt('created_at', end)
-
-  if (tripsError) {
-    throw new Error(`Failed to count current year trips: ${tripsError.message}`)
-  }
-
-  const tier = membership.tier
-  const tripLimitPerYear = getTripLimitPerYear(tier)
-  const safeTripCount = currentYearTripCount || 0
-
-  const remainingTripsThisYear =
-    tripLimitPerYear === null ? null : Math.max(tripLimitPerYear - safeTripCount, 0)
-
-  return {
-    tier,
-    tripLimitPerYear,
-    currentYearTripCount: safeTripCount,
-    remainingTripsThisYear,
-    isGmailAllowed: membership.isGmailAllowed,
-  }
-}

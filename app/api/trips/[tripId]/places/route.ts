@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
-import { getCurrentUserMembership } from '@/lib/membership/server'
 import { createClient } from '@/lib/supabase/server'
 import { toLegacyCategory, type PlaceSource, type PlaceType } from '@/lib/places'
 
@@ -86,14 +84,6 @@ export async function POST(
     const longitude = typeof body.longitude === 'number' ? body.longitude : null
 
     const externalPlaceId = String(body.external_place_id || '').trim() || null
-
-    if (source === 'google') {
-      const membership = await getCurrentUserMembership()
-
-      if (!hasAccess(membership.tier, PREMIUM_FIND_PLACE_TIERS)) {
-        return NextResponse.json({ error: 'Premium access required.' }, { status: 403 })
-      }
-    }
 
     if (SOURCES_REQUIRING_EXTERNAL_ID.includes(source) && !externalPlaceId) {
       return NextResponse.json(

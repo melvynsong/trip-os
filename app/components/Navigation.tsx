@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import BrandLine from '@/app/components/shared/BrandLine'
 import { buttonClass } from '@/app/components/ui/Button'
 import { branding } from '@/lib/branding'
-import type { MembershipTier } from '@/lib/membership/types'
+import { getCurrentUserMembership } from '@/lib/membership/server'
 import { createClient } from '@/lib/supabase/server'
 import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
 
@@ -14,20 +14,14 @@ export default async function Navigation() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  let viewer: { name: string; tier: MembershipTier; tierLabel: string } | null = null
+  let viewer: { name: string; tierLabel: string } | null = null
 
   if (user) {
-    const { data: member } = await supabase
-      .from('members')
-      .select('tier')
-      .eq('id', user.id)
-      .maybeSingle<{ tier: MembershipTier }>()
-
-    const resolvedTier = member?.tier ?? 'free'
+    const membership = await getCurrentUserMembership().catch(() => null)
+    const resolvedTier = membership?.tier ?? 'free'
 
     viewer = {
       name: getUserDisplayName(user),
-      tier: resolvedTier,
       tierLabel: getTierLabel(resolvedTier),
     }
   }

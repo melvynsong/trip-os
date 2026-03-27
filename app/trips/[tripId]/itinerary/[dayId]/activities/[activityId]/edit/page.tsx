@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { getCurrentUserEntitlements } from '@/lib/membership/server'
-import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
-import type { MembershipTier } from '@/lib/membership/types'
+import { buttonClass } from '@/app/components/ui/Button'
 import { createClient } from '@/lib/supabase/server'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
 
@@ -31,14 +29,6 @@ type Props = {
 
 export default async function EditActivityPage({ params }: Props) {
   const { tripId, dayId, activityId } = await params
-  let userTier: MembershipTier
-  try {
-    const entitlements = await getCurrentUserEntitlements()
-    userTier = entitlements.tier
-  } catch {
-    redirect('/')
-  }
-
   const supabase = await createClient()
 
   const {
@@ -86,8 +76,6 @@ export default async function EditActivityPage({ params }: Props) {
     .select('id, name')
     .eq('trip_id', tripId)
     .order('name', { ascending: true })
-
-  const isPremiumUser = hasAccess(userTier, PREMIUM_FIND_PLACE_TIERS)
 
   async function updateActivity(formData: FormData) {
     'use server'
@@ -188,24 +176,22 @@ export default async function EditActivityPage({ params }: Props) {
           />
         </div>
 
-        {!isPremiumUser ? (
-          <div>
-            <label className="mb-1 block text-sm font-medium">Type</label>
-            <select
-              name="type"
-              defaultValue={activity.type}
-              className="w-full rounded-xl border px-3 py-2"
-            >
-              <option value="food">Food</option>
-              <option value="attraction">Attraction</option>
-              <option value="shopping">Shopping</option>
-              <option value="transport">Transport</option>
-              <option value="hotel">Hotel</option>
-              <option value="note">Note</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        ) : null}
+        <div>
+          <label className="mb-1 block text-sm font-medium">Type</label>
+          <select
+            name="type"
+            defaultValue={activity.type}
+            className="w-full rounded-xl border px-3 py-2"
+          >
+            <option value="food">Food</option>
+            <option value="attraction">Attraction</option>
+            <option value="shopping">Shopping</option>
+            <option value="transport">Transport</option>
+            <option value="hotel">Hotel</option>
+            <option value="note">Note</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
 
         <ActivityPlacePickerField
           tripId={tripId}
@@ -214,7 +200,6 @@ export default async function EditActivityPage({ params }: Props) {
           initialPlaces={places || []}
           initialSelectedPlaceId={activity.place_id}
           initialPlaceType={activityTypeToPlaceType(activity.type)}
-          userTier={userTier}
         />
 
         <div>
@@ -231,14 +216,14 @@ export default async function EditActivityPage({ params }: Props) {
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
-            className="rounded-xl bg-black px-4 py-2 text-white"
+            className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
           >
             Save Changes
           </button>
 
           <Link
             href={`/trips/${tripId}/itinerary`}
-            className="rounded-xl border px-4 py-2"
+            className={buttonClass({ variant: 'secondary', className: 'rounded-xl' })}
           >
             Cancel
           </Link>
@@ -248,7 +233,7 @@ export default async function EditActivityPage({ params }: Props) {
       <form action={deleteActivity} className="mt-4">
         <button
           type="submit"
-          className="rounded-xl border border-red-300 px-4 py-2 text-red-600"
+          className={buttonClass({ variant: 'danger', className: 'rounded-xl' })}
         >
           Delete Activity
         </button>

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUserMembership } from '@/lib/membership/server'
-import { PREMIUM_FIND_PLACE_TIERS, hasAccess } from '@/lib/membership/access'
 import { enforceGooglePlacesRateLimit, getGooglePlaceDetails } from '@/lib/google-places'
 
 export const runtime = 'nodejs'
@@ -8,10 +7,6 @@ export const runtime = 'nodejs'
 export async function GET(request: Request) {
   try {
     const membership = await getCurrentUserMembership()
-
-    if (!hasAccess(membership.tier, PREMIUM_FIND_PLACE_TIERS)) {
-      return NextResponse.json({ error: 'Premium access required.' }, { status: 403 })
-    }
 
     const { searchParams } = new URL(request.url)
     const placeId = String(searchParams.get('placeId') || '').trim()
@@ -28,7 +23,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ place })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected error fetching Google place details.'
-    const status = /rate limit/i.test(message) ? 429 : /Unauthorized|Premium access required/i.test(message) ? 403 : 500
+    const status = /rate limit/i.test(message) ? 429 : /Unauthorized/i.test(message) ? 403 : 500
 
     return NextResponse.json({ error: message }, { status })
   }

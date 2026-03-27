@@ -21,9 +21,9 @@ function getInitials(value: string) {
 function paletteFromSeed(seed: number) {
   const palettes = [
     ['from-amber-50 via-stone-50 to-amber-100', 'bg-amber-200/40', 'bg-stone-300/30'],
-    ['from-teal-50 via-emerald-50 to-stone-100', 'bg-teal-200/35', 'bg-stone-200/25'],
+    ['from-blue-50 via-slate-50 to-stone-100', 'bg-blue-200/35', 'bg-stone-200/25'],
     ['from-stone-100 via-amber-50 to-rose-50', 'bg-stone-300/30', 'bg-rose-200/20'],
-    ['from-amber-50 via-stone-50 to-teal-50', 'bg-amber-100/40', 'bg-teal-200/20'],
+    ['from-orange-50 via-stone-50 to-blue-50', 'bg-orange-100/40', 'bg-blue-200/20'],
     ['from-stone-50 via-amber-50 to-emerald-50', 'bg-stone-200/30', 'bg-emerald-100/25'],
   ] as const
 

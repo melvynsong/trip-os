@@ -35,7 +35,7 @@ export default function HeroSection() {
                 <span className="text-[var(--text-subtle)]"> — plan together with clarity</span>
               </li>
               <li>
-                <span className="font-semibold text-[var(--text-strong)]">Go</span>
+                <span className="font-semibold text-[var(--brand-accent)]">Go</span>
                 <span className="text-[var(--text-subtle)]"> — experience and share with ease</span>
               </li>
               <li>
@@ -62,7 +62,7 @@ export default function HeroSection() {
             Sign in once, plan with calm clarity, and turn the details of your journey into something worth sharing.
           </p>
           <div className="mt-8">
-            <LoginButton className="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-transparent bg-[var(--brand-primary)] px-6 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(30,107,114,0.35)] transition hover:bg-[var(--brand-primary-hover)] active:bg-[var(--brand-primary-press)]" />
+            <LoginButton className="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-transparent bg-[var(--brand-primary)] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(37,99,235,0.24)] transition hover:bg-[var(--brand-primary-hover)] active:bg-[var(--brand-primary-press)]" />
           </div>
           <p className="mt-4 text-xs leading-6 text-[var(--text-subtle)]">
             Google sign-in. Your trip planning stays private and personal.

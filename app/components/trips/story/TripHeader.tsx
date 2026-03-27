@@ -29,7 +29,7 @@ export default function TripHeader({
             : undefined
         }
       >
-        {!trip.coverImage ? <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(30,107,114,0.1),transparent_56%)]" /> : null}
+        {!trip.coverImage ? <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.1),transparent_56%)]" /> : null}
         {!trip.coverImage ? (
           <DestinationCoverArt destination={trip.destination} title={trip.title} showLabel={false} />
         ) : null}

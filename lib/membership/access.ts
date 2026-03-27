@@ -1,7 +1,5 @@
 import type { MembershipTier } from '@/lib/membership/types'
 
-export const PREMIUM_FIND_PLACE_TIERS: MembershipTier[] = ['friend', 'owner']
-
 export function isOwnerTier(userTier: MembershipTier): boolean {
   return userTier === 'owner'
 }

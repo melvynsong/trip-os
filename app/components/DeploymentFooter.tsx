@@ -3,8 +3,7 @@ import { join } from 'path'
 import Link from 'next/link'
 import BrandLine from '@/app/components/shared/BrandLine'
 import { isOwnerTier } from '@/lib/membership/access'
-import type { MembershipTier } from '@/lib/membership/types'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserMembership } from '@/lib/membership/server'
 
 export default async function DeploymentFooter() {
   let deploymentTime = 'Latest version deployed'
@@ -20,20 +19,8 @@ export default async function DeploymentFooter() {
   }
 
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (user) {
-      const { data: member } = await supabase
-        .from('members')
-        .select('tier')
-        .eq('id', user.id)
-        .maybeSingle<{ tier: MembershipTier }>()
-
-      showOwnerHistory = isOwnerTier(member?.tier ?? 'free')
-    }
+    const membership = await getCurrentUserMembership()
+    showOwnerHistory = isOwnerTier(membership.tier)
   } catch {
     showOwnerHistory = false
   }
@@ -43,7 +30,10 @@ export default async function DeploymentFooter() {
       <BrandLine className="mb-2" />
       <p>{deploymentTime}</p>
       {showOwnerHistory ? (
-        <p className="mt-2">
+        <p className="mt-2 flex items-center justify-center gap-4">
+          <Link href="/admin" className="font-medium text-[var(--text-strong)] underline underline-offset-4 hover:text-[var(--brand-primary)]">
+            Admin
+          </Link>
           <Link href="/owner/history" className="font-medium text-[var(--text-strong)] underline underline-offset-4 hover:text-[var(--brand-primary)]">
             Owner History
           </Link>

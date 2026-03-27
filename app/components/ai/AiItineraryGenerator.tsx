@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { buttonClass } from '@/app/components/ui/Button'
 import {
   type AiGeneratedItinerary,
   type AiTripContext,
@@ -144,7 +145,7 @@ export default function AiItineraryGenerator({
             type="button"
             onClick={handleGenerate}
             disabled={isGenerating || !prompt.trim()}
-            className="rounded-xl bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
           >
             {isGenerating ? 'Generating...' : 'Generate Draft'}
           </button>
@@ -165,7 +166,7 @@ export default function AiItineraryGenerator({
               type="button"
               onClick={handleSave}
               disabled={isSaving || totalGeneratedActivities === 0}
-              className="rounded-xl bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
             >
               {isSaving ? 'Saving...' : 'Save Draft to Itinerary'}
             </button>

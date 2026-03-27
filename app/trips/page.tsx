@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUserEntitlements, getCurrentUserMembership } from '@/lib/membership/server'
+import { getCurrentUserEntitlements } from '@/lib/entitlements'
+import { getCurrentUserMembership } from '@/lib/membership/server'
 import TripCard from '@/app/components/trips/TripCard'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
@@ -97,10 +98,8 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
   const pageStatus = resolvedSearchParams?.status
 
   const deleteBlockedMessage =
-    pageError === 'delete_not_allowed'
-      ? 'Free tier cannot delete trips. Upgrade to Friend tier to enable trip deletion.'
-      : pageError === 'delete_failed'
-        ? 'We could not delete that story right now. Please try again.'
+    pageError === 'delete_failed'
+      ? 'We could not delete that story right now. Please try again.'
       : pageError === 'gmail_not_allowed'
         ? 'Only gmail.com accounts are currently allowed to manage trips.'
         : null
@@ -123,14 +122,10 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
       redirect('/')
     }
 
-    const entitlements = await getCurrentUserEntitlements()
+    const membership = await getCurrentUserMembership()
 
-    if (!entitlements.isGmailAllowed) {
+    if (!membership.isGmailAllowed) {
       redirect('/trips?error=gmail_not_allowed')
-    }
-
-    if (!entitlements.canDeleteTrip) {
-      redirect('/trips?error=delete_not_allowed')
     }
 
     const { data: ownedTrip } = await supabase
@@ -279,6 +274,11 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
             <div className="inline-flex rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-subtle)]">
               {tierLabel}
             </div>
+            {entitlements.tripLimit !== 'unlimited' ? (
+              <p className="text-xs text-[var(--text-subtle)]">
+                {entitlements.tripsUsedThisYear} of {entitlements.tripLimit} trips used this year
+              </p>
+            ) : null}
           </div>
 
           <Link
@@ -313,7 +313,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                   storyCount: storyCountByTrip.get(trip.id) || 0,
                 }}
                 onDeleteTrip={deleteTripAction}
-                canDelete={entitlements.canDeleteTrip}
+                canDelete={true}
               />
             ))}
           </div>

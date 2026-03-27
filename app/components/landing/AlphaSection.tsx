@@ -10,7 +10,7 @@ export default function AlphaSection() {
           <p>ToGoStory is currently in alpha.</p>
           <p>It is already useful, but still evolving.</p>
           <p>
-            Features may change and performance may vary. Access is intentionally simple to refine the experience and manage cost.
+            Features may change and performance may vary, but the core experience stays consistent for everyone while we keep improving the product.
           </p>
         </div>
       </div>

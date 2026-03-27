@@ -2,16 +2,16 @@ const tiers = [
   {
     title: 'Free',
     eyebrow: 'A simple way to begin',
-    items: ['Sign in with Google', 'Create 1 trip per year', 'Basic recommendations'],
+    items: ['Sign in with Google', 'Create 1 trip per year', 'All planning, places, and AI features included'],
   },
   {
     title: 'Friends',
     eyebrow: 'For deeper planning together',
     items: [
-      'Please contact me',
       'Create up to 3 trips per year',
-      'Google-powered place search',
-      'AI assistant for planning and storytelling',
+      'All planning, places, and AI features included',
+      'Built for shared travel and repeat journeys',
+      'Same product experience, with more room to travel',
     ],
   },
 ]
@@ -22,10 +22,10 @@ export default function AccessSection() {
       <div className="max-w-2xl space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--brand-primary)]">Access</p>
         <h2 className="font-serif text-3xl text-[var(--text-strong)]">
-          Simple access while the product grows with care.
+          Everyone gets the full product. Only trip count changes.
         </h2>
         <p className="text-sm leading-7 text-[var(--text-subtle)] sm:text-base">
-          These tiers are shown here for clarity. Access is intentionally limited to refine the experience.
+          ToGoStory stays consistent across tiers so planning never feels partially unlocked or fragmented.
         </p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUserTripCreationEntitlements } from '@/lib/membership/server'
+import { getCurrentUserEntitlements } from '@/lib/entitlements'
+import { getCurrentUserMembership } from '@/lib/membership/server'
+import type { MembershipTier } from '@/lib/membership/types'
 
 export const runtime = 'nodejs'
 
@@ -11,12 +13,9 @@ type CreateTripPayload = {
   end_date?: string
 }
 
-function getTripLimitMessage(tier: 'free' | 'friend') {
-  if (tier === 'free') {
-    return 'You have reached your Free tier limit of 1 trip this calendar year.'
-  }
-
-  return 'You have reached your Friend tier limit of 3 trips this calendar year.'
+function getTripLimitMessage(tier: MembershipTier, limit: number | 'unlimited') {
+  if (limit === 'unlimited') return 'Trip creation is currently unavailable.'
+  return `You have reached your ${tier === 'free' ? 'Free' : 'Friend'} tier limit of ${limit} trip${limit === 1 ? '' : 's'} this calendar year.`
 }
 
 export async function POST(request: Request) {
@@ -60,23 +59,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Start date must be before end date.' }, { status: 400 })
     }
 
-    const entitlements = await getCurrentUserTripCreationEntitlements()
+    const membership = await getCurrentUserMembership()
 
-    if (!entitlements.isGmailAllowed) {
+    if (!membership.isGmailAllowed) {
       return NextResponse.json(
         { error: 'Only gmail.com accounts are currently allowed to create trips.' },
         { status: 403 }
       )
     }
 
-    if (entitlements.remainingTripsThisYear !== null && entitlements.remainingTripsThisYear <= 0) {
+    const entitlements = await getCurrentUserEntitlements()
+
+    if (!entitlements.canCreateTrip) {
       return NextResponse.json(
-        {
-          error:
-            entitlements.tier === 'owner'
-              ? 'Trip creation is currently unavailable.'
-              : getTripLimitMessage(entitlements.tier),
-        },
+        { error: getTripLimitMessage(entitlements.tier, entitlements.tripLimit) },
         { status: 403 }
       )
     }

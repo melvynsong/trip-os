@@ -1,35 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm ivory background — replaces cold blue-white */
-  --background: #f9f7f4;
-  --foreground: #1c1917;
+  --background: #ffffff;
+  --foreground: #0f172a;
 
-  /* Brand accent: premium deep teal — warm, travel-adjacent, restrained */
-  --brand-primary: #1e6b72;
-  --brand-primary-hover: #185e65;
-  --brand-primary-press: #134e54;
-  --brand-primary-soft: #e6f3f4;
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-primary-press: #1e40af;
+  --brand-primary-soft: #eff6ff;
+  --brand-accent: #f97316;
+  --brand-accent-soft: #fff7ed;
 
-  /* Surfaces: warm whites + sand muted */
-  --surface-muted: #f2ede8;
+  --surface-muted: #f4f6f8;
   --surface-panel: #ffffff;
 
-  /* Typography: warm charcoal + warm stone */
-  --text-strong: #1c1917;
-  --text-subtle: #78716c;
+  --text-strong: #0f172a;
+  --text-subtle: #64748b;
 
-  /* Borders: warm sand */
-  --border-soft: #e7e0d8;
+  --border-soft: #e2e8f0;
 
-  /* Interactive ring */
-  --ring-brand: rgba(30, 107, 114, 0.22);
+  --ring-brand: rgba(37, 99, 235, 0.2);
 
-  /* Dark surface for CTA sections */
-  --surface-dark: #1c1917;
-  --surface-dark-muted: #2c2825;
-  --text-on-dark: #faf8f5;
-  --text-on-dark-subtle: rgba(250, 248, 245, 0.65);
+  --surface-dark: #111827;
+  --surface-dark-muted: #1f2937;
+  --text-on-dark: #f8fafc;
+  --text-on-dark-subtle: rgba(248, 250, 252, 0.72);
 
   color-scheme: light;
 }
@@ -63,7 +58,7 @@ body {
 }
 
 *::selection {
-  background: rgba(30, 107, 114, 0.18);
+  background: rgba(37, 99, 235, 0.16);
 }
 
 a,

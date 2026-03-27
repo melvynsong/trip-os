@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { buttonClass } from '@/app/components/ui/Button'
 import { createClient } from '@/lib/supabase/server'
 import { PLACE_TYPE_OPTIONS, resolvePlaceType, toLegacyCategory, type PlaceType } from '@/lib/places'
 
@@ -177,14 +178,14 @@ export default async function EditPlacePage({ params }: Props) {
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
-            className="rounded-xl bg-black px-4 py-2 text-white"
+            className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
           >
             Save Changes
           </button>
 
           <Link
             href={`/trips/${tripId}/places`}
-            className="rounded-xl border px-4 py-2"
+            className={buttonClass({ variant: 'secondary', className: 'rounded-xl' })}
           >
             Cancel
           </Link>
@@ -194,7 +195,7 @@ export default async function EditPlacePage({ params }: Props) {
       <form action={deletePlace} className="mt-4">
         <button
           type="submit"
-          className="rounded-xl border border-red-300 px-4 py-2 text-red-600"
+          className={buttonClass({ variant: 'danger', className: 'rounded-xl' })}
         >
           Delete Place
         </button>
