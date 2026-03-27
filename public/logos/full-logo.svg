@@ -1,0 +1,11 @@
+<svg viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Icon -->
+  <path d="M40 80C40 59.91 53.28 44 70 44c16.72 0 30 15.91 30 36 0 20.09-13.28 36-30 36-16.72 0-30-15.91-30-36Z" stroke="#2563eb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M52 80c0-8.28 4.92-15 11-15 6.08 0 11 6.72 11 15M100 80c0-8.28 4.92-15 11-15 6.08 0 11 6.72 11 15" stroke="#2563eb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Wordmark -->
+  <g font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="600" letter-spacing="-1">
+    <text x="160" y="115" fill="#2563eb">ToGoStor</text>
+    <text x="520" y="115" fill="#f97316">y</text>
+  </g>
+</svg>

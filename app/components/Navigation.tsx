@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import BrandLine from '@/app/components/shared/BrandLine'
+import Logo from '@/app/components/shared/Logo'
 import { buttonClass } from '@/app/components/ui/Button'
-import { branding } from '@/lib/branding'
 import { getCurrentUserMembership } from '@/lib/membership/server'
 import { createClient } from '@/lib/supabase/server'
 import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
@@ -37,13 +36,7 @@ export default async function Navigation() {
   return (
     <nav className="border-b border-[var(--border-soft)] bg-[var(--background)]/95 text-[var(--text-strong)] backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="rounded-xl px-2 py-1 transition hover:bg-[var(--surface-muted)] active:scale-[0.98]"
-        >
-          <div className="font-serif text-2xl text-[var(--text-strong)]">{branding.appName}</div>
-          <BrandLine compact className="mt-0.5" />
-        </Link>
+        <Logo href="/" variant="full" size="sm" className="h-auto w-auto" />
 
         <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <Link

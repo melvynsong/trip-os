@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   },
   description: BRAND.description,
   metadataBase: new URL(BRAND.siteUrl),
+  icons: {
+    icon: '/logos/icon.svg',
+    apple: '/logos/icon.svg',
+  },
   robots: {
     index: false,
     follow: false,
@@ -43,6 +47,15 @@ export const metadata: Metadata = {
     siteName: BRAND.appName,
     title: BRAND.appName,
     description: BRAND.description,
+    images: [
+      {
+        url: '/logos/full-logo.svg',
+        width: 600,
+        height: 160,
+        alt: 'ToGoStory',
+        type: 'image/svg+xml',
+      },
+    ],
   },
 };
 

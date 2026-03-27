@@ -1,5 +1,5 @@
 import LoginButton from '@/app/components/auth/LoginButton'
-import BrandLine from '@/app/components/shared/BrandLine'
+import Logo from '@/app/components/shared/Logo'
 import { branding } from '@/lib/branding'
 
 export default function HeroSection() {
@@ -13,10 +13,7 @@ export default function HeroSection() {
               Travel planning, beautifully told
             </p>
             <div>
-              <h1 className="font-serif text-5xl leading-none text-[var(--text-strong)] sm:text-6xl">
-                {branding.appName}
-              </h1>
-              <BrandLine className="mt-3" />
+              <Logo variant="full" size="md" />
             </div>
           </div>
 
