@@ -1,4 +1,10 @@
-import { OpenMeteoForecastResponse, WeatherDay, WeatherSummary } from './types'
+import {
+  OpenMeteoArchiveResponse,
+  OpenMeteoForecastResponse,
+  WeatherDay,
+  WeatherPeriodConditions,
+  WeatherSummary,
+} from './types'
 
 function clampProbability(value: number) {
   if (!Number.isFinite(value)) return 0
@@ -79,4 +85,110 @@ export function buildTripWeatherSummary(days: WeatherDay[]): WeatherSummary {
     headline,
     note,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Period-conditions helpers (used for outlook + climate modes)
+// ---------------------------------------------------------------------------
+
+/**
+ * Transform one year's archive data into aggregate period conditions.
+ * Returns null if the archive response has no usable daily data.
+ */
+export function transformArchiveToPeriodConditions(
+  input: OpenMeteoArchiveResponse
+): WeatherPeriodConditions | null {
+  const daily = input.daily
+  const times = daily?.time || []
+  if (times.length === 0) return null
+
+  const codes = daily?.weather_code || []
+  const maxTemps = daily?.temperature_2m_max || []
+  const minTemps = daily?.temperature_2m_min || []
+  const precipSums = daily?.precipitation_sum || []
+
+  let totalMax = 0
+  let totalMin = 0
+  let rainyDays = 0
+  const codeCounts: Record<number, number> = {}
+
+  times.forEach((_, i) => {
+    const max = Number(maxTemps[i] ?? 0)
+    const min = Number(minTemps[i] ?? 0)
+    const precip = precipSums[i]
+    const code = Number(codes[i] ?? 0)
+
+    totalMax += max
+    totalMin += min
+
+    // A day with >1mm precipitation is considered a rainy day
+    if (typeof precip === 'number' && Number.isFinite(precip) && precip > 1) {
+      rainyDays++
+    }
+
+    codeCounts[code] = (codeCounts[code] ?? 0) + 1
+  })
+
+  const n = times.length
+  const avgMaxTempC = Math.round(totalMax / n)
+  const avgMinTempC = Math.round(totalMin / n)
+  const rainyDaysPercent = Math.round((rainyDays / n) * 100)
+
+  // Most frequent weather code → label
+  const dominantCode = Number(
+    Object.entries(codeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 0
+  )
+  const typicalCondition = mapWeatherCodeToLabel(dominantCode)
+
+  return { avgMinTempC, avgMaxTempC, typicalCondition, rainyDaysPercent }
+}
+
+/**
+ * Merge period conditions from multiple years into a single averaged result.
+ */
+export function mergeHistoricalConditions(
+  conditions: WeatherPeriodConditions[]
+): WeatherPeriodConditions {
+  const valid = conditions.filter(Boolean)
+  if (valid.length === 0) {
+    return { avgMinTempC: 0, avgMaxTempC: 20, typicalCondition: 'Variable conditions', rainyDaysPercent: 0 }
+  }
+
+  const avgMinTempC = Math.round(valid.reduce((s, c) => s + c.avgMinTempC, 0) / valid.length)
+  const avgMaxTempC = Math.round(valid.reduce((s, c) => s + c.avgMaxTempC, 0) / valid.length)
+  const rainyDaysPercent = Math.round(valid.reduce((s, c) => s + c.rainyDaysPercent, 0) / valid.length)
+
+  // Pick the most frequently occurring condition label across years
+  const conditionFrequency: Record<string, number> = {}
+  for (const c of valid) {
+    conditionFrequency[c.typicalCondition] = (conditionFrequency[c.typicalCondition] ?? 0) + 1
+  }
+  const typicalCondition =
+    Object.entries(conditionFrequency).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Variable conditions'
+
+  return { avgMinTempC, avgMaxTempC, typicalCondition, rainyDaysPercent }
+}
+
+/**
+ * Build a human-friendly WeatherSummary from aggregated period conditions.
+ */
+export function buildPeriodWeatherSummary(conditions: WeatherPeriodConditions): WeatherSummary {
+  const { avgMaxTempC, avgMinTempC, rainyDaysPercent } = conditions
+
+  const headline =
+    avgMaxTempC >= 27 ? 'Typically warm' : avgMaxTempC <= 16 ? 'Typically cool' : 'Typically mild'
+
+  let note: string | null = null
+
+  if (rainyDaysPercent >= 50) {
+    note = 'Rain is common during this period.'
+  } else if (rainyDaysPercent >= 25) {
+    note = 'Some rain is likely during this period.'
+  } else if (avgMinTempC <= 10) {
+    note = 'Cold nights are typical for this time of year.'
+  } else if (avgMaxTempC - avgMinTempC >= 12) {
+    note = 'Large temperature swings — pack layers.'
+  }
+
+  return { headline, note }
 }

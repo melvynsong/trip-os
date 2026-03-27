@@ -1,4 +1,5 @@
 import {
+  OpenMeteoArchiveResponse,
   OpenMeteoForecastResponse,
   OpenMeteoGeocodeResponse,
   WeatherGeocodeResult,
@@ -155,6 +156,47 @@ export async function fetchOpenMeteoDailyForecast(
 
   if (times.length !== codes.length || times.length !== maxTemps.length || times.length !== minTemps.length) {
     throw new WeatherProviderError('malformed_response', 'Weather forecast arrays are inconsistent.')
+  }
+
+  return payload
+}
+
+const OPEN_METEO_ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive'
+
+/**
+ * Fetch historical daily weather from the Open-Meteo archive endpoint.
+ * Used for outlook and climate modes to derive typical conditions based on
+ * the same time period in previous year(s).
+ *
+ * Note: the archive dataset lags ~5 days behind present.
+ */
+export async function fetchHistoricalWeather(
+  latitude: number,
+  longitude: number,
+  startDate: string,
+  endDate: string
+): Promise<OpenMeteoArchiveResponse> {
+  const query = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    daily: [
+      'weather_code',
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'precipitation_sum',
+    ].join(','),
+    timezone: 'UTC',
+    start_date: startDate,
+    end_date: endDate,
+  })
+
+  const payload = await fetchJson<OpenMeteoArchiveResponse>(
+    `${OPEN_METEO_ARCHIVE_URL}?${query.toString()}`
+  )
+
+  const daily = payload.daily
+  if (!daily || !Array.isArray(daily.time)) {
+    throw new WeatherProviderError('malformed_response', 'Historical weather response is malformed.')
   }
 
   return payload

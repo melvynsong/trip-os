@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
-import { fetchOpenMeteoDailyForecast, geocodeDestination } from '@/lib/weather/openMeteo'
+import { fetchHistoricalWeather, fetchOpenMeteoDailyForecast, geocodeDestination } from '@/lib/weather/openMeteo'
 import {
+  buildPeriodWeatherSummary,
   buildTripWeatherSummary,
   filterForecastByDateRange,
+  mergeHistoricalConditions,
+  transformArchiveToPeriodConditions,
   transformOpenMeteoDailyForecast,
 } from '@/lib/weather/transform'
-import { WeatherProviderError } from '@/lib/weather/types'
+import { selectWeatherMode, shiftDateRangeByYears } from '@/lib/weather/modeSelector'
+import { WeatherApiResponse, WeatherProviderError } from '@/lib/weather/types'
 
 export const runtime = 'nodejs'
 
@@ -21,14 +25,19 @@ function buildLocationLabel(name: string, region: string | null, country: string
   return [name, region, country].filter(Boolean).join(', ')
 }
 
-function buildEmptyWeatherResponse(locationLabel: string, headline: string, note: string) {
+function emptyResponse(
+  locationLabel: string,
+  headline: string,
+  note: string
+): WeatherApiResponse {
   return {
+    mode: 'forecast',
+    confidenceLabel: 'Daily forecast',
+    contextNote: null,
     locationLabel,
-    summary: {
-      headline,
-      note,
-    },
+    summary: { headline, note },
     days: [],
+    periodConditions: null,
   }
 }
 
@@ -62,47 +71,104 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Start date must be before end date.' }, { status: 400 })
     }
 
+    const modeSelection = selectWeatherMode(startDate)
     const geocoded = await geocodeDestination(destination)
-    let rawForecast
+    const locationLabel = buildLocationLabel(geocoded.name, geocoded.region, geocoded.country)
 
-    try {
-      rawForecast = await fetchOpenMeteoDailyForecast(
-        geocoded.latitude,
-        geocoded.longitude,
-        startDate,
-        endDate
-      )
-    } catch (error) {
-      if (error instanceof WeatherProviderError && error.code === 'no_forecast_for_dates') {
-        return NextResponse.json(
-          buildEmptyWeatherResponse(
-            buildLocationLabel(geocoded.name, geocoded.region, geocoded.country),
-            'Forecast unavailable for these dates',
-            'Try checking closer to your trip or confirm your travel dates.'
-          )
+    // ------------------------------------------------------------------
+    // FORECAST mode — real daily weather from Open-Meteo forecast API
+    // ------------------------------------------------------------------
+    if (modeSelection.mode === 'forecast') {
+      let rawForecast
+
+      try {
+        rawForecast = await fetchOpenMeteoDailyForecast(
+          geocoded.latitude,
+          geocoded.longitude,
+          startDate,
+          endDate
         )
+      } catch (error) {
+        if (error instanceof WeatherProviderError && error.code === 'no_forecast_for_dates') {
+          return NextResponse.json(
+            emptyResponse(
+              locationLabel,
+              'Forecast unavailable for these dates',
+              'Try checking closer to your trip or confirm your travel dates.'
+            )
+          )
+        }
+        throw error
       }
 
-      throw error
+      const transformedDays = transformOpenMeteoDailyForecast(rawForecast)
+      const days = filterForecastByDateRange(transformedDays, startDate, endDate)
+      const summary = buildTripWeatherSummary(days)
+
+      const response: WeatherApiResponse = {
+        mode: 'forecast',
+        confidenceLabel: modeSelection.confidenceLabel,
+        contextNote: null,
+        locationLabel,
+        summary,
+        days,
+        periodConditions: null,
+      }
+      return NextResponse.json(response)
     }
 
-    const transformedDays = transformOpenMeteoDailyForecast(rawForecast)
-    const days = filterForecastByDateRange(transformedDays, startDate, endDate)
-    const summary = buildTripWeatherSummary(days)
+    // ------------------------------------------------------------------
+    // OUTLOOK / CLIMATE modes — derive typical conditions from historical
+    // data for the same time period in previous year(s).
+    // ------------------------------------------------------------------
+    const yearsToFetch = modeSelection.historicalYears
+    const archiveResults = await Promise.allSettled(
+      Array.from({ length: yearsToFetch }, (_, i) => {
+        const yearOffset = i + 1
+        const { start, end } = shiftDateRangeByYears(startDate, endDate, yearOffset)
+        return fetchHistoricalWeather(geocoded.latitude, geocoded.longitude, start, end)
+      })
+    )
 
-    return NextResponse.json({
-      locationLabel: buildLocationLabel(geocoded.name, geocoded.region, geocoded.country),
+    const periodConditionsList = archiveResults
+      .filter(
+        (r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchHistoricalWeather>>> =>
+          r.status === 'fulfilled'
+      )
+      .map((r) => transformArchiveToPeriodConditions(r.value))
+      .filter((c): c is NonNullable<typeof c> => c !== null)
+
+    if (periodConditionsList.length === 0) {
+      return NextResponse.json(
+        emptyResponse(
+          locationLabel,
+          'Typical conditions unavailable',
+          'We could not retrieve historical data for this destination right now.'
+        )
+      )
+    }
+
+    const periodConditions = mergeHistoricalConditions(periodConditionsList)
+    const summary = buildPeriodWeatherSummary(periodConditions)
+
+    const response: WeatherApiResponse = {
+      mode: modeSelection.mode,
+      confidenceLabel: modeSelection.confidenceLabel,
+      contextNote: modeSelection.contextNote,
+      locationLabel,
       summary,
-      days,
-    })
+      days: [],
+      periodConditions,
+    }
+    return NextResponse.json(response)
   } catch (error) {
     if (error instanceof WeatherProviderError) {
       if (error.code === 'destination_not_found') {
         return NextResponse.json(
-          buildEmptyWeatherResponse(
+          emptyResponse(
             'Unknown destination',
             'Forecast unavailable for this destination',
-            'Try using a city or country name, for example “Tokyo, Japan”.'
+            'Try using a city or country name, for example "Tokyo, Japan".'
           )
         )
       }

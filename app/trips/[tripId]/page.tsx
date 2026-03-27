@@ -6,6 +6,7 @@ import DaySection from '@/app/components/trips/story/DaySection'
 import StoryGenerator from '@/app/components/trips/story/StoryGenerator'
 import TripHeader from '@/app/components/trips/story/TripHeader'
 import TripWeatherSection from '@/app/components/trips/story/TripWeatherSection'
+import { WeatherDataProvider } from '@/app/components/trips/story/WeatherDataProvider'
 import Card from '@/app/components/ui/Card'
 import { getStoryPeriod } from '@/lib/trip-storytelling'
 import {
@@ -177,7 +178,12 @@ export default async function TripDashboardPage({ params }: Props) {
           }}
         />
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+        <WeatherDataProvider
+          destination={trip.destination}
+          startDate={trip.start_date}
+          endDate={trip.end_date}
+        >
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
           <div className="space-y-8">
             {daySections.length > 0 ? (
               daySections.map(({ day, groups }, index) => (
@@ -247,10 +253,17 @@ export default async function TripDashboardPage({ params }: Props) {
                 >
                   Explore places
                 </Link>
+                <Link
+                  href={`/trips/${tripId}/packing`}
+                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
+                >
+                  Packing list
+                </Link>
               </div>
             </Card>
           </div>
         </div>
+        </WeatherDataProvider>
       </div>
     </main>
   )

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Card from '@/app/components/ui/Card'
 import { buttonClass } from '@/app/components/ui/Button'
 import TimelineBlock from '@/app/components/trips/story/TimelineBlock'
+import { DayWeather } from '@/app/components/trips/story/DayWeather'
 import { formatDisplayDate, formatTimeLabel } from '@/lib/trip-storytelling'
 
 type StoryMoment = {
@@ -54,6 +55,9 @@ export default function DaySection({
             </p>
             <h2 className="font-serif text-3xl text-[var(--text-strong)]">{heading}</h2>
             <p className="text-sm leading-7 text-[var(--text-subtle)]">This is your story.</p>
+            <div className="pt-2">
+              <DayWeather date={day.date} compact />
+            </div>
           </div>
           <Link
             href={`/trips/${tripId}/itinerary`}
