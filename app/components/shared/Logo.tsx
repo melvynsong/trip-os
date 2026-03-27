@@ -53,9 +53,9 @@ function IconMark({ size, className }: { size: number; className?: string }) {
 // "ToGoStory" in Inter ExtraBold with an orange accent dot floating inside
 // the counter of the "o" in "Story".
 const TEXT_CLASS: Record<'sm' | 'md' | 'lg', string> = {
-  sm: 'text-[1.65rem]',
-  md: 'text-[2.1rem]',
-  lg: 'text-[2.75rem]',
+  sm: 'text-[2.2rem]',
+  md: 'text-[2.6rem]',
+  lg: 'text-[3.2rem]',
 }
 
 function Wordmark({ size }: { size: 'sm' | 'md' | 'lg' }) {
@@ -91,9 +91,9 @@ function Wordmark({ size }: { size: 'sm' | 'md' | 'lg' }) {
 
 // ─── Icon pixel sizes ─────────────────────────────────────────────────────────
 const ICON_PX: Record<'sm' | 'md' | 'lg', number> = {
-  sm: 30,
-  md: 38,
-  lg: 50,
+  sm: 40,
+  md: 52,
+  lg: 64,
 }
 
 // ─── Public component ─────────────────────────────────────────────────────────
