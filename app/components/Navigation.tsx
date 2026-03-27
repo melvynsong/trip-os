@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import BrandLine from '@/app/components/shared/BrandLine'
 import { buttonClass } from '@/app/components/ui/Button'
 import { branding } from '@/lib/branding'
-import { isOwnerTier } from '@/lib/membership/access'
 import type { MembershipTier } from '@/lib/membership/types'
 import { createClient } from '@/lib/supabase/server'
 import { getTierLabel, getUserDisplayName } from '@/lib/user-display'
@@ -63,19 +62,6 @@ export default async function Navigation() {
           >
             {user ? 'Stories' : 'Home'}
           </Link>
-
-          {viewer && isOwnerTier(viewer.tier) ? (
-            <Link
-              href="/owner/history"
-              className={buttonClass({
-                variant: 'ghost',
-                size: 'sm',
-                className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
-              })}
-            >
-              Owner History
-            </Link>
-          ) : null}
 
           {viewer ? (
             <div className="flex flex-wrap items-center gap-2">

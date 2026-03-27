@@ -31,7 +31,7 @@ export default function TripHeader({
       >
         {!trip.coverImage ? <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.2),transparent_56%)]" /> : null}
         {!trip.coverImage ? (
-          <DestinationCoverArt destination={trip.destination} title={trip.title} />
+          <DestinationCoverArt destination={trip.destination} title={trip.title} showLabel={false} />
         ) : null}
         <div className="relative max-w-3xl space-y-4">
           <div className="inline-flex items-center rounded-full border border-white/40 bg-white/75 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-700 backdrop-blur">
