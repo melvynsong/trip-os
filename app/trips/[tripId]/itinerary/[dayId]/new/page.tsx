@@ -62,7 +62,6 @@ export default async function NewActivityPage({ params }: Props) {
 
     const title = String(formData.get('title') || '').trim()
     const activity_time = String(formData.get('activity_time') || '').trim()
-    const type = String(formData.get('type') || 'other').trim()
     const notes = String(formData.get('notes') || '').trim()
     const place_id = String(formData.get('place_id') || '').trim()
 
@@ -74,7 +73,7 @@ export default async function NewActivityPage({ params }: Props) {
       day_id: dayId,
       title,
       activity_time: activity_time || null,
-      type,
+      type: 'activity',
       notes: notes || null,
       place_id: place_id || null,
       status: 'planned',
@@ -115,23 +114,6 @@ export default async function NewActivityPage({ params }: Props) {
             name="activity_time"
             className="w-full rounded-xl border px-3 py-2"
           />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
-          <select
-            name="type"
-            defaultValue="other"
-            className="w-full rounded-xl border px-3 py-2"
-          >
-            <option value="food">Food</option>
-            <option value="attraction">Attraction</option>
-            <option value="shopping">Shopping</option>
-            <option value="transport">Transport</option>
-            <option value="hotel">Hotel</option>
-            <option value="note">Note</option>
-            <option value="other">Other</option>
-          </select>
         </div>
 
         <ActivityPlacePickerField

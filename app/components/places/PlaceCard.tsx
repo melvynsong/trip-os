@@ -36,12 +36,12 @@ export default function PlaceCard({ place, tripId }: PlaceCardProps) {
   const [storyRefreshKey, setStoryRefreshKey] = useState(0)
 
   return (
-    <Card className="p-5">
+    <Card className="overflow-hidden p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xl">{getPlaceTypeEmoji(placeType)}</span>
-            <h3 className="font-semibold text-lg">{place.name}</h3>
+            <span className="text-xl flex-shrink-0">{getPlaceTypeEmoji(placeType)}</span>
+            <h3 className="font-semibold text-lg truncate">{place.name}</h3>
             {place.visited ? (
               <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
                 Visited

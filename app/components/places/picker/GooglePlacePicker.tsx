@@ -346,8 +346,8 @@ export default function GooglePlacePicker({
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-3">
+        <div className="grid gap-4 overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-3 overflow-hidden">
             <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-2">
               {searchLoading ? (
                 <div className="space-y-2 p-2">
@@ -402,7 +402,7 @@ export default function GooglePlacePicker({
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-hidden">
             {detailsLoading ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-4 text-sm text-gray-500">
                 Loading place details…
@@ -418,18 +418,18 @@ export default function GooglePlacePicker({
                     <iframe
                       title={`Map preview for ${selectedPlace.name}`}
                       src={mapEmbedUrl}
-                      className="h-56 w-full border-0"
+                      className="block h-56 w-full border-0"
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                     />
                   </div>
                 ) : null}
 
-                <Card className="space-y-3 p-4">
+                <Card className="space-y-3 overflow-hidden p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="text-base font-semibold text-gray-900">{selectedPlace.name}</h4>
-                      <p className="mt-1 text-sm text-gray-500">{selectedPlace.address}</p>
+                    <div className="min-w-0">
+                      <h4 className="truncate text-base font-semibold text-gray-900">{selectedPlace.name}</h4>
+                      <p className="mt-1 line-clamp-2 text-sm text-gray-500">{selectedPlace.address}</p>
                     </div>
                     <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
                       {formatPrimaryType(selectedPlace)}
