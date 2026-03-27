@@ -8,6 +8,8 @@ import TripHeader from '@/app/components/trips/story/TripHeader'
 import TripWeatherSection from '@/app/components/trips/story/TripWeatherSection'
 import { WeatherDataProvider } from '@/app/components/trips/story/WeatherDataProvider'
 import Card from '@/app/components/ui/Card'
+import { getCurrentUserMembership } from '@/lib/membership/server'
+import { getPackingAccessState } from '@/lib/feature-toggles'
 import { getStoryPeriod } from '@/lib/trip-storytelling'
 import {
   Trip as TripType,
@@ -151,6 +153,15 @@ export default async function TripDashboardPage({ params }: Props) {
     }
   })
 
+  let canSeePackingLink = false
+  try {
+    const membership = await getCurrentUserMembership()
+    const packingAccess = await getPackingAccessState(membership.tier)
+    canSeePackingLink = packingAccess.canAccess
+  } catch {
+    canSeePackingLink = false
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <div className="mb-5">
@@ -253,12 +264,14 @@ export default async function TripDashboardPage({ params }: Props) {
                 >
                   Explore places
                 </Link>
-                <Link
-                  href={`/trips/${tripId}/packing`}
-                  className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
-                >
-                  Packing list
-                </Link>
+                {canSeePackingLink ? (
+                  <Link
+                    href={`/trips/${tripId}/packing`}
+                    className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
+                  >
+                    Packing list
+                  </Link>
+                ) : null}
               </div>
             </Card>
           </div>

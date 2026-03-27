@@ -12,6 +12,12 @@ export type TierLimitRow = {
   feature_flags: FeatureFlags
 }
 
+export type AdminConfigLoadResult = {
+  config: TierLimitRow[]
+  source: 'database' | 'fallback'
+  errorMessage: string | null
+}
+
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   googlePlaces: true,
   tripDeletion: true,
@@ -27,13 +33,13 @@ export const DEFAULT_ADMIN_CONFIG: TierLimitRow[] = [
 function normalizeFlags(value: unknown): FeatureFlags {
   const input = typeof value === 'object' && value ? (value as Partial<FeatureFlags>) : {}
   return {
-    googlePlaces: input.googlePlaces ?? true,
-    tripDeletion: input.tripDeletion ?? true,
-    aiFeatures: input.aiFeatures ?? true,
+    googlePlaces: typeof input.googlePlaces === 'boolean' ? input.googlePlaces : true,
+    tripDeletion: typeof input.tripDeletion === 'boolean' ? input.tripDeletion : true,
+    aiFeatures: typeof input.aiFeatures === 'boolean' ? input.aiFeatures : true,
   }
 }
 
-export async function getAdminConfig() {
+export async function getAdminConfigWithMeta(): Promise<AdminConfigLoadResult> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('admin_config')
@@ -41,7 +47,11 @@ export async function getAdminConfig() {
     .order('tier', { ascending: true })
 
   if (error) {
-    return DEFAULT_ADMIN_CONFIG
+    return {
+      config: DEFAULT_ADMIN_CONFIG,
+      source: 'fallback',
+      errorMessage: error.message,
+    }
   }
 
   const rows = (data || []) as Array<{
@@ -51,12 +61,17 @@ export async function getAdminConfig() {
   }>
 
   if (rows.length === 0) {
-    return DEFAULT_ADMIN_CONFIG
+    return {
+      config: DEFAULT_ADMIN_CONFIG,
+      source: 'fallback',
+      errorMessage: 'admin_config is empty',
+    }
   }
 
   const byTier = new Map(rows.map((row) => [row.tier, row]))
 
-  return DEFAULT_ADMIN_CONFIG.map((fallback) => {
+  return {
+    config: DEFAULT_ADMIN_CONFIG.map((fallback) => {
     const row = byTier.get(fallback.tier)
     if (!row) return fallback
     return {
@@ -64,7 +79,15 @@ export async function getAdminConfig() {
       trip_limit: row.trip_limit,
       feature_flags: normalizeFlags(row.feature_flags),
     }
-  })
+    }),
+    source: 'database',
+    errorMessage: null,
+  }
+}
+
+export async function getAdminConfig(): Promise<TierLimitRow[]> {
+  const result = await getAdminConfigWithMeta()
+  return result.config
 }
 
 export async function saveAdminConfig(input: {

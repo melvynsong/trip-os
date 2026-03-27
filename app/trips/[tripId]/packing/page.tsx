@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { buttonClass } from '@/app/components/ui/Button'
 import { getCurrentUserMembership } from '@/lib/membership/server'
-import { hasAccess } from '@/lib/membership/access'
+import { getPackingAccessState } from '@/lib/feature-toggles'
 import PackingGenerator from '@/app/components/trips/packing/PackingGenerator'
 import { geocodeDestination, fetchHistoricalWeather, fetchOpenMeteoDailyForecast } from '@/lib/weather/openMeteo'
 import {
@@ -133,7 +133,8 @@ export default async function PackingPage({ params }: Props) {
     redirect('/')
   }
 
-  const canUsePacking = hasAccess(membership.tier, ['friend', 'owner'])
+  const packingAccess = await getPackingAccessState(membership.tier)
+  const canUsePacking = packingAccess.canAccess
 
   // Fetch weather context in parallel with the page load (fire-and-forget if slow)
   const weatherContext = canUsePacking
@@ -158,6 +159,7 @@ export default async function PackingPage({ params }: Props) {
       {canUsePacking ? (
         <PackingGenerator
           tripId={tripId}
+          tripTitle={trip.title}
           destination={trip.destination}
           weatherContext={weatherContext}
         />
@@ -166,9 +168,13 @@ export default async function PackingPage({ params }: Props) {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
             Packing <span className="rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--brand-accent)]">Beta</span>
           </p>
-          <h1 className="text-2xl font-serif text-[var(--text-strong)]">Available for Friends</h1>
+          <h1 className="text-2xl font-serif text-[var(--text-strong)]">
+            {packingAccess.hasRequiredTier ? 'Temporarily unavailable' : 'Available for Friends'}
+          </h1>
           <p className="text-sm leading-7 text-[var(--text-subtle)] max-w-md mx-auto">
-            AI-powered packing lists are available for Friend and Owner members. Upgrade to get access.
+            {packingAccess.hasRequiredTier
+              ? 'Packing (Beta) is currently disabled by the admin toggle. Please try again later.'
+              : 'AI-powered packing lists are available for Friend and Owner members. Upgrade to get access.'}
           </p>
           <Link
             href="/trips"

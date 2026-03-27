@@ -9,7 +9,7 @@ import {
   type PackingStyle,
 } from '@/lib/ai/packing'
 import { getCurrentUserMembership } from '@/lib/membership/server'
-import { hasAccess } from '@/lib/membership/access'
+import { getPackingAccessState } from '@/lib/feature-toggles'
 
 export const runtime = 'nodejs'
 
@@ -54,9 +54,15 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Failed to verify access.' }, { status: 403 })
     }
 
-    if (!hasAccess(membership.tier, ['friend', 'owner'])) {
+    const packingAccess = await getPackingAccessState(membership.tier)
+
+    if (!packingAccess.canAccess) {
+      const message = !packingAccess.hasRequiredTier
+        ? 'Packing is available for Friend and Owner members.'
+        : 'Packing (Beta) is currently disabled by admin.'
+
       return NextResponse.json(
-        { error: 'Packing is available for Friend and Owner members.' },
+        { error: message },
         { status: 403 }
       )
     }

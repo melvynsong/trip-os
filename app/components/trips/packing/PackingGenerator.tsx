@@ -6,12 +6,14 @@ import Button from '@/app/components/ui/Button'
 import SegmentedControl from '@/app/components/ui/SegmentedControl'
 import { LoadingSkeleton } from '@/app/components/ui/LoadingSkeleton'
 import type { PackingItem, PackingList, PackingWeatherContext, PackingStyle } from '@/lib/ai/packing'
+import { buildPackingWhatsAppShareUrl } from '@/lib/share/packing'
 
 type PackingGeneratorProps = {
   tripId: string
   /** Optional weather context forwarded from the server to improve packing accuracy */
   weatherContext: PackingWeatherContext | null
   destination: string
+  tripTitle: string
 }
 
 const STYLE_OPTIONS: { value: PackingStyle; label: string }[] = [
@@ -146,6 +148,7 @@ export default function PackingGenerator({
   tripId,
   weatherContext,
   destination,
+  tripTitle,
 }: PackingGeneratorProps) {
   const [style, setStyle] = useState<PackingStyle>('moderate')
   const [packingList, setPackingList] = useState<PackingList | null>(null)
@@ -212,6 +215,21 @@ export default function PackingGenerator({
     setPackingList(null)
     clearFromStorage(tripId)
   }, [tripId])
+
+  const handleShareWhatsApp = useCallback(() => {
+    if (!packingList) return
+
+    const url = buildPackingWhatsAppShareUrl({
+      tripTitle,
+      destination,
+      style,
+      list: packingList,
+    })
+
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }, [destination, packingList, style, tripTitle])
 
   const hasResult = packingList !== null
 
@@ -282,13 +300,24 @@ export default function PackingGenerator({
             <p className="text-xs text-[var(--text-subtle)]">
               {packingList.packing_style} packing · weather: {packingList.weather_basis}
             </p>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="text-xs text-[var(--text-subtle)] underline hover:text-[var(--text-strong)]"
-            >
-              Clear
-            </button>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleShareWhatsApp}
+                className="rounded-full"
+              >
+                Share via WhatsApp
+              </Button>
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-xs text-[var(--text-subtle)] underline hover:text-[var(--text-strong)]"
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
