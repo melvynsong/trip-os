@@ -8,6 +8,7 @@ export default function AuthCallbackClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState('Please wait while we connect your account.')
 
   const providerError = searchParams.get('error')
   const providerErrorDescription = searchParams.get('error_description')
@@ -22,6 +23,8 @@ export default function AuthCallbackClient() {
     let isCancelled = false
 
     const completeSignIn = async () => {
+      setStatusMessage('Verifying your sign-in…')
+
       if (redirectError) {
         const encoded = encodeURIComponent(redirectError)
         router.replace(`/?authError=${encoded}`)
@@ -45,14 +48,33 @@ export default function AuthCallbackClient() {
           }
         )
 
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        const exchangeResult = await Promise.race([
+          supabase.auth.exchangeCodeForSession(code),
+          new Promise<never>((_, reject) => {
+            window.setTimeout(() => {
+              reject(new Error('Secure sign-in timed out. Please try again.'))
+            }, 15000)
+          }),
+        ])
+
+        const { error } = exchangeResult
 
         if (error) {
           throw error
         }
 
+        setStatusMessage('Sign-in verified. Opening your trips…')
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session) {
+          throw new Error('Sign-in completed, but no session was found. Please try again.')
+        }
+
         if (!isCancelled) {
-          router.replace('/trips')
+          window.location.replace('/trips')
         }
       } catch (error) {
         const message =
@@ -103,7 +125,7 @@ export default function AuthCallbackClient() {
   return (
     <main className="mx-auto flex min-h-[50vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
       <h1 className="text-xl font-semibold text-[var(--text-strong)]">Finishing secure sign-in…</h1>
-      <p className="mt-3 text-sm text-[var(--text-subtle)]">Please wait while we connect your account.</p>
+      <p className="mt-3 text-sm text-[var(--text-subtle)]">{statusMessage}</p>
       {errorMessage ? (
         <p className="mt-4 text-sm text-red-700" aria-live="polite">
           {errorMessage}
