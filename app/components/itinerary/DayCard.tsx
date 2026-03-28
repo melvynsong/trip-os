@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { ItineraryActivity } from '@/lib/trips/itinerary-transform'
 import ItineraryActivityRenderer from '@/app/components/itinerary/ItineraryActivityRenderer'
 import TimeOfDaySection from '@/app/components/itinerary/TimeOfDaySection'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
