@@ -267,8 +267,8 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       let arrival_time_24h = '';
       if (arrDateTime) {
         const arrDate = new Date(arrDateTime);
-        const hours = arrDate.getUTCHours().toString().padStart(2, '0');
-        const minutes = arrDate.getUTCMinutes().toString().padStart(2, '0');
+        const hours = arrDate.getHours().toString().padStart(2, '0');
+        const minutes = arrDate.getMinutes().toString().padStart(2, '0');
         arrival_time_24h = `${hours}:${minutes}`;
       }
       flightTimelineItems.push({
