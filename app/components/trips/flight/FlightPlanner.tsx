@@ -95,11 +95,15 @@ function formatSavedSummary(flight: SavedTripFlight) {
 function SavedFlightCard({
   flight,
   onAddToTimeline,
+  onDelete,
   isActing,
+  isDeleting,
 }: {
   flight: SavedTripFlight
   onAddToTimeline: (direction: FlightDirection) => Promise<void>
+  onDelete: (direction: FlightDirection) => Promise<void>
   isActing: boolean
+  isDeleting: boolean
 }) {
   const durationLabel = getDurationLabel(flight.departureTime, flight.arrivalTime)
 
@@ -136,15 +140,26 @@ function SavedFlightCard({
         {durationLabel ? <span>• Duration: {durationLabel}</span> : null}
       </div>
 
-      <Button
-        type="button"
-        variant="secondary"
-        loading={isActing}
-        onClick={() => onAddToTimeline(flight.direction)}
-        className="rounded-full"
-      >
-        Add flight to itinerary
-      </Button>
+      <div className="flex flex-wrap gap-3">
+        <Button
+          type="button"
+          variant="secondary"
+          loading={isActing}
+          onClick={() => onAddToTimeline(flight.direction)}
+          className="rounded-full"
+        >
+          Add flight to itinerary
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          loading={isDeleting}
+          onClick={() => onDelete(flight.direction)}
+          className="rounded-full text-red-600 hover:text-red-700"
+        >
+          Delete
+        </Button>
+      </div>
     </Card>
   )
 }
@@ -164,6 +179,7 @@ export default function FlightPlanner({
   const [isLookingUp, setIsLookingUp] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [actingDirection, setActingDirection] = useState<FlightDirection | null>(null)
+  const [deletingDirection, setDeletingDirection] = useState<FlightDirection | null>(null)
   const [globalMessage, setGlobalMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
 
   const [savedFlights, setSavedFlights] = useState<Record<FlightDirection, SavedTripFlight | null>>({
@@ -302,6 +318,40 @@ export default function FlightPlanner({
       })
     } finally {
       setActingDirection(null)
+    }
+  }
+
+  async function handleDeleteFlight(targetDirection: FlightDirection) {
+    if (deletingDirection) return
+
+    setDeletingDirection(targetDirection)
+    setGlobalMessage(null)
+
+    try {
+      const response = await fetch(`/api/trips/${tripId}/flight`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ direction: targetDirection }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json()
+        throw new Error(payload.error || 'Failed to delete flight.')
+      }
+
+      setSavedFlights((prev) => ({ ...prev, [targetDirection]: null }))
+      setGlobalMessage({
+        tone: 'success',
+        text: `${DIRECTION_LABEL[targetDirection]} flight deleted.`,
+      })
+    } catch (error) {
+      setGlobalMessage({
+        tone: 'error',
+        text: error instanceof Error ? error.message : 'Failed to delete flight.',
+      })
+    } finally {
+      setDeletingDirection(null)
     }
   }
 
@@ -453,21 +503,27 @@ export default function FlightPlanner({
           <SavedFlightCard
             flight={savedFlights.outbound}
             onAddToTimeline={handleAddToTimeline}
+            onDelete={handleDeleteFlight}
             isActing={actingDirection === 'outbound'}
+            isDeleting={deletingDirection === 'outbound'}
           />
         ) : null}
         {savedFlights.return ? (
           <SavedFlightCard
             flight={savedFlights.return}
             onAddToTimeline={handleAddToTimeline}
+            onDelete={handleDeleteFlight}
             isActing={actingDirection === 'return'}
+            isDeleting={deletingDirection === 'return'}
           />
         ) : null}
         {savedFlights.unknown ? (
           <SavedFlightCard
             flight={savedFlights.unknown}
             onAddToTimeline={handleAddToTimeline}
+            onDelete={handleDeleteFlight}
             isActing={actingDirection === 'unknown'}
+            isDeleting={deletingDirection === 'unknown'}
           />
         ) : null}
       </div>

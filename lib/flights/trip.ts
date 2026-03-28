@@ -261,6 +261,22 @@ function buildFlightNote(
   return base.join(' · ')
 }
 
+export async function deleteTripFlight(input: {
+  supabase: SupabaseClient
+  tripId: string
+  direction: FlightDirection
+}): Promise<void> {
+  const { error } = await input.supabase
+    .from('trip_flights')
+    .delete()
+    .eq('trip_id', input.tripId)
+    .eq('direction', input.direction)
+
+  if (error) {
+    throw new Error(error.message || 'Failed to delete flight.')
+  }
+}
+
 export async function addSavedFlightToTripTimeline(input: {
   supabase: SupabaseClient
   tripId: string
