@@ -75,7 +75,7 @@ export default async function NewActivityPage({ params }: Props) {
     const ACTIVITY_TYPES: ActivityType[] = ['food', 'attraction', 'shopping', 'transport', 'hotel', 'note', 'other']
     const type: ActivityType = ACTIVITY_TYPES.includes(rawType as ActivityType)
       ? (rawType as ActivityType)
-      : 'activity'
+      : 'other'
 
     const { error } = await supabase.from('activities').insert({
       day_id: dayId,
