@@ -44,7 +44,58 @@ export default function DayCard({
       ? day.title
       : null
 
-  const { orderedItems, sections } = transformActivitiesForTimeline(activities)
+  // Inject flights as activities for this day
+  const flightActivities = (flights || []).flatMap(flight => {
+    const items = []
+    // Departure
+    if (flight.departureTime && flight.departureTime.startsWith(day.date)) {
+      items.push({
+        id: `flight-dep-${flight.id}`,
+        day_id: day.id,
+        title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
+        activity_time: flight.departureTime.slice(11, 16),
+        type: 'transport',
+        notes: `${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''})`,
+        sort_order: 0,
+        place_id: null,
+        created_at: flight.updatedAt,
+        places: null,
+        _flightRole: 'departure',
+        _flightMeta: {
+          airline: flight.airlineName,
+          flightNumber: flight.flightNumber,
+          route: `${flight.departureAirportCode} → ${flight.arrivalAirportCode}`,
+        },
+      })
+    }
+    // Arrival
+    if (flight.arrivalTime && flight.arrivalTime.startsWith(day.date)) {
+      items.push({
+        id: `flight-arr-${flight.id}`,
+        day_id: day.id,
+        title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
+        activity_time: flight.arrivalTime.slice(11, 16),
+        type: 'transport',
+        notes: `${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''})`,
+        sort_order: 0,
+        place_id: null,
+        created_at: flight.updatedAt,
+        places: null,
+        _flightRole: 'arrival',
+        _flightMeta: {
+          airline: flight.airlineName,
+          flightNumber: flight.flightNumber,
+          route: `${flight.departureAirportCode} → ${flight.arrivalAirportCode}`,
+        },
+      })
+    }
+    return items
+  })
+
+  // Merge activities and flightActivities
+  const allActivities = [...activities, ...flightActivities]
+
+  const { orderedItems, sections } = transformActivitiesForTimeline(allActivities)
 
   const shareActivities = orderedItems.map((item) => {
     if (item.kind === 'activity') {
