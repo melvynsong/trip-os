@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import AccessSection from '@/app/components/landing/AccessSection'
 import AlphaSection from '@/app/components/landing/AlphaSection'
+import BetaServicesSection from '@/app/components/landing/BetaServicesSection'
 import FinalCtaSection from '@/app/components/landing/FinalCtaSection'
 import HeroSection from '@/app/components/landing/HeroSection'
 import ValueSection from '@/app/components/landing/ValueSection'
@@ -80,6 +81,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <ValueSection />
         <AccessSection />
         <AlphaSection />
+        <BetaServicesSection />
         <FinalCtaSection />
       </div>
     </main>
