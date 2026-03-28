@@ -282,15 +282,25 @@ export default function DayCard({
           </div>
         )
       })}
-      {/* Flight Arrival Cards */}
-      {arrivalFlights.map(flight => (
-        <div key={flight.id + '-arr'} className="mb-3 rounded-xl border border-green-200 bg-green-50 p-4">
-          <div className="font-semibold text-green-900">🛬 Flight Arrival</div>
-          <div className="text-sm text-green-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
-          <div className="text-xs text-green-700">Arrives at {flight.arrivalAirportName} ({flight.arrivalAirportCode}) at {formatTime(flight.arrivalTime)}</div>
-          <div className="text-xs text-green-700">From {flight.departureAirportName} ({flight.departureAirportCode})</div>
-        </div>
-      ))}
+      {/* Flight Departure Cards (for flights that arrive on this day, but show as Departure) */}
+      {arrivalFlights.map(flight => {
+        let duration = '';
+        if (flight.departureTime && flight.arrivalTime) {
+          duration = getDuration(flight.departureTime, flight.arrivalTime);
+        }
+        return (
+          <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
+            <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
+            {duration && (
+              <div className="text-xs text-blue-700">Duration: {duration}</div>
+            )}
+            <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
+            <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
+            <div className="text-xs text-blue-700">Expected Departure: {formatDate(flight.departureTime)} at {formatTime(flight.departureTime)}</div>
+          </div>
+        );
+      })}
     </Card>
   )
 }
