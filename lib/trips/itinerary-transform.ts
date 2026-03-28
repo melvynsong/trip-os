@@ -168,13 +168,13 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
 
   activities.forEach((activity, index) => {
     const likelyFlight = isLikelyFlight(activity);
-    const role = detectFlightRole(activity);
+    const detectedRole = detectFlightRole(activity);
     console.log('[ItineraryDebug] Activity role detection:', {
       id: activity.id,
       title: activity.title,
       notes: activity.notes,
       likelyFlight,
-      detectedRole: role
+      detectedRole
     });
     if (!likelyFlight) {
       standaloneItems.push({
@@ -199,7 +199,6 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     }
 
     const key = resolveFlightKey(activity) || `single|${activity.id}`;
-    const role = detectFlightRole(activity);
     const combined = `${activity.title} ${activity.notes || ''}`.toUpperCase();
     const airline = extractAirline((activity.notes || '').toUpperCase()) || undefined;
     const flightNumber = extractFlightNumber(combined) || undefined;
