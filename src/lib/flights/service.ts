@@ -2,7 +2,7 @@ import { AeroDataBoxApiError, lookupAeroDataBoxFlight } from './aerodatabox'
 import { transformAeroDataBoxLookupToFlight } from './transform'
 import type { FlightLookupInput, FlightLookupResult, NormalizedFlightNumber } from './types'
 
-const AIRLINE_CODE_RE = /^[A-Z0-9]{2,3}$/
+const AIRLINE_CODE_RE = /^[A-Z]{2,3}$/
 const NUMBER_RE = /^\d{1,4}[A-Z]?$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -13,7 +13,7 @@ function normalizeRawFlightNumber(input: string): string {
 export function normalizeFlightNumber(input: unknown): NormalizedFlightNumber {
   const raw = typeof input === 'string' ? normalizeRawFlightNumber(input) : ''
 
-  const match = /^([A-Z0-9]{2,3})(\d{1,4}[A-Z]?)$/.exec(raw)
+  const match = /^([A-Z]{2,3})(\d{1,4}[A-Z]?)$/.exec(raw)
   if (!match) {
     throw new AeroDataBoxApiError('Use a valid flight number, for example SQ895 or SQ 895.', 400)
   }
