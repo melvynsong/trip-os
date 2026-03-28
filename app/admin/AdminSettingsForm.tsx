@@ -17,6 +17,7 @@ type Props = {
   initialFriendLimit: number
   initialFlags: FeatureFlags
   initialPackingBetaEnabled: boolean
+  initialFlightBetaEnabled: boolean
 }
 
 export default function AdminSettingsForm({
@@ -24,11 +25,13 @@ export default function AdminSettingsForm({
   initialFriendLimit,
   initialFlags,
   initialPackingBetaEnabled,
+  initialFlightBetaEnabled,
 }: Props) {
   const [freeLimit, setFreeLimit] = useState<number>(initialFreeLimit)
   const [friendLimit, setFriendLimit] = useState<number>(initialFriendLimit)
   const [flags, setFlags] = useState<FeatureFlags>(initialFlags)
   const [packingBetaEnabled, setPackingBetaEnabled] = useState<boolean>(initialPackingBetaEnabled)
+  const [flightBetaEnabled, setFlightBetaEnabled] = useState<boolean>(initialFlightBetaEnabled)
 
   const [isSaving, setIsSaving] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -51,6 +54,7 @@ export default function AdminSettingsForm({
           flags,
           features: {
             packingBetaEnabled,
+            flightBetaEnabled,
           },
         }),
       })
@@ -67,7 +71,7 @@ export default function AdminSettingsForm({
     } finally {
       setIsSaving(false)
     }
-  }, [flags, freeLimit, friendLimit, packingBetaEnabled])
+  }, [flags, flightBetaEnabled, freeLimit, friendLimit, packingBetaEnabled])
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -167,6 +171,21 @@ export default function AdminSettingsForm({
               type="checkbox"
               checked={packingBetaEnabled}
               onChange={(event) => setPackingBetaEnabled(event.target.checked)}
+              className="h-4 w-4 rounded border-[var(--border-soft)] text-[var(--brand-primary)] focus:ring-[var(--ring-brand)]"
+            />
+          </label>
+
+          <label className="flex items-center justify-between rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3">
+            <div>
+              <p className="font-medium text-[var(--text-strong)]">Flight (Beta)</p>
+              <p className="text-sm text-[var(--text-subtle)]">
+                Enable flight feature for Friends and Owner users.
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={flightBetaEnabled}
+              onChange={(event) => setFlightBetaEnabled(event.target.checked)}
               className="h-4 w-4 rounded border-[var(--border-soft)] text-[var(--brand-primary)] focus:ring-[var(--ring-brand)]"
             />
           </label>

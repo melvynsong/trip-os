@@ -9,7 +9,7 @@ import TripWeatherSection from '@/app/components/trips/story/TripWeatherSection'
 import { WeatherDataProvider } from '@/app/components/trips/story/WeatherDataProvider'
 import Card from '@/app/components/ui/Card'
 import { getCurrentUserMembership } from '@/lib/membership/server'
-import { getPackingAccessState } from '@/lib/feature-toggles'
+import { getFlightAccessState, getPackingAccessState } from '@/lib/feature-toggles'
 import { getStoryPeriod } from '@/lib/trip-storytelling'
 import {
   Trip as TripType,
@@ -154,12 +154,27 @@ export default async function TripDashboardPage({ params }: Props) {
   })
 
   let canSeePackingLink = false
+  let canSeeFlightLink = false
+  let savedFlightCount = 0
   try {
     const membership = await getCurrentUserMembership()
     const packingAccess = await getPackingAccessState(membership.tier)
+    const flightAccess = await getFlightAccessState(membership.tier)
     canSeePackingLink = packingAccess.canAccess
+    canSeeFlightLink = flightAccess.canAccess
+
+    if (flightAccess.canAccess) {
+      const { count } = await supabase
+        .from('trip_flights')
+        .select('id', { count: 'exact', head: true })
+        .eq('trip_id', tripId)
+
+      savedFlightCount = count ?? 0
+    }
   } catch {
     canSeePackingLink = false
+    canSeeFlightLink = false
+    savedFlightCount = 0
   }
 
   return (
@@ -264,6 +279,15 @@ export default async function TripDashboardPage({ params }: Props) {
                 >
                   Explore places
                 </Link>
+                {canSeeFlightLink ? (
+                  <Link
+                    href={`/trips/${tripId}/flight`}
+                    className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
+                  >
+                    Add flight <span className="rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--brand-accent)]">Beta</span>
+                    {savedFlightCount > 0 ? <span className="ml-1 text-xs text-[var(--text-subtle)]">· {savedFlightCount} saved</span> : null}
+                  </Link>
+                ) : null}
                 {canSeePackingLink ? (
                   <Link
                     href={`/trips/${tripId}/packing`}

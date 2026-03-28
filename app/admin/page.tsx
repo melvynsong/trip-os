@@ -79,6 +79,7 @@ export default async function AdminPage() {
           initialFriendLimit={Math.max(1, friendRow?.trip_limit ?? 3)}
           initialFlags={flags}
           initialPackingBetaEnabled={featureToggles.packing_beta_enabled}
+          initialFlightBetaEnabled={featureToggles.flight_beta_enabled}
         />
       </div>
     </main>

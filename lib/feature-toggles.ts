@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { hasAccess } from '@/lib/membership/access'
 import type { MembershipTier } from '@/lib/membership/types'
 
-export const FEATURE_TOGGLE_KEYS = ['packing_beta_enabled'] as const
+export const FEATURE_TOGGLE_KEYS = ['packing_beta_enabled', 'flight_beta_enabled'] as const
 
 export type FeatureToggleKey = (typeof FEATURE_TOGGLE_KEYS)[number]
 
@@ -10,6 +10,7 @@ export type FeatureToggles = Record<FeatureToggleKey, boolean>
 
 const DEFAULT_FEATURE_TOGGLES: FeatureToggles = {
   packing_beta_enabled: true,
+  flight_beta_enabled: true,
 }
 
 type AppSettingRow = {
@@ -84,20 +85,44 @@ export async function saveFeatureToggles(
   }
 }
 
-export type PackingAccessState = {
+export type TieredFeatureAccessState = {
   hasRequiredTier: boolean
   isEnabledByAdmin: boolean
   canAccess: boolean
 }
 
-export async function getPackingAccessState(
+async function getTieredFeatureAccessState(input: {
   userTier: MembershipTier
-): Promise<PackingAccessState> {
-  const hasRequiredTier = hasAccess(userTier, ['friend', 'owner'])
-  const isEnabledByAdmin = await isFeatureEnabled('packing_beta_enabled')
+  featureKey: FeatureToggleKey
+}): Promise<TieredFeatureAccessState> {
+  const hasRequiredTier = hasAccess(input.userTier, ['friend', 'owner'])
+  const isEnabledByAdmin = await isFeatureEnabled(input.featureKey)
+
   return {
     hasRequiredTier,
     isEnabledByAdmin,
     canAccess: hasRequiredTier && isEnabledByAdmin,
   }
+}
+
+export type PackingAccessState = TieredFeatureAccessState
+
+export async function getPackingAccessState(
+  userTier: MembershipTier
+): Promise<PackingAccessState> {
+  return getTieredFeatureAccessState({
+    userTier,
+    featureKey: 'packing_beta_enabled',
+  })
+}
+
+export type FlightAccessState = TieredFeatureAccessState
+
+export async function getFlightAccessState(
+  userTier: MembershipTier
+): Promise<FlightAccessState> {
+  return getTieredFeatureAccessState({
+    userTier,
+    featureKey: 'flight_beta_enabled',
+  })
 }

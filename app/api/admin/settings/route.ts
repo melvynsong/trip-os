@@ -44,6 +44,14 @@ function parsePackingToggle(input: unknown): boolean {
   return asBoolean(source.packingBetaEnabled, true)
 }
 
+function parseFlightToggle(input: unknown): boolean {
+  const source = typeof input === 'object' && input !== null
+    ? (input as { flightBetaEnabled?: unknown })
+    : {}
+
+  return asBoolean(source.flightBetaEnabled, true)
+}
+
 export async function POST(request: Request) {
   try {
     let membership
@@ -63,6 +71,7 @@ export async function POST(request: Request) {
     const friendLimit = asPositiveInt(body.friendLimit, 3)
     const flags = parseFlags(body.flags)
     const packingBetaEnabled = parsePackingToggle(body.features)
+    const flightBetaEnabled = parseFlightToggle(body.features)
 
     await saveAdminConfig({
       freeLimit,
@@ -73,6 +82,7 @@ export async function POST(request: Request) {
     await saveFeatureToggles(
       {
         packing_beta_enabled: packingBetaEnabled,
+        flight_beta_enabled: flightBetaEnabled,
       },
       membership.userId
     )
