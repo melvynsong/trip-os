@@ -1,17 +1,19 @@
 import Link from 'next/link'
-import ActivityCard from '@/app/components/itinerary/ActivityCard'
+import ItineraryActivityRenderer from '@/app/components/itinerary/ItineraryActivityRenderer'
+import TimeOfDaySection from '@/app/components/itinerary/TimeOfDaySection'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import Card from '@/app/components/ui/Card'
 import { buttonClass } from '@/app/components/ui/Button'
 import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
+import { transformItineraryDayActivities } from '@/lib/trips/itinerary-transform'
 import { Day as DayType, Activity as ActivityType } from '@/types/trip'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
 type DayCardActivity = Pick<
   ActivityType,
-  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id'
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id' | 'created_at'
 > & {
   places: { id: string; name: string } | null
 }
@@ -40,6 +42,31 @@ export default function DayCard({
       ? day.title
       : null
 
+  const { orderedItems, sections } = transformItineraryDayActivities(activities)
+
+  const shareActivities = orderedItems.map((item) => {
+    if (item.kind === 'activity') {
+      return {
+        title: item.activity.title,
+        activity_time: item.activity.activity_time,
+        type: item.activity.type,
+        notes: item.activity.notes,
+        placeName: item.activity.places?.name,
+      }
+    }
+
+    const time = item.group.departure?.activity_time || item.group.arrival?.activity_time || item.group.summary?.activity_time || null
+    const notes = [item.group.meta?.airline, item.group.meta?.flightNumber, item.group.meta?.route].filter(Boolean).join(' • ')
+
+    return {
+      title: item.group.title,
+      activity_time: time,
+      type: 'transport' as const,
+      notes: notes || item.group.summary?.notes || null,
+      placeName: null,
+    }
+  })
+
   const shortShareText = formatDayForWhatsApp(
     {
       tripTitle,
@@ -48,13 +75,7 @@ export default function DayCard({
       city: destination,
       hotel,
       title: day.title,
-      activities: activities.map((activity) => ({
-        title: activity.title,
-        activity_time: activity.activity_time,
-        type: activity.type,
-        notes: activity.notes,
-        placeName: activity.places?.name,
-      })),
+      activities: shareActivities,
     },
     { length: 'short' }
   )
@@ -67,13 +88,7 @@ export default function DayCard({
       city: destination,
       hotel,
       title: day.title,
-      activities: activities.map((activity) => ({
-        title: activity.title,
-        activity_time: activity.activity_time,
-        type: activity.type,
-        notes: activity.notes,
-        placeName: activity.places?.name,
-      })),
+      activities: shareActivities,
     },
     { length: 'detailed' }
   )
@@ -115,17 +130,30 @@ export default function DayCard({
         </div>
       </div>
 
-      {activities.length > 0 ? (
-        <div className="space-y-3">
-          {activities.map((activity, index) => (
-            <ActivityCard
-              key={activity.id}
-              tripId={tripId}
-              activity={activity}
-              canMoveUp={index > 0}
-              canMoveDown={index < activities.length - 1}
-              moveActivityAction={moveActivityAction}
-            />
+      {orderedItems.length > 0 ? (
+        <div className="space-y-5">
+          {sections.map((section) => (
+            <TimeOfDaySection key={section.key} label={section.label}>
+              {section.items.map((item) => {
+                const globalIndex = orderedItems.indexOf(item)
+                const key =
+                  item.kind === 'activity'
+                    ? item.activity.id
+                    : item.group.departure?.id || item.group.arrival?.id || item.group.summary?.id || `${day.id}-${item.originalIndex}`
+
+                return (
+                  <ItineraryActivityRenderer
+                    key={key}
+                    tripId={tripId}
+                    dayId={day.id}
+                    item={item}
+                    canMoveUp={item.kind === 'activity' ? globalIndex > 0 : false}
+                    canMoveDown={item.kind === 'activity' ? globalIndex < orderedItems.length - 1 : false}
+                    moveActivityAction={moveActivityAction}
+                  />
+                )
+              })}
+            </TimeOfDaySection>
           ))}
         </div>
       ) : (

@@ -87,7 +87,7 @@ export default function ReplanPreviewPanel({
                     key={item.id}
                     className="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700 line-through"
                   >
-                    <span>{getEmoji(item.type)}</span>
+                    <span>{getEmoji(item.type, { title: item.title, notes: item.notes })}</span>
                     <span>{item.title}</span>
                   </div>
                 ))}
@@ -108,7 +108,7 @@ export default function ReplanPreviewPanel({
                     className="flex items-start justify-between gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm"
                   >
                     <div>
-                      <span className="mr-1">{getEmoji(item.type)}</span>
+                      <span className="mr-1">{getEmoji(item.type, { title: item.title, notes: item.notes })}</span>
                       <span className="font-medium text-emerald-800">{item.title}</span>
                       {item.notes && (
                         <div className="mt-0.5 text-xs text-emerald-700">{item.notes}</div>
@@ -138,7 +138,7 @@ export default function ReplanPreviewPanel({
                     className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
                   >
                     <div>
-                      <span className="mr-1">{getEmoji(item.type)}</span>
+                      <span className="mr-1">{getEmoji(item.type, { title: item.title, notes: item.notes })}</span>
                       {item.title}
                     </div>
                     {item.activity_time && (

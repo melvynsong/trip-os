@@ -70,7 +70,7 @@ export default function TimelineItemCard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className={`font-medium leading-snug text-slate-900 ${isDone ? 'line-through text-slate-400' : ''}`}>
-            {getEmoji(item.type)} {item.title}
+            {getEmoji(item.type, { title: item.title, notes: item.notes })} {item.title}
           </div>
           {item.activity_time && (
             <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs tabular-nums font-medium text-slate-600">

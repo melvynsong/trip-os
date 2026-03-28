@@ -35,7 +35,7 @@ export default function TodayNowNextCard({ now, next }: TodayNowNextCardProps) {
           {now ? (
             <div className="mt-1.5">
               <div className="font-semibold text-slate-900">
-                {getEmoji(now.type)} {now.title}
+                {getEmoji(now.type, { title: now.title, notes: now.notes })} {now.title}
               </div>
               {now.activity_time && (
                 <div className="mt-0.5 text-sm text-slate-500">{formatTime(now.activity_time)}</div>
@@ -55,7 +55,7 @@ export default function TodayNowNextCard({ now, next }: TodayNowNextCardProps) {
           {next ? (
             <div className="mt-1.5">
               <div className="font-semibold text-slate-900">
-                {getEmoji(next.type)} {next.title}
+                {getEmoji(next.type, { title: next.title, notes: next.notes })} {next.title}
               </div>
               {next.activity_time && (
                 <div className="mt-0.5 text-sm text-slate-500">{formatTime(next.activity_time)}</div>

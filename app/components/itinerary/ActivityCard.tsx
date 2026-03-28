@@ -33,7 +33,7 @@ export default function ActivityCard({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 text-base font-semibold text-slate-900 sm:text-[1.1rem]">
-          {getEmoji(activity.type)} {activity.title}
+          {getEmoji(activity.type, { title: activity.title, notes: activity.notes })} {activity.title}
         </div>
         <div className="shrink-0 text-sm font-medium text-slate-500">
           {activity.activity_time || 'No time'}

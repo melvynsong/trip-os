@@ -97,7 +97,10 @@ function formatTime(time: string | null | undefined) {
 }
 
 function withTime(activity: ShareActivity) {
-  const emoji = getEmoji(activity.type || 'other')
+  const emoji = getEmoji(activity.type || 'other', {
+    title: activity.title,
+    notes: activity.notes,
+  })
   const title = clean(activity.title) || 'Untitled activity'
   const time = formatTime(activity.activity_time)
   const placeName = clean(activity.placeName)
