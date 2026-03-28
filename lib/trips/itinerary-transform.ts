@@ -165,8 +165,18 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
 
   const standaloneItems: ItineraryTimelineItem[] = [];
 
+
   activities.forEach((activity, index) => {
-    if (!isLikelyFlight(activity)) {
+    const likelyFlight = isLikelyFlight(activity);
+    const role = detectFlightRole(activity);
+    console.log('[ItineraryDebug] Activity role detection:', {
+      id: activity.id,
+      title: activity.title,
+      notes: activity.notes,
+      likelyFlight,
+      detectedRole: role
+    });
+    if (!likelyFlight) {
       standaloneItems.push({
         kind: 'activity',
         activity,
@@ -175,6 +185,8 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       });
       return;
     }
+    // Use the detected role below as before
+    // ...existing code...
 
     // Extract duration from notes if present
     const durationMatch = (activity.notes || '').match(/(\d+h\s*)?(\d+m)?/);
