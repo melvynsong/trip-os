@@ -204,7 +204,6 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     const airline = extractAirline((activity.notes || '').toUpperCase()) || undefined;
     const flightNumber = extractFlightNumber(combined) || undefined;
     const route = extractRoute(combined) || undefined;
-            const role = detectFlightRole(activity);
     // Debug output for flight meta extraction
     console.log('[FlightMetaDebug]', {
       id: activity.id,
