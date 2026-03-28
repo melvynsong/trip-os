@@ -9,6 +9,7 @@ import { buttonClass } from '@/app/components/ui/Button'
 import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
 import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
 import { Day as DayType, Activity as ActivityType } from '@/types/trip'
+import { format, parseISO } from 'date-fns'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
@@ -45,38 +46,75 @@ export default function DayCard({
       ? day.title
       : null
 
+  // Helper to extract date (YYYY-MM-DD) from ISO or offset string
+  function extractDate(dateTime: string) {
+    // Handles both '2026-04-08 19:50+08:00' and ISO
+    return dateTime.split(' ')[0]
+  }
+  // Helper to format time nicely
+  function formatTime(dateTime: string) {
+    try {
+      // Handles '2026-04-08 19:50+08:00'
+      const timePart = dateTime.split(' ')[1]
+      if (!timePart) return dateTime
+      const [hm] = timePart.split('+')
+      const [hour, minute] = hm.split(':')
+      const hourNum = parseInt(hour, 10)
+      const ampm = hourNum >= 12 ? 'PM' : 'AM'
+      const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12
+      return `${hour12}:${minute} ${ampm}`
+    } catch {
+      return dateTime
+    }
+  }
+  // Helper to format date nicely
+  function formatDate(dateTime: string) {
+    try {
+      const datePart = dateTime.split(' ')[0]
+      return format(parseISO(datePart), 'EEE, d MMM yyyy')
+    } catch {
+      return dateTime
+    }
+  }
+
   // Transform flights into valid ItineraryActivity objects for this day
   const flightActivities = (flights || []).flatMap(flight => {
     const items = []
-    // Departure
-    if (flight.departureTime && flight.departureTime.startsWith(day.date)) {
-      items.push({
-        id: `flight-dep-${flight.id}`,
-        day_id: day.id,
-        title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
-        activity_time: flight.departureTime.slice(11, 16),
-        type: 'transport',
-        notes: `Flight ${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''}) | flightId:${flight.id} | tripId:${flight.tripId}`,
-        sort_order: 0,
-        place_id: null,
-        created_at: flight.updatedAt,
-        places: null,
-      } as ItineraryActivity)
+    // Departure card on departure date
+    if (flight.departureTime) {
+      const depDate = extractDate(flight.departureTime)
+      if (depDate === day.date) {
+        items.push({
+          id: `flight-dep-${flight.id}`,
+          day_id: day.id,
+          title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
+          activity_time: formatTime(flight.departureTime),
+          type: 'transport',
+          notes: `Departs ${flight.departureAirportName} (${flight.departureAirportCode})\n${formatDate(flight.departureTime)} at ${formatTime(flight.departureTime)}`,
+          sort_order: 0,
+          place_id: null,
+          created_at: flight.updatedAt,
+          places: null,
+        } as ItineraryActivity)
+      }
     }
-    // Arrival
-    if (flight.arrivalTime && flight.arrivalTime.startsWith(day.date)) {
-      items.push({
-        id: `flight-arr-${flight.id}`,
-        day_id: day.id,
-        title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
-        activity_time: flight.arrivalTime.slice(11, 16),
-        type: 'transport',
-        notes: `Flight ${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''}) | flightId:${flight.id} | tripId:${flight.tripId}`,
-        sort_order: 0,
-        place_id: null,
-        created_at: flight.updatedAt,
-        places: null,
-      } as ItineraryActivity)
+    // Arrival card on arrival date
+    if (flight.arrivalTime) {
+      const arrDate = extractDate(flight.arrivalTime)
+      if (arrDate === day.date) {
+        items.push({
+          id: `flight-arr-${flight.id}`,
+          day_id: day.id,
+          title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
+          activity_time: formatTime(flight.arrivalTime),
+          type: 'transport',
+          notes: `Arrives at ${flight.arrivalAirportName} (${flight.arrivalAirportCode})\n${formatDate(flight.arrivalTime)} at ${formatTime(flight.arrivalTime)}`,
+          sort_order: 0,
+          place_id: null,
+          created_at: flight.updatedAt,
+          places: null,
+        } as ItineraryActivity)
+      }
     }
     return items
   })
@@ -209,7 +247,7 @@ export default function DayCard({
         <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
           <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
           <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
-          <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {flight.departureTime}</div>
+          <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
           <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
         </div>
       ))}
@@ -218,7 +256,7 @@ export default function DayCard({
         <div key={flight.id + '-arr'} className="mb-3 rounded-xl border border-green-200 bg-green-50 p-4">
           <div className="font-semibold text-green-900">🛬 Flight Arrival</div>
           <div className="text-sm text-green-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
-          <div className="text-xs text-green-700">Arrives at {flight.arrivalAirportName} ({flight.arrivalAirportCode}) at {flight.arrivalTime}</div>
+          <div className="text-xs text-green-700">Arrives at {flight.arrivalAirportName} ({flight.arrivalAirportCode}) at {formatTime(flight.arrivalTime)}</div>
           <div className="text-xs text-green-700">From {flight.departureAirportName} ({flight.departureAirportCode})</div>
         </div>
       ))}
