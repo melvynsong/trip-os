@@ -165,7 +165,6 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
 
   const standaloneItems: ItineraryTimelineItem[] = [];
 
-
   activities.forEach((activity, index) => {
     if (!isLikelyFlight(activity)) {
       standaloneItems.push({
@@ -269,7 +268,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     }
   }
 
-  // Sort: timed first, then untimed, by time ascending
+  // --- FIX: Always include flightTimelineItems in orderedItems ---
   const orderedItems = [...standaloneItems, ...flightTimelineItems].sort((a, b) => {
     const aTime = getItemPrimaryTime(a);
     const bTime = getItemPrimaryTime(b);
@@ -282,6 +281,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     return a.originalIndex - b.originalIndex;
   });
 
+  // --- FIX: Ensure flight_card items are included in sections ---
   const sectionsByKey = new Map<TimeOfDayKey, ItineraryTimelineItem[]>([
     ['morning', []],
     ['afternoon', []],
