@@ -112,12 +112,13 @@ function isLikelyFlight(activity: ItineraryActivity): boolean {
 }
 
 function detectFlightRole(activity: ItineraryActivity): 'departure' | 'arrival' | 'summary' {
-  const lower = `${activity.title} ${activity.notes || ''}`.toLowerCase()
+  const lower = `${activity.title} ${activity.notes || ''}`.toLowerCase();
 
-  if (/\b(departs|departure)\b/.test(lower)) return 'departure'
-  if (/\b(arrives|arrival)\b/.test(lower)) return 'arrival'
+  // Match common departure/arrival keywords
+  if (/\b(depart|departs|departure)\b/.test(lower) || /^depart/.test(lower)) return 'departure';
+  if (/\b(arrive|arrives|arrival)\b/.test(lower) || /^arrive/.test(lower)) return 'arrival';
 
-  return 'summary'
+  return 'summary';
 }
 
 function resolveFlightKey(activity: ItineraryActivity): string | null {
