@@ -151,6 +151,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   orderedItems: ItineraryTimelineItem[]
   sections: TimeOfDaySection[]
 } {
+
   // --- Refactored flight grouping and timeline logic ---
   const flightGroups = new Map<string, {
     departure?: ItineraryActivity
@@ -163,6 +164,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   }>();
 
   const standaloneItems: ItineraryTimelineItem[] = [];
+
 
   activities.forEach((activity, index) => {
     if (!isLikelyFlight(activity)) {
@@ -232,33 +234,37 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     flightGroups.set(key, group);
   });
 
+  // Debug output for flight groups
+  console.log('[ItineraryDebug] Flight Groups:', Array.from(flightGroups.entries()));
+
   // Emit only 2 cards per flight: departure and arrival, with correct day assignment
   const flightTimelineItems: ItineraryTimelineItem[] = [];
   for (const group of flightGroups.values()) {
-    if (group.departure) {
+    if (typeof group.departure !== 'undefined' && group.departure !== undefined) {
+      const departure = group.departure as ItineraryActivity;
       flightTimelineItems.push({
         kind: 'flight_card',
-        activity: group.departure,
+        activity: departure,
         role: 'departure',
         meta: group.meta || {},
         originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(group.departure.activity_time),
+        sortMinutes: parseActivityMinutes(departure.activity_time),
       });
     }
-    if (group.arrDateTime && group.arrival) {
-      // Assign arrival to correct day by derived datetime
+    if (group.arrDateTime && typeof group.arrival !== 'undefined' && group.arrival !== undefined) {
+      const arrival = group.arrival as ItineraryActivity;
+      const arrDateTime = group.arrDateTime;
       flightTimelineItems.push({
         kind: 'flight_card',
         activity: {
-          ...group.arrival,
-          // Overwrite day_id if arrival is on a different day
-          day_id: group.arrDateTime.slice(0, 10),
-          activity_time: group.arrDateTime.slice(11, 16),
+          ...arrival,
+          day_id: arrDateTime!.slice(0, 10),
+          activity_time: arrDateTime!.slice(11, 16),
         },
         role: 'arrival',
         meta: group.meta || {},
         originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(group.arrDateTime.slice(11, 16)),
+        sortMinutes: parseActivityMinutes(arrDateTime!.slice(11, 16)),
       });
     }
   }

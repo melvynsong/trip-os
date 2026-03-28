@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import NewActivityForm from '@/app/components/itinerary/NewActivityForm'
+import type { ActivityActionResult } from '@/lib/trips/activity-types'
 import TripHeader from '@/app/components/trips/TripHeader'
 import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
@@ -51,7 +52,7 @@ export default async function NewActivityPage({ params }: Props) {
 
   const flightAccess = await getCurrentUserFlightAccessState().catch(() => null)
 
-  async function createActivity(formData: FormData) {
+  async function createActivity(formData: FormData): Promise<ActivityActionResult> {
     'use server'
 
     const supabase = await createClient()
@@ -61,7 +62,7 @@ export default async function NewActivityPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/')
+      return { ok: false, error: 'Unauthorized' }
     }
 
     const title = String(formData.get('title') || '').trim()
@@ -72,11 +73,11 @@ export default async function NewActivityPage({ params }: Props) {
     const place_id = String(formData.get('place_id') || '').trim()
 
     if (flightMode) {
-      redirect(`/trips/${tripId}/itinerary`)
+      return { ok: true, redirect: `/trips/${tripId}/itinerary` }
     }
 
     if (!title) {
-      throw new Error('Title is required')
+      return { ok: false, error: 'Title is required' }
     }
 
     const ACTIVITY_TYPES: ActivityType[] = ['food', 'attraction', 'shopping', 'transport', 'hotel', 'note', 'other']
@@ -96,10 +97,10 @@ export default async function NewActivityPage({ params }: Props) {
     })
 
     if (error) {
-      throw new Error(error.message)
+      return { ok: false, error: error.message }
     }
 
-    redirect(`/trips/${tripId}/itinerary`)
+    return { ok: true }
   }
 
   return (

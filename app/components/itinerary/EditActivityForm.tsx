@@ -7,6 +7,7 @@ import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPla
 import type { StoryEngineType } from '@/app/components/places/picker/StoryEngineSection'
 import type { ActivityType } from '@/types/trip'
 
+import type { ActivityActionResult } from '@/lib/trips/activity-types'
 type EditActivityFormProps = {
   tripId: string
   tripTitle: string
@@ -19,8 +20,8 @@ type EditActivityFormProps = {
   initialPlaceId: string | null
   initialNotes: string | null
   initialPlaces: Array<{ id: string; name: string }>
-  updateActivity: (formData: FormData) => Promise<void>
-  deleteActivity: () => Promise<void>
+  updateActivity: (formData: FormData) => Promise<ActivityActionResult>
+  deleteActivity: () => Promise<ActivityActionResult>
   canUseFlights?: boolean
   flightAccessMessage?: string | null
 }
@@ -97,12 +98,21 @@ export default function EditActivityForm({
 
     try {
       const formData = new FormData(e.currentTarget)
-      await updateActivity(formData)
-      // If updateActivity succeeds, it will redirect and this code will not run.
+      const result = await updateActivity(formData)
+      if (result.ok) {
+        if (result.redirect) {
+          window.location.href = result.redirect
+        } else {
+          window.location.href = `/trips/${tripId}/itinerary`
+        }
+        return
+      } else {
+        setError(result.error)
+        return
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update activity')
     } finally {
-      // Only runs if there was an error (no redirect)
       setIsSubmitting(false)
     }
   }
@@ -114,12 +124,21 @@ export default function EditActivityForm({
 
     setIsDeleting(true)
     try {
-      await deleteActivity()
-      // If deleteActivity succeeds, it will redirect and this code will not run.
+      const result = await deleteActivity()
+      if (result.ok) {
+        if (result.redirect) {
+          window.location.href = result.redirect
+        } else {
+          window.location.href = `/trips/${tripId}/itinerary`
+        }
+        return
+      } else {
+        setError(result.error)
+        return
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete activity')
     } finally {
-      // Only runs if there was an error (no redirect)
       setIsDeleting(false)
     }
   }

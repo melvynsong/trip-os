@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import FlightRouteMap from '@/app/components/trips/flight/FlightRouteMap'
 import BetaBadge from '@/app/components/ui/BetaBadge'
 import Button from '@/app/components/ui/Button'
@@ -116,6 +117,7 @@ export default function ActivityFlightInput({
   canUseFlights = true,
   accessMessage,
 }: ActivityFlightInputProps) {
+  const router = useRouter()
   const [allFlights, setAllFlights] = useState<SavedTripFlight[]>([])
   const [isLoadingFlights, setIsLoadingFlights] = useState(false)
 
@@ -222,8 +224,10 @@ export default function ActivityFlightInput({
       setIsReplacing(false)
       setSuccessMessage('Flight saved! Both departure and arrival activities have been added to your itinerary.')
       onFlightSelected?.(savedFlight)
-      // Optionally, refresh the itinerary page or redirect as needed
-      // window.location.href = `/trips/${tripId}/itinerary`;
+      // Automatically redirect to itinerary after save to avoid NEXT_REDIRECT error
+      setTimeout(() => {
+        router.push(`/trips/${tripId}/itinerary`)
+      }, 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save flight.')
     } finally {

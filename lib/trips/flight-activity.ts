@@ -1,15 +1,21 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityType } from '@/types/trip';
+import type { SavedTripFlight } from '@/lib/flights/trip';
 
 /**
  * Map a flight search result to two activities: departure and arrival.
  * @param flight - The flight search result object
  * @param dayIdMap - Map of date (YYYY-MM-DD) to day_id in itinerary
  */
-export function mapFlightToActivities(flight, dayIdMap) {
+export function mapFlightToActivities(
+  flight: SavedTripFlight,
+  dayIdMap: Record<string, string>
+) {
   const flightRef = uuidv4();
-  const depDayId = dayIdMap[flight.departureDate];
-  const arrDayId = dayIdMap[flight.arrivalDate];
+  // Use flightDate for departure, and extract date from arrivalTime for arrival
+  const depDayId = dayIdMap[flight.flightDate];
+  const arrDate = flight.arrivalTime.split('T')[0];
+  const arrDayId = dayIdMap[arrDate];
 
   const departureActivity = {
     id: uuidv4(),
@@ -17,7 +23,7 @@ export function mapFlightToActivities(flight, dayIdMap) {
     type: 'flight_departure' as ActivityType,
     title: `Flight ${flight.flightNumber} Departure`,
     activity_time: flight.departureTime,
-    notes: `${flight.airline} ${flight.flightNumber} from ${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
+    notes: `${flight.airlineName || flight.airlineCode} ${flight.flightNumber} from ${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
     sort_order: 0,
     place_id: null,
     created_at: new Date().toISOString(),
@@ -34,7 +40,7 @@ export function mapFlightToActivities(flight, dayIdMap) {
     type: 'flight_arrival' as ActivityType,
     title: `Flight ${flight.flightNumber} Arrival`,
     activity_time: flight.arrivalTime,
-    notes: `${flight.airline} ${flight.flightNumber} arrives at ${flight.arrivalAirportCode}`,
+    notes: `${flight.airlineName || flight.airlineCode} ${flight.flightNumber} arrives at ${flight.arrivalAirportCode}`,
     sort_order: 0,
     place_id: null,
     created_at: new Date().toISOString(),

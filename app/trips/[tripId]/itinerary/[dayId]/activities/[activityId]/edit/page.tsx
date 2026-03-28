@@ -6,6 +6,7 @@ import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
 import { isLikelyFlightActivity } from '@/lib/flights/activity'
 import type { ActivityType } from '@/types/trip'
+import type { ActivityActionResult } from '@/lib/trips/activity-types'
 
 const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
   { value: 'food', label: '🍜 Food' },
@@ -77,7 +78,7 @@ export default async function EditActivityPage({ params }: Props) {
 
   const flightAccess = await getCurrentUserFlightAccessState().catch(() => null)
 
-  async function updateActivity(formData: FormData) {
+  async function updateActivity(formData: FormData): Promise<ActivityActionResult> {
     'use server'
 
     const supabase = await createClient()
@@ -87,7 +88,7 @@ export default async function EditActivityPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/')
+      return { ok: false, error: 'Unauthorized' }
     }
 
     const title = String(formData.get('title') || '').trim()
@@ -98,7 +99,7 @@ export default async function EditActivityPage({ params }: Props) {
     const place_id = String(formData.get('place_id') || '').trim()
 
     if (flightMode) {
-      redirect(`/trips/${tripId}/itinerary`)
+      return { ok: true, redirect: `/trips/${tripId}/itinerary` }
     }
 
     const type: ActivityType = ACTIVITY_TYPES.some((option) => option.value === rawType)
@@ -106,7 +107,7 @@ export default async function EditActivityPage({ params }: Props) {
       : 'other'
 
     if (!title) {
-      throw new Error('Title is required')
+      return { ok: false, error: 'Title is required' }
     }
 
     const { error } = await supabase
@@ -122,13 +123,13 @@ export default async function EditActivityPage({ params }: Props) {
       .eq('day_id', dayId)
 
     if (error) {
-      throw new Error(error.message)
+      return { ok: false, error: error.message }
     }
 
-    redirect(`/trips/${tripId}/itinerary`)
+    return { ok: true }
   }
 
-  async function deleteActivity() {
+  async function deleteActivity(): Promise<ActivityActionResult> {
     'use server'
 
     const supabase = await createClient()
@@ -138,7 +139,7 @@ export default async function EditActivityPage({ params }: Props) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      redirect('/')
+      return { ok: false, error: 'Unauthorized' }
     }
 
     const { error } = await supabase
@@ -148,10 +149,10 @@ export default async function EditActivityPage({ params }: Props) {
       .eq('day_id', dayId)
 
     if (error) {
-      throw new Error(error.message)
+      return { ok: false, error: error.message }
     }
 
-    redirect(`/trips/${tripId}/itinerary`)
+    return { ok: true, redirect: `/trips/${tripId}/itinerary` }
   }
 
   return (

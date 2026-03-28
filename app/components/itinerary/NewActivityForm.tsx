@@ -1,22 +1,5 @@
+
 'use client'
-
-import { useState } from 'react'
-import Link from 'next/link'
-import { buttonClass } from '@/app/components/ui/Button'
-import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
-import type { StoryEngineType } from '@/app/components/places/picker/StoryEngineSection'
-import type { ActivityType } from '@/types/trip'
-
-type NewActivityFormProps = {
-  tripId: string
-  tripTitle: string
-  destination: string
-  flightDate: string
-  initialPlaces: Array<{ id: string; name: string }>
-  createActivity: (formData: FormData) => Promise<void>
-  canUseFlights?: boolean
-  flightAccessMessage?: string | null
-}
 
 function storyTypeToActivityType(type: StoryEngineType): ActivityType {
   switch (type) {
@@ -37,19 +20,39 @@ function storyTypeToActivityType(type: StoryEngineType): ActivityType {
   }
 }
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { buttonClass } from '@/app/components/ui/Button'
+import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
+import type { StoryEngineType } from '@/app/components/places/picker/StoryEngineSection'
+import type { ActivityType } from '@/types/trip'
+import type { ActivityActionResult } from '@/lib/trips/activity-types'
+
+type NewActivityFormProps = {
+  tripId: string
+  tripTitle: string
+  destination: string
+  flightDate: string
+  initialPlaces: Array<{ id: string; name: string }>
+  createActivity: (formData: FormData) => Promise<ActivityActionResult>
+  canUseFlights?: boolean
+  flightAccessMessage?: string | null
+}
 export default function NewActivityForm({
   tripId,
   tripTitle,
   destination,
   flightDate,
   initialPlaces,
-  createActivity,
-  canUseFlights = true,
   flightAccessMessage,
+  createActivity,
+  canUseFlights,
 }: NewActivityFormProps) {
   const [storyType, setStoryType] = useState<StoryEngineType>('other')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
   const isFlightMode = storyType === 'flight'
 
   function handleStoryTypeChange(nextType: StoryEngineType) {
@@ -63,12 +66,21 @@ export default function NewActivityForm({
 
     try {
       const formData = new FormData(e.currentTarget)
-      await createActivity(formData)
-      // If createActivity succeeds, it will redirect and this code will not run.
+      const result = await createActivity(formData)
+      if (result.ok) {
+        if (result.redirect) {
+          router.push(result.redirect)
+        } else {
+          router.push(`/trips/${tripId}/itinerary`)
+        }
+        return
+      } else {
+        setError(result.error)
+        return
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create activity')
     } finally {
-      // Only runs if there was an error (no redirect)
       setIsSubmitting(false)
     }
   }

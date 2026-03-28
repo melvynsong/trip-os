@@ -33,6 +33,7 @@ type DayCardProps = {
 }
 
 export default function DayCard({
+
   tripId,
   tripTitle,
   destination,
@@ -42,65 +43,43 @@ export default function DayCard({
   flights = [],
   moveActivityAction,
 }: DayCardProps) {
+
   const normalizedDayTitle =
-    day.title && !new RegExp(`^\\s*day\\s*${day.day_number}\\b`, 'i').test(day.title)
+    day.title && !new RegExp(`^\s*day\s*${day.day_number}\b`, 'i').test(day.title)
       ? day.title
       : null
 
-  // Helper to extract date (YYYY-MM-DD) from ISO or offset string
-  function extractDate(dateTime: string) {
-    // Handles both '2026-04-08 19:50+08:00' and ISO
-    return dateTime.split(' ')[0]
-  }
-  // Helper to format time nicely
-  function formatTime(dateTime: string) {
-    try {
-      // Handles '2026-04-08 19:50+08:00'
-      const timePart = dateTime.split(' ')[1]
-      if (!timePart) return dateTime
-      const [hm] = timePart.split('+')
-      const [hour, minute] = hm.split(':')
-      const hourNum = parseInt(hour, 10)
-      const ampm = hourNum >= 12 ? 'PM' : 'AM'
-      const hour12 = hourNum % 12 === 0 ? 12 : hourNum % 12
-      return `${hour12}:${minute} ${ampm}`
-    } catch {
-      return dateTime
-    }
-  }
-  // Helper to format date nicely
-  function formatDate(dateTime: string) {
-    try {
-      const datePart = dateTime.split(' ')[0]
-      return format(parseISO(datePart), 'EEE, d MMM yyyy')
-    } catch {
-      return dateTime
-    }
-  }
+  // --- DEBUG LOGS ---
+  console.log('[ItineraryDebug] activities:', activities.map(a => ({
+    id: a.id,
+    type: a.type,
+    activity_time: a.activity_time,
+    title: a.title,
+    notes: a.notes
+  })));
 
-  // Helper to calculate duration between two times (expects 'YYYY-MM-DD HH:mm+TZ')
-  function getDuration(dep: string, arr: string): string {
-    try {
-      const depDate = dep.split(' ')[0]
-      const depTime = dep.split(' ')[1]?.split('+')[0]
-      const arrDate = arr.split(' ')[0]
-      const arrTime = arr.split(' ')[1]?.split('+')[0]
-      if (!depDate || !depTime || !arrDate || !arrTime) return ''
-      const depDateTime = new Date(`${depDate}T${depTime}`)
-      const arrDateTime = new Date(`${arrDate}T${arrTime}`)
-      const diffMs = arrDateTime.getTime() - depDateTime.getTime()
-      if (isNaN(diffMs) || diffMs <= 0) return ''
-      const diffMins = Math.floor(diffMs / 60000)
-      const hours = Math.floor(diffMins / 60)
-      const mins = diffMins % 60
-      return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`
-    } catch {
-      return ''
-    }
-  }
+  const { orderedItems, sections } = transformActivitiesForTimeline(activities);
+  console.log('[ItineraryDebug] orderedItems:', orderedItems.map(item => ({
+    kind: item.kind,
+    id: item.activity.id,
+    type: item.activity.type,
+    activity_time: item.activity.activity_time,
+    title: item.activity.title,
+    notes: item.activity.notes
+  })));
+  console.log('[ItineraryDebug] sections:', sections.map(section => ({
+    key: section.key,
+    label: section.label,
+    items: section.items.map(item => ({
+      kind: item.kind,
+      id: item.activity.id,
+      type: item.activity.type,
+      activity_time: item.activity.activity_time,
+      title: item.activity.title
+    }))
+  })));
 
-  // Only use activities, remove all flight/transport logic
-  const { orderedItems, sections } = transformActivitiesForTimeline(activities)
+  // ...existing code...
 
   const shareActivities = orderedItems.map((item) => {
     if (item.kind === 'activity') {
