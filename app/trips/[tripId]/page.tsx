@@ -31,7 +31,7 @@ type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
 type Activity = Pick<
   ActivityType,
-  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id'
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id' | 'created_at'
 >
 
 type Place = Pick<
