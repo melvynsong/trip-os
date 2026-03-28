@@ -99,52 +99,8 @@ export default function DayCard({
     }
   }
 
-  // Transform flights into valid ItineraryActivity objects for this day
-  const flightActivities = (flights || []).flatMap(flight => {
-    const items = []
-    // Departure card on departure date
-    if (flight.departureTime) {
-      const depDate = extractDate(flight.departureTime)
-      if (depDate === day.date) {
-        items.push({
-          id: `flight-dep-${flight.id}`,
-          day_id: day.id,
-          title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
-          activity_time: formatTime(flight.departureTime),
-          type: 'transport',
-          notes: `Departs ${flight.departureAirportName} (${flight.departureAirportCode})\n${formatDate(flight.departureTime)} at ${formatTime(flight.departureTime)}`,
-          sort_order: 0,
-          place_id: null,
-          created_at: flight.updatedAt,
-          places: null,
-        } as ItineraryActivity)
-      }
-    }
-    // Arrival card on arrival date
-    if (flight.arrivalTime) {
-      const arrDate = extractDate(flight.arrivalTime)
-      if (arrDate === day.date) {
-        items.push({
-          id: `flight-arr-${flight.id}`,
-          day_id: day.id,
-          title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
-          activity_time: formatTime(flight.arrivalTime),
-          type: 'transport',
-          notes: `Arrives at ${flight.arrivalAirportName} (${flight.arrivalAirportCode})\n${formatDate(flight.arrivalTime)} at ${formatTime(flight.arrivalTime)}`,
-          sort_order: 0,
-          place_id: null,
-          created_at: flight.updatedAt,
-          places: null,
-        } as ItineraryActivity)
-      }
-    }
-    return items
-  })
-
-  // Merge activities and flightActivities
-  const allActivities = [...activities, ...flightActivities]
-
-  const { orderedItems, sections } = transformActivitiesForTimeline(allActivities)
+  // Only use activities, remove all flight/transport logic
+  const { orderedItems, sections } = transformActivitiesForTimeline(activities)
 
   const shareActivities = orderedItems.map((item) => {
     if (item.kind === 'activity') {
@@ -192,9 +148,7 @@ export default function DayCard({
     { length: 'detailed' }
   )
 
-  // Find departure and arrival flights for this day
-  const departureFlights = flights.filter(f => f.departureTime.startsWith(day.date))
-  const arrivalFlights = flights.filter(f => f.arrivalTime.startsWith(day.date))
+
 
   return (
     <Card key={day.id} className="rounded-[2rem] border-slate-200 bg-white p-5 sm:p-6">
@@ -264,65 +218,7 @@ export default function DayCard({
           No activities yet
         </div>
       )}
-      {/* Flight Departure Cards */}
-      {departureFlights.map(flight => {
-        let duration = ''
-        if (flight.departureTime && flight.arrivalTime) {
-          duration = getDuration(flight.departureTime, flight.arrivalTime)
-        }
-        const meta = {
-          airline: flight.airlineName,
-          flightNumber: flight.flightNumber ? `SQ${flight.flightNumber}` : '',
-          route: `${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
-        }
-        const activity = {
-          id: `flight-dep-${flight.id}`,
-          day_id: day.id,
-          title: `Flight Departure - ${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
-          activity_time: flight.departureTime ? formatTime(flight.departureTime) : '',
-          type: 'transport' as ActivityType,
-          notes: duration ? `Duration - ${duration}` : '',
-          sort_order: 0,
-          place_id: null,
-          created_at: flight.updatedAt,
-          places: null,
-        }
-        return (
-          <div>
-            <div style={{fontSize: '10px', color: '#888'}}>Flight ID: {flight.id}</div>
-            <FlightActivityCard
-              key={flight.id + '-dep'}
-              tripId={tripId}
-              dayId={day.id}
-              activity={activity}
-              role="departure"
-              meta={meta}
-            />
-          </div>
-        )
-      })}
-      {/* Flight Departure Cards (for flights that arrive on this day, but show as Departure) */}
-      {arrivalFlights.map(flight => {
-        let duration = '';
-        if (flight.departureTime && flight.arrivalTime) {
-          duration = getDuration(flight.departureTime, flight.arrivalTime);
-        }
-        return (
-          <div>
-            <div style={{fontSize: '10px', color: '#888'}}>Flight ID: {flight.id}</div>
-            <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
-              <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
-              {duration && (
-                <div className="text-xs text-blue-700">Duration: {duration}</div>
-              )}
-              <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
-              <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
-              <div className="text-xs text-blue-700">Expected Departure: {formatDate(flight.departureTime)} at {formatTime(flight.departureTime)}</div>
-            </div>
-          </div>
-        );
-      })}
+
     </Card>
   )
 }

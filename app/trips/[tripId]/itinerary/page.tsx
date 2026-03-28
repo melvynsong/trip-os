@@ -233,8 +233,7 @@ export default async function ItineraryPage({ params }: Props) {
   const shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' })
   const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
 
-  // Fetch flights for this trip
-  const flights = await listTripFlights(supabase, tripId)
+
 
   return (
     <TripPageShell className="space-y-8">
@@ -285,9 +284,6 @@ export default async function ItineraryPage({ params }: Props) {
         {days.map((day) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id)
 
-          // Find flights for this day (departure and arrival)
-          const dayFlights = flights.filter(flight => flight.flightDate === day.date)
-
           return (
             <DayCard
               key={day.id}
@@ -297,7 +293,6 @@ export default async function ItineraryPage({ params }: Props) {
               hotel={hotel}
               day={day}
               activities={dayActivities}
-              flights={dayFlights}
               moveActivityAction={moveActivity}
             />
           )
