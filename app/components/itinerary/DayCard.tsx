@@ -54,15 +54,12 @@ export default function DayCard({
         placeName: item.activity.places?.name,
       }
     }
-
-    const time = item.group.departure?.activity_time || item.group.arrival?.activity_time || item.group.summary?.activity_time || null
-    const notes = [item.group.meta?.airline, item.group.meta?.flightNumber, item.group.meta?.route].filter(Boolean).join(' • ')
-
+    // flight_card
     return {
-      title: item.group.title,
-      activity_time: time,
+      title: item.activity.title,
+      activity_time: item.activity.activity_time,
       type: 'transport' as const,
-      notes: notes || item.group.summary?.notes || null,
+      notes: [item.meta.airline, item.meta.flightNumber, item.meta.route].filter(Boolean).join(' • '),
       placeName: null,
     }
   })
@@ -139,7 +136,7 @@ export default function DayCard({
                 const key =
                   item.kind === 'activity'
                     ? item.activity.id
-                    : item.group.departure?.id || item.group.arrival?.id || item.group.summary?.id || `${day.id}-${item.originalIndex}`
+                    : item.activity.id
 
                 return (
                   <ItineraryActivityRenderer

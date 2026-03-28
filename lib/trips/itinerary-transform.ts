@@ -29,8 +29,15 @@ export type ItineraryTimelineItem =
       sortMinutes: number | null
     }
   | {
-      kind: 'flight'
-      group: FlightActivityGroup
+      /** A single departure or arrival flight activity, shown as its own card. */
+      kind: 'flight_card'
+      activity: ItineraryActivity
+      role: FlightRole
+      meta: {
+        airline?: string
+        flightNumber?: string
+        route?: string
+      }
       originalIndex: number
       sortMinutes: number | null
     }
@@ -122,12 +129,11 @@ function getItemPrimaryTime(item: ItineraryTimelineItem): number | null {
   if (item.kind === 'activity') {
     return parseActivityMinutes(item.activity.activity_time)
   }
-
-  return (
-    parseActivityMinutes(item.group.departure?.activity_time || null) ??
-    parseActivityMinutes(item.group.arrival?.activity_time || null) ??
-    parseActivityMinutes(item.group.summary?.activity_time || null)
-  )
+  // For flight_card, use the single activity's time
+  if (item.kind === 'flight_card') {
+    return parseActivityMinutes(item.activity.activity_time)
+  }
+  return null
 }
 
 function getSectionKey(minutes: number | null): TimeOfDayKey {
@@ -226,32 +232,46 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   })
 
   const groupedFlightItems: ItineraryTimelineItem[] = Array.from(flightGroups.values()).map((group) => {
-    const title =
-      group.summary?.title ||
-      (group.meta?.route ? `Flight ${group.meta.route}` : group.meta?.flightNumber ? `Flight ${group.meta.flightNumber}` : 'Flight')
-
-    const flightGroup: FlightActivityGroup = {
-      type: 'flight',
-      title,
-      departure: group.departure,
-      arrival: group.arrival,
-      summary: group.summary,
-      meta: group.meta,
-      createdAt: group.createdAt,
+    const items: ItineraryTimelineItem[] = [];
+    // Emit a card for departure
+    if (group.departure) {
+      items.push({
+        kind: 'flight_card',
+        activity: group.departure,
+        role: 'departure',
+        meta: group.meta,
+        originalIndex: group.originalIndex,
+        sortMinutes: parseActivityMinutes(group.departure.activity_time || null),
+      });
     }
-
-    return {
-      kind: 'flight',
-      group: flightGroup,
-      originalIndex: group.originalIndex,
-      sortMinutes:
-        parseActivityMinutes(group.departure?.activity_time || null) ??
-        parseActivityMinutes(group.arrival?.activity_time || null) ??
-        parseActivityMinutes(group.summary?.activity_time || null),
+    // Emit a card for arrival
+    if (group.arrival) {
+      items.push({
+        kind: 'flight_card',
+        activity: group.arrival,
+        role: 'arrival',
+        meta: group.meta,
+        originalIndex: group.originalIndex,
+        sortMinutes: parseActivityMinutes(group.arrival.activity_time || null),
+      });
     }
+    // If neither, emit summary (fallback)
+    if (!group.departure && !group.arrival && group.summary) {
+      items.push({
+        kind: 'flight_card',
+        activity: group.summary,
+        role: 'summary',
+        meta: group.meta,
+        originalIndex: group.originalIndex,
+        sortMinutes: parseActivityMinutes(group.summary.activity_time || null),
+      });
+    }
+    return items;
   })
 
-  const orderedItems = [...standaloneItems, ...groupedFlightItems].sort((a, b) => {
+  // Flatten groupedFlightItems (now array of arrays)
+  const flatFlightItems = groupedFlightItems.flat();
+  const orderedItems = [...standaloneItems, ...flatFlightItems].sort((a, b) => {
     const aTime = getItemPrimaryTime(a)
     const bTime = getItemPrimaryTime(b)
 
@@ -264,7 +284,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     if (bTime !== null) return 1
 
     return a.originalIndex - b.originalIndex
-  })
+  });
 
   const sectionsByKey = new Map<TimeOfDayKey, ItineraryTimelineItem[]>([
     ['morning', []],
@@ -284,3 +304,5 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
 
   return { orderedItems, sections }
 }
+
+export type FlightRole = 'departure' | 'arrival'

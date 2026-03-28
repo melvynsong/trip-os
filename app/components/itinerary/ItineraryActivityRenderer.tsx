@@ -1,5 +1,5 @@
 import ActivityCard from '@/app/components/itinerary/ActivityCard'
-import FlightActivityBlock from '@/app/components/itinerary/FlightActivityBlock'
+import FlightActivityCard from './FlightActivityCard'
 import type { ItineraryTimelineItem } from '@/lib/trips/itinerary-transform'
 
 type ItineraryActivityRendererProps = {
@@ -19,17 +19,29 @@ export default function ItineraryActivityRenderer({
   canMoveDown,
   moveActivityAction,
 }: ItineraryActivityRendererProps) {
-  if (item.kind === 'flight') {
-    return <FlightActivityBlock tripId={tripId} dayId={dayId} group={item.group} />
+  if (item.kind === 'flight_card') {
+    return (
+      <FlightActivityCard
+        tripId={tripId}
+        dayId={dayId}
+        activity={item.activity}
+        role={item.role}
+        meta={item.meta}
+      />
+    )
   }
 
-  return (
-    <ActivityCard
-      tripId={tripId}
-      activity={item.activity}
-      canMoveUp={canMoveUp}
-      canMoveDown={canMoveDown}
-      moveActivityAction={moveActivityAction}
-    />
-  )
+  if (item.kind === 'activity') {
+    return (
+      <ActivityCard
+        tripId={tripId}
+        activity={item.activity}
+        canMoveUp={canMoveUp}
+        canMoveDown={canMoveDown}
+        moveActivityAction={moveActivityAction}
+      />
+    )
+  }
+
+  return null
 }

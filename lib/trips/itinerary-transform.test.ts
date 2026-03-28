@@ -11,13 +11,13 @@ function makeActivity(partial: Partial<ItineraryActivity> & Pick<ItineraryActivi
     notes: partial.notes ?? null,
     sort_order: partial.sort_order ?? 0,
     place_id: partial.place_id ?? null,
-    created_at: partial.created_at ?? null,
+    created_at: partial.created_at ?? '2026-01-01T00:00:00.000Z',
     places: partial.places ?? null,
   }
 }
 
 describe('transformItineraryDayActivities', () => {
-  it('groups related flight records into one timeline item and preserves chronological flow', () => {
+  it('emits two separate flight_card items for departure and arrival, preserving chronological flow', () => {
     const activities: ItineraryActivity[] = [
       makeActivity({
         id: 'a1',
@@ -57,18 +57,31 @@ describe('transformItineraryDayActivities', () => {
 
     const { orderedItems, sections } = transformItineraryDayActivities(activities)
 
-    expect(orderedItems).toHaveLength(3)
-    expect(orderedItems[1]?.kind).toBe('flight')
+    // Should emit: breakfast, flight departure, flight arrival, dinner
+    expect(orderedItems).toHaveLength(4)
+    expect(orderedItems[0]?.kind).toBe('activity')
+    expect(orderedItems[1]?.kind).toBe('flight_card')
+    expect(orderedItems[2]?.kind).toBe('flight_card')
+    expect(orderedItems[3]?.kind).toBe('activity')
 
-    if (orderedItems[1]?.kind === 'flight') {
-      expect(orderedItems[1].group.departure?.id).toBe('a2')
-      expect(orderedItems[1].group.arrival?.id).toBe('a3')
-      expect(orderedItems[1].group.meta?.flightNumber).toBe('SQ 321')
-      expect(orderedItems[1].group.meta?.route).toBe('SIN → NRT')
+    // Check departure card
+    if (orderedItems[1]?.kind === 'flight_card') {
+      expect(orderedItems[1].activity.id).toBe('a2')
+      expect(orderedItems[1].role).toBe('departure')
+      expect(orderedItems[1].meta.flightNumber).toBe('SQ 321')
+      expect(orderedItems[1].meta.route).toBe('SIN → NRT')
+    }
+    // Check arrival card
+    if (orderedItems[2]?.kind === 'flight_card') {
+      expect(orderedItems[2].activity.id).toBe('a3')
+      expect(orderedItems[2].role).toBe('arrival')
+      expect(orderedItems[2].meta.flightNumber).toBe('SQ 321')
+      expect(orderedItems[2].meta.route).toBe('SIN → NRT')
     }
 
     expect(sections.map((section) => section.key)).toEqual(['morning', 'evening'])
     expect(sections.find((section) => section.key === 'morning')?.items.length).toBe(2)
+    expect(sections.find((section) => section.key === 'evening')?.items.length).toBe(2)
   })
 
   it('keeps untimed items after timed items using stable source order', () => {
