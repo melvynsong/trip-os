@@ -271,10 +271,17 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
         const minutes = arrDate.getMinutes().toString().padStart(2, '0');
         arrival_time_24h = `${hours}:${minutes}`;
       }
+      // Set day_id to the date part of arrDateTime (YYYY-MM-DD) for correct grouping
+      let arrivalDayId = (group.arrival as ItineraryActivity).day_id;
+      if (arrDateTime) {
+        const arrDate = new Date(arrDateTime);
+        arrivalDayId = arrDate.toISOString().slice(0, 10);
+      }
       flightTimelineItems.push({
         kind: 'flight_card',
         activity: {
           ...(group.arrival as ItineraryActivity),
+          day_id: arrivalDayId,
           activity_time: arrival_time_24h,
           arrival_datetime: arrDateTime,
         },
