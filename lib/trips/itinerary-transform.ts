@@ -267,6 +267,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
         activity: {
           ...(group.arrival as ItineraryActivity),
           activity_time: arrDateTime!.slice(11, 16),
+          arrival_datetime: arrDateTime,
         },
         role: 'arrival',
         meta: group.meta || {},
