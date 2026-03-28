@@ -77,6 +77,27 @@ export default function DayCard({
     }
   }
 
+  // Helper to calculate duration between two times (expects 'YYYY-MM-DD HH:mm+TZ')
+  function getDuration(dep: string, arr: string): string {
+    try {
+      const depDate = dep.split(' ')[0]
+      const depTime = dep.split(' ')[1]?.split('+')[0]
+      const arrDate = arr.split(' ')[0]
+      const arrTime = arr.split(' ')[1]?.split('+')[0]
+      if (!depDate || !depTime || !arrDate || !arrTime) return ''
+      const depDateTime = new Date(`${depDate}T${depTime}`)
+      const arrDateTime = new Date(`${arrDate}T${arrTime}`)
+      const diffMs = arrDateTime.getTime() - depDateTime.getTime()
+      if (isNaN(diffMs) || diffMs <= 0) return ''
+      const diffMins = Math.floor(diffMs / 60000)
+      const hours = Math.floor(diffMins / 60)
+      const mins = diffMins % 60
+      return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`
+    } catch {
+      return ''
+    }
+  }
+
   // Transform flights into valid ItineraryActivity objects for this day
   const flightActivities = (flights || []).flatMap(flight => {
     const items = []
@@ -243,14 +264,24 @@ export default function DayCard({
         </div>
       )}
       {/* Flight Departure Cards */}
-      {departureFlights.map(flight => (
-        <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-          <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
-          <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
-          <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
-          <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
-        </div>
-      ))}
+      {departureFlights.map(flight => {
+        // Find matching arrival for duration calculation
+        let duration = ''
+        if (flight.departureTime && flight.arrivalTime) {
+          duration = getDuration(flight.departureTime, flight.arrivalTime)
+        }
+        return (
+          <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
+            <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
+            {duration && (
+              <div className="text-xs text-blue-700">Duration: {duration}</div>
+            )}
+            <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
+            <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
+          </div>
+        )
+      })}
       {/* Flight Arrival Cards */}
       {arrivalFlights.map(flight => (
         <div key={flight.id + '-arr'} className="mb-3 rounded-xl border border-green-200 bg-green-50 p-4">
