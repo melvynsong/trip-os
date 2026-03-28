@@ -315,6 +315,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   const sections: TimeOfDaySection[] = (['morning', 'afternoon', 'evening', 'flexible'] as TimeOfDayKey[])
     .map((key) => ({
       key,
+      label: SECTION_LABELS[key],
       items: sectionsByKey.get(key) || [],
     }))
     .filter((section) => section.items.length > 0);
