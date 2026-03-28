@@ -222,11 +222,11 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       originalIndex: index,
     };
 
-    if (role === 'departure') {
+    if (detectedRole === 'departure') {
       group.departure = activity;
       group.depDateTime = activity.created_at || undefined;
       group.durationMinutes = durationMinutes;
-    } else if (role === 'arrival') {
+    } else if (detectedRole === 'arrival') {
       group.arrival = activity;
       group.arrDateTime = activity.created_at || undefined;
     }
