@@ -315,11 +315,13 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   }
 
   const sections: TimeOfDaySection[] = (['morning', 'afternoon', 'evening', 'flexible'] as TimeOfDayKey[])
-      const role = detectFlightRole(activity);
-      if (role === 'departure') {
-    .filter((section) => section.items.length > 0)
+    .map((key) => ({
+      key,
+      items: sectionsByKey.get(key) || [],
+    }))
+    .filter((section) => section.items.length > 0);
 
-  return { orderedItems, sections }
+  return { orderedItems, sections };
 }
 
 export type FlightRole = 'departure' | 'arrival'
