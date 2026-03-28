@@ -3,6 +3,8 @@ import { notFound, redirect } from 'next/navigation'
 import { buttonClass } from '@/app/components/ui/Button'
 import { createClient } from '@/lib/supabase/server'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
+import NewActivityForm from '@/app/components/itinerary/NewActivityForm'
+import type { ActivityType } from '@/types/trip'
 
 type Props = {
   params: Promise<{ tripId: string; dayId: string }>
@@ -23,7 +25,7 @@ export default async function NewActivityPage({ params }: Props) {
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('id, title, destination')
+    .select('id, title, destination, start_date, end_date')
     .eq('id', tripId)
     .single()
 
@@ -62,6 +64,7 @@ export default async function NewActivityPage({ params }: Props) {
 
     const title = String(formData.get('title') || '').trim()
     const activity_time = String(formData.get('activity_time') || '').trim()
+    const rawType = String(formData.get('type') || '').trim()
     const notes = String(formData.get('notes') || '').trim()
     const place_id = String(formData.get('place_id') || '').trim()
 
@@ -69,11 +72,16 @@ export default async function NewActivityPage({ params }: Props) {
       throw new Error('Title is required')
     }
 
+    const ACTIVITY_TYPES: ActivityType[] = ['food', 'attraction', 'shopping', 'transport', 'hotel', 'note', 'other']
+    const type: ActivityType = ACTIVITY_TYPES.includes(rawType as ActivityType)
+      ? (rawType as ActivityType)
+      : 'activity'
+
     const { error } = await supabase.from('activities').insert({
       day_id: dayId,
       title,
       activity_time: activity_time || null,
-      type: 'activity',
+      type,
       notes: notes || null,
       place_id: place_id || null,
       status: 'planned',
@@ -96,60 +104,15 @@ export default async function NewActivityPage({ params }: Props) {
         </p>
       </div>
 
-      <form action={createActivity} className="space-y-4 rounded-2xl border p-6">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
-          <input
-            name="title"
-            required
-            className="w-full rounded-xl border px-3 py-2"
-            placeholder="e.g. Lunch at Tao Tao Ju"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Time</label>
-          <input
-            type="time"
-            name="activity_time"
-            className="w-full rounded-xl border px-3 py-2"
-          />
-        </div>
-
-        <ActivityPlacePickerField
-          tripId={tripId}
-          tripTitle={trip.title}
-          destination={trip.destination}
-          initialPlaces={places || []}
-          initialSelectedPlaceId={null}
-        />
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Notes</label>
-          <textarea
-            name="notes"
-            rows={4}
-            className="w-full rounded-xl border px-3 py-2"
-            placeholder="Optional notes..."
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
-          >
-            Save Activity
-          </button>
-
-          <Link
-            href={`/trips/${tripId}/itinerary`}
-            className={buttonClass({ variant: 'secondary', className: 'rounded-xl' })}
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
+      <NewActivityForm
+        tripId={tripId}
+        dayId={dayId}
+        tripTitle={trip.title}
+        destination={trip.destination}
+        flightDate={day.date}
+        initialPlaces={places || []}
+        createActivity={createActivity}
+      />
     </main>
   )
 }

@@ -1,19 +1,8 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { buttonClass } from '@/app/components/ui/Button'
 import { createClient } from '@/lib/supabase/server'
-import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
+import EditActivityForm from '@/app/components/itinerary/EditActivityForm'
 import type { ActivityType } from '@/types/trip'
-
-const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
-  { value: 'food', label: '🍜 Food' },
-  { value: 'attraction', label: '📍 Attraction' },
-  { value: 'shopping', label: '🛍️ Shopping' },
-  { value: 'transport', label: '✈️ Transport (Flight/Train/Bus)' },
-  { value: 'hotel', label: '🏨 Hotel' },
-  { value: 'note', label: '📝 Note' },
-  { value: 'other', label: '📌 Other' },
-]
 
 type Props = {
   params: Promise<{
@@ -154,87 +143,22 @@ export default async function EditActivityPage({ params }: Props) {
         </p>
       </div>
 
-      <form action={updateActivity} className="space-y-4 rounded-2xl border p-6">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
-          <input
-            name="title"
-            required
-            defaultValue={activity.title}
-            className="w-full rounded-xl border px-3 py-2"
-            placeholder="e.g. Lunch at Tao Tao Ju"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Time</label>
-          <input
-            type="time"
-            name="activity_time"
-            defaultValue={activity.activity_time || ''}
-            className="w-full rounded-xl border px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
-          <select
-            name="type"
-            defaultValue={activity.type || 'other'}
-            className="w-full rounded-xl border px-3 py-2"
-          >
-            {ACTIVITY_TYPES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <ActivityPlacePickerField
-          tripId={tripId}
-          tripTitle={trip.title}
-          destination={trip.destination}
-          initialPlaces={places || []}
-          initialSelectedPlaceId={activity.place_id}
-        />
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Notes</label>
-          <textarea
-            name="notes"
-            rows={4}
-            defaultValue={activity.notes || ''}
-            className="w-full rounded-xl border px-3 py-2"
-            placeholder="Optional notes..."
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
-          >
-            Save Changes
-          </button>
-
-          <Link
-            href={`/trips/${tripId}/itinerary`}
-            className={buttonClass({ variant: 'secondary', className: 'rounded-xl' })}
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
-
-      <form action={deleteActivity} className="mt-4">
-        <button
-          type="submit"
-          className={buttonClass({ variant: 'danger', className: 'rounded-xl' })}
-        >
-          Delete Activity
-        </button>
-      </form>
+      <EditActivityForm
+        tripId={tripId}
+        dayId={dayId}
+        activityId={activityId}
+        tripTitle={trip.title}
+        destination={trip.destination}
+        dayDate={day.date}
+        initialTitle={activity.title}
+        initialTime={activity.activity_time}
+        initialType={activity.type as ActivityType}
+        initialPlaceId={activity.place_id}
+        initialNotes={activity.notes}
+        initialPlaces={places || []}
+        updateActivity={updateActivity}
+        deleteActivity={deleteActivity}
+      />
     </main>
   )
 }
