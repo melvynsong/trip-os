@@ -231,43 +231,37 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     flightGroups.set(key, existing)
   })
 
-  const groupedFlightItems: ItineraryTimelineItem[] = Array.from(flightGroups.values()).map((group) => {
-    const items: ItineraryTimelineItem[] = [];
-    // Emit a card for departure
-    if (group.departure) {
-      items.push({
-        kind: 'flight_card',
-        activity: group.departure,
-        role: 'departure',
-        meta: group.meta,
-        originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(group.departure.activity_time || null),
-      });
-    }
-    // Emit a card for arrival
-    if (group.arrival) {
-      items.push({
-        kind: 'flight_card',
-        activity: group.arrival,
-        role: 'arrival',
-        meta: group.meta,
-        originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(group.arrival.activity_time || null),
-      });
-    }
-    // If neither, emit summary (fallback)
-    if (!group.departure && !group.arrival && group.summary) {
-      items.push({
-        kind: 'flight_card',
-        activity: group.summary,
-        role: 'summary',
-        meta: group.meta,
-        originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(group.summary.activity_time || null),
-      });
-    }
-    return items;
-  })
+  const groupedFlightItems: ItineraryTimelineItem[] = Array.from(flightGroups.values())
+    .map((group) => {
+      const items: ItineraryTimelineItem[] = [];
+      // Always provide a meta object (never undefined)
+      const meta = group.meta || { airline: undefined, flightNumber: undefined, route: undefined };
+      // Emit a card for departure
+      if (group.departure) {
+        items.push({
+          kind: 'flight_card',
+          activity: group.departure,
+          role: 'departure',
+          meta,
+          originalIndex: group.originalIndex,
+          sortMinutes: parseActivityMinutes(group.departure.activity_time || null),
+        });
+      }
+      // Emit a card for arrival
+      if (group.arrival) {
+        items.push({
+          kind: 'flight_card',
+          activity: group.arrival,
+          role: 'arrival',
+          meta,
+          originalIndex: group.originalIndex,
+          sortMinutes: parseActivityMinutes(group.arrival.activity_time || null),
+        });
+      }
+      // Do not emit summary fallback (FlightRole is only 'departure' | 'arrival')
+      return items;
+    })
+    .flat();
 
   // Flatten groupedFlightItems (now array of arrays)
   const flatFlightItems = groupedFlightItems.flat();
