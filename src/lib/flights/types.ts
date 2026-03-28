@@ -29,6 +29,6 @@ export type FlightLookupResult = {
   arrivalTerminal: string | null
   status: string | null
   aircraftModel: string | null
-  dataProvider: 'aerodatabox'
+  dataProvider: 'aerodatabox' | 'manual' | 'cache'
   rawResponseJson?: unknown
 }

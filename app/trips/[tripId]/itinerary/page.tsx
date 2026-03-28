@@ -24,6 +24,20 @@ type Activity = Pick<
   places: { id: string; name: string } | null
 }
 
+function getActivityTimeValue(value: string | null) {
+  if (!value) return Number.POSITIVE_INFINITY
+  const match = /^(\d{2}):(\d{2})$/.exec(value)
+  if (!match) return Number.POSITIVE_INFINITY
+  return Number(match[1]) * 60 + Number(match[2])
+}
+
+function sortActivitiesByTime(a: Activity, b: Activity) {
+  const timeDiff = getActivityTimeValue(a.activity_time) - getActivityTimeValue(b.activity_time)
+  if (timeDiff !== 0) return timeDiff
+  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+  return a.title.localeCompare(b.title)
+}
+
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
@@ -181,7 +195,7 @@ export default async function ItineraryPage({ params }: Props) {
     )
   }
 
-  activities = activitiesData || []
+  activities = [...(activitiesData || [])].sort(sortActivitiesByTime)
 
   const { data: places } = await supabase
     .from('places')
@@ -195,6 +209,7 @@ export default async function ItineraryPage({ params }: Props) {
   const shareDays = days.map((day) => {
     const dayActivities = activities
       .filter((activity) => activity.day_id === day.id)
+      .sort(sortActivitiesByTime)
       .map((activity) => ({
         title: activity.title,
         activity_time: activity.activity_time,
@@ -284,9 +299,9 @@ export default async function ItineraryPage({ params }: Props) {
 
         <div className="space-y-6">
           {days.map((day) => {
-            const dayActivities = activities.filter(
-              (activity) => activity.day_id === day.id
-            )
+            const dayActivities = activities
+              .filter((activity) => activity.day_id === day.id)
+              .sort(sortActivitiesByTime)
 
             return (
               <DayCard

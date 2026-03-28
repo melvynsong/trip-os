@@ -1,9 +1,7 @@
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { buttonClass } from '@/app/components/ui/Button'
 import { createClient } from '@/lib/supabase/server'
-import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
 import NewActivityForm from '@/app/components/itinerary/NewActivityForm'
+import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
 import type { ActivityType } from '@/types/trip'
 
 type Props = {
@@ -48,6 +46,8 @@ export default async function NewActivityPage({ params }: Props) {
     .select('id, name')
     .eq('trip_id', tripId)
     .order('name', { ascending: true })
+
+  const flightAccess = await getCurrentUserFlightAccessState().catch(() => null)
 
   async function createActivity(formData: FormData) {
     'use server'
@@ -106,12 +106,13 @@ export default async function NewActivityPage({ params }: Props) {
 
       <NewActivityForm
         tripId={tripId}
-        dayId={dayId}
         tripTitle={trip.title}
         destination={trip.destination}
         flightDate={day.date}
         initialPlaces={places || []}
         createActivity={createActivity}
+        canUseFlights={flightAccess?.canAccess ?? false}
+        flightAccessMessage={flightAccess ? getFlightAccessMessage(flightAccess) : 'Flight (Beta) is unavailable right now.'}
       />
     </main>
   )

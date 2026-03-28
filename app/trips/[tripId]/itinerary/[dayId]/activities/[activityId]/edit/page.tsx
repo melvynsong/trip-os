@@ -1,7 +1,7 @@
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import EditActivityForm from '@/app/components/itinerary/EditActivityForm'
+import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
 import type { ActivityType } from '@/types/trip'
 
 const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
@@ -71,6 +71,8 @@ export default async function EditActivityPage({ params }: Props) {
     .select('id, name')
     .eq('trip_id', tripId)
     .order('name', { ascending: true })
+
+  const flightAccess = await getCurrentUserFlightAccessState().catch(() => null)
 
   async function updateActivity(formData: FormData) {
     'use server'
@@ -155,8 +157,6 @@ export default async function EditActivityPage({ params }: Props) {
 
       <EditActivityForm
         tripId={tripId}
-        dayId={dayId}
-        activityId={activityId}
         tripTitle={trip.title}
         destination={trip.destination}
         dayDate={day.date}
@@ -168,6 +168,8 @@ export default async function EditActivityPage({ params }: Props) {
         initialPlaces={places || []}
         updateActivity={updateActivity}
         deleteActivity={deleteActivity}
+        canUseFlights={flightAccess?.canAccess ?? false}
+        flightAccessMessage={flightAccess ? getFlightAccessMessage(flightAccess) : 'Flight (Beta) is unavailable right now.'}
       />
     </main>
   )

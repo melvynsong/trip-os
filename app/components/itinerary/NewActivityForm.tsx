@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { buttonClass } from '@/app/components/ui/Button'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
-import ActivityFlightInput from '@/app/components/itinerary/ActivityFlightInput'
+import type { StoryEngineType } from '@/app/components/places/picker/StoryEngineSection'
 import type { ActivityType } from '@/types/trip'
 
 const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
@@ -19,26 +19,77 @@ const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
 
 type NewActivityFormProps = {
   tripId: string
-  dayId: string
   tripTitle: string
   destination: string
   flightDate: string
   initialPlaces: Array<{ id: string; name: string }>
   createActivity: (formData: FormData) => Promise<void>
+  canUseFlights?: boolean
+  flightAccessMessage?: string | null
+}
+
+function activityTypeToStoryType(type: ActivityType): StoryEngineType {
+  switch (type) {
+    case 'transport':
+      return 'flight'
+    case 'food':
+      return 'restaurant'
+    case 'shopping':
+      return 'shopping'
+    case 'hotel':
+      return 'hotel'
+    case 'attraction':
+      return 'attraction'
+    case 'note':
+    case 'other':
+    default:
+      return 'other'
+  }
+}
+
+function storyTypeToActivityType(type: StoryEngineType): ActivityType {
+  switch (type) {
+    case 'flight':
+      return 'transport'
+    case 'restaurant':
+    case 'cafe':
+      return 'food'
+    case 'shopping':
+      return 'shopping'
+    case 'hotel':
+      return 'hotel'
+    case 'attraction':
+      return 'attraction'
+    case 'other':
+    default:
+      return 'other'
+  }
 }
 
 export default function NewActivityForm({
   tripId,
-  dayId,
   tripTitle,
   destination,
   flightDate,
   initialPlaces,
   createActivity,
+  canUseFlights = true,
+  flightAccessMessage,
 }: NewActivityFormProps) {
   const [activityType, setActivityType] = useState<ActivityType>('other')
+  const [storyType, setStoryType] = useState<StoryEngineType>(activityTypeToStoryType('other'))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function handleActivityTypeChange(nextType: ActivityType) {
+    setActivityType(nextType)
+    setStoryType(activityTypeToStoryType(nextType))
+  }
+
+  function handleStoryTypeChange(nextType: StoryEngineType) {
+    setStoryType(nextType)
+    setActivityType(storyTypeToActivityType(nextType))
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -82,7 +133,7 @@ export default function NewActivityForm({
         <select
           name="type"
           value={activityType}
-          onChange={(e) => setActivityType(e.target.value as ActivityType)}
+          onChange={(e) => handleActivityTypeChange(e.target.value as ActivityType)}
           className="w-full rounded-xl border px-3 py-2"
           disabled={isSubmitting}
         >
@@ -94,16 +145,17 @@ export default function NewActivityForm({
         </select>
       </div>
 
-      {activityType === 'transport' && (
-        <ActivityFlightInput tripId={tripId} flightDate={flightDate} />
-      )}
-
       <ActivityPlacePickerField
         tripId={tripId}
         tripTitle={tripTitle}
         destination={destination}
+        flightDate={flightDate}
         initialPlaces={initialPlaces}
         initialSelectedPlaceId={null}
+        selectedStoryType={storyType}
+        onStoryTypeChange={handleStoryTypeChange}
+        canUseFlights={canUseFlights}
+        flightAccessMessage={flightAccessMessage}
       />
 
       <div>
