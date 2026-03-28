@@ -186,10 +186,22 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
 
     const key = resolveFlightKey(activity) || `single|${activity.id}`;
     const role = detectFlightRole(activity);
+    const combined = `${activity.title} ${activity.notes || ''}`.toUpperCase();
+    const airline = extractAirline((activity.notes || '').toUpperCase()) || undefined;
+    const flightNumber = extractFlightNumber(combined) || undefined;
+    const route = extractRoute(combined) || undefined;
+    // Debug output for flight meta extraction
+    console.log('[FlightMetaDebug]', {
+      id: activity.id,
+      combined,
+      airline,
+      flightNumber,
+      route,
+    });
     const meta = {
-      airline: extractAirline((activity.notes || '').toUpperCase()) || undefined,
-      flightNumber: extractFlightNumber(`${activity.title} ${activity.notes || ''}`.toUpperCase()) || undefined,
-      route: extractRoute(`${activity.title} ${activity.notes || ''}`.toUpperCase()) || undefined,
+      airline,
+      flightNumber,
+      route,
     };
 
     const group = flightGroups.get(key) || {
