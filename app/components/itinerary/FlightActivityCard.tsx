@@ -17,14 +17,12 @@ type FlightActivityCardProps = {
 }
 
 function formatTime(value: string | null | undefined): string {
-  if (!value) return '—'
-  const match = /^(\d{2}):(\d{2})$/.exec(value)
-  if (!match) return value
-  const hour24 = Number(match[1])
-  const minute = match[2]
-  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12
-  const ampm = hour24 >= 12 ? 'PM' : 'AM'
-  return `${hour12}:${minute} ${ampm}`
+  if (!value) return '—';
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return value;
+  const hour24 = Number(match[1]);
+  const minute = match[2];
+  return `${String(hour24).padStart(2, '0')}:${minute}`;
 }
 
 function rolelabel(role: FlightRole): string {
