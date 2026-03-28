@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import PageHeader from '@/app/components/shared/PageHeader'
 import AiItineraryGenerator from '@/app/components/ai/AiItineraryGenerator'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
+import { buttonClass } from '@/app/components/ui/Button'
 import type { AiTripContext, AiTripDayContext } from '@/lib/ai/itinerary'
 
 type Props = {
@@ -40,11 +42,11 @@ export default async function AiItineraryPage({ params }: Props) {
 
   if (daysError) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <TripPageShell className="max-w-5xl">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load trip days: {daysError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
@@ -59,22 +61,20 @@ export default async function AiItineraryPage({ params }: Props) {
       : 0
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <PageHeader
+    <TripPageShell className="max-w-5xl space-y-6">
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
         title="AI Generate Itinerary"
-        subtitle={`${trip.title} · ${trip.destination} · ${trip.start_date} → ${trip.end_date}`}
+        subtitle={`${trip.title} · ${trip.destination}`}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
         actions={
-          <div className="flex flex-wrap gap-3">
-            <Link href={`/trips/${tripId}`} className="rounded-xl border px-4 py-2">
-              ← Back to Trip
-            </Link>
-            <Link
-              href={`/trips/${tripId}/itinerary`}
-              className="rounded-xl border px-4 py-2"
-            >
-              View Itinerary
-            </Link>
-          </div>
+          <Link
+            href={`/trips/${tripId}/itinerary`}
+            className={buttonClass({ size: 'sm', variant: 'secondary', className: 'rounded-full' })}
+          >
+            View itinerary
+          </Link>
         }
       />
 
@@ -90,6 +90,6 @@ export default async function AiItineraryPage({ params }: Props) {
           This trip does not have any itinerary days yet, so there is nowhere to save a generated draft.
         </div>
       )}
-    </main>
+    </TripPageShell>
   )
 }

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import Link from 'next/link'
-import TodayHeader from '@/app/components/today/TodayHeader'
+import TripHeader from '@/app/components/trips/TripHeader'
 import TodayQuickActions from '@/app/components/today/TodayQuickActions'
 import TodayNowNextCard, { type NowNextActivity } from '@/app/components/today/TodayNowNextCard'
 import DayTimeline from '@/app/components/today/DayTimeline'
@@ -32,6 +31,12 @@ export type TodayViewProps = {
   hotel: string | null
   tripStatus: 'upcoming' | 'active' | 'past'
   initialItems: TodayItem[]
+}
+
+const STATUS_LABEL: Record<TodayViewProps['tripStatus'], string> = {
+  upcoming: 'Upcoming',
+  active: 'Travelling',
+  past: 'Past trip',
 }
 
 // ---------------------------------------------------------------------------
@@ -105,6 +110,16 @@ export default function TodayView({
   const [storyRefreshKey, setStoryRefreshKey] = useState(0)
 
   const { now, next } = useMemo(() => getNowNext(items), [items])
+
+  const headerDate = useMemo(
+    () =>
+      new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }),
+    [date]
+  )
 
   const shortShareText = useMemo(
     () =>
@@ -373,62 +388,50 @@ export default function TodayView({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-3xl space-y-6">
-      {/* Back + title row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/trips/${tripId}`}
-            className={buttonClass({
-              size: 'sm',
-              variant: 'ghost',
-              className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
-            })}
-          >
-            ← Back
-          </Link>
-          <span className="text-sm font-medium text-slate-400">Today</span>
-        </div>
-
-        <WhatsAppShareSheet
-          title="Share today plan"
-          shortText={shortShareText}
-          detailedText={detailedShareText}
-          triggerLabel="Share"
-          triggerClassName={buttonClass({
-            size: 'sm',
-            variant: 'secondary',
-            className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
-          })}
+        <TripHeader
+          dateRange={headerDate}
+          title={dayTitle ? `Day ${dayNumber} — ${dayTitle}` : `Day ${dayNumber}`}
+          subtitle={`${destination} · ${tripTitle}`}
+          backHref={`/trips/${tripId}`}
+          backLabel="Back to Trip"
+          metadata={
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-subtle)] sm:text-sm">
+              <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-2.5 py-1 font-medium">
+                {STATUS_LABEL[tripStatus]}
+              </span>
+              {hotel ? <span>Hotel: {hotel}</span> : null}
+            </div>
+          }
+          actions={
+            <>
+              <StoryGenerationSheet
+                tripId={tripId}
+                scope="day"
+                dayId={dayId}
+                relatedDate={date}
+                title="Generate Day Story"
+                triggerLabel="Generate Day Story"
+                triggerClassName={buttonClass({
+                  size: 'sm',
+                  variant: 'secondary',
+                  className: 'rounded-full',
+                })}
+                onSaved={() => setStoryRefreshKey((k) => k + 1)}
+              />
+              <WhatsAppShareSheet
+                title="Share today plan"
+                shortText={shortShareText}
+                detailedText={detailedShareText}
+                triggerLabel="Share"
+                triggerClassName={buttonClass({
+                  size: 'sm',
+                  variant: 'secondary',
+                  className: 'rounded-full',
+                })}
+              />
+            </>
+          }
         />
-      </div>
-
-      <div>
-        <StoryGenerationSheet
-          tripId={tripId}
-          scope="day"
-          dayId={dayId}
-          relatedDate={date}
-          title="Generate Day Story"
-          triggerLabel="Generate Day Story"
-          triggerClassName={buttonClass({
-            size: 'sm',
-            variant: 'secondary',
-            className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
-          })}
-          onSaved={() => setStoryRefreshKey((k) => k + 1)}
-        />
-      </div>
-
-      {/* Header */}
-      <TodayHeader
-        tripTitle={tripTitle}
-        destination={destination}
-        date={date}
-        dayTitle={dayTitle}
-        dayNumber={dayNumber}
-        hotel={hotel}
-        tripStatus={tripStatus}
-      />
 
       {/* Global error */}
       {globalError && (

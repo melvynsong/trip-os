@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PlaceCard from '@/app/components/places/PlaceCard'
-import PageHeader from '@/app/components/shared/PageHeader'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
 import { Trip as TripType, Place as PlaceType } from '@/types/trip'
@@ -64,31 +65,28 @@ export default async function PlacesPage({ params }: Props) {
 
   if (placesError) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <TripPageShell className="max-w-5xl">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load places: {placesError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <PageHeader
+    <TripPageShell className="max-w-5xl space-y-6">
+      <TripHeader
         title={trip.title}
-        subtitle={`${trip.destination} · Saved Places`}
+        subtitle={`${trip.destination} · Saved places`}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
         actions={
-          <div className="flex flex-wrap gap-3">
-            <Link href={`/trips/${tripId}`} className={buttonClass({ variant: 'secondary' })}>
-              ← Back to Trip
-            </Link>
-            <Link
-              href={`/trips/${tripId}/places/new`}
-              className={buttonClass({ variant: 'primary' })}
-            >
-              + Save Place
-            </Link>
-          </div>
+          <Link
+            href={`/trips/${tripId}/places/new`}
+            className={buttonClass({ variant: 'primary', size: 'sm', className: 'rounded-full' })}
+          >
+            + Save place
+          </Link>
         }
       />
 
@@ -104,6 +102,6 @@ export default async function PlacesPage({ params }: Props) {
           description="Save places to build a richer itinerary and story memory feed."
         />
       )}
-    </main>
+    </TripPageShell>
   )
 }

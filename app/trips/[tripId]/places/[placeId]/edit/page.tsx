@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { buttonClass } from '@/app/components/ui/Button'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import { createClient } from '@/lib/supabase/server'
 import { PLACE_TYPE_OPTIONS, resolvePlaceType, toLegacyCategory, type PlaceType } from '@/lib/places'
 
@@ -115,11 +117,13 @@ export default async function EditPlacePage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Edit Place</h1>
-        <p className="text-sm text-gray-500">{trip.title}</p>
-      </div>
+    <TripPageShell className="max-w-2xl space-y-6">
+      <TripHeader
+        title="Edit place"
+        subtitle={trip.title}
+        backHref={`/trips/${tripId}/places`}
+        backLabel="Back to Places"
+      />
 
       <form action={updatePlace} className="space-y-4 rounded-2xl border p-6">
         <div>
@@ -200,6 +204,6 @@ export default async function EditPlacePage({ params }: Props) {
           Delete Place
         </button>
       </form>
-    </main>
+    </TripPageShell>
   )
 }

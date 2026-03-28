@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { buttonClass } from '@/app/components/ui/Button'
 import DaySection from '@/app/components/trips/story/DaySection'
 import StoryGenerator from '@/app/components/trips/story/StoryGenerator'
-import TripHeader from '@/app/components/trips/story/TripHeader'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import TripWeatherSection from '@/app/components/trips/story/TripWeatherSection'
 import { WeatherDataProvider } from '@/app/components/trips/story/WeatherDataProvider'
 import Card from '@/app/components/ui/Card'
@@ -84,11 +85,11 @@ export default async function TripDashboardPage({ params }: Props) {
 
   if (daysError) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <TripPageShell className="max-w-5xl">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load itinerary days: {daysError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
@@ -107,11 +108,11 @@ export default async function TripDashboardPage({ params }: Props) {
 
   if (activitiesError) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <TripPageShell className="max-w-5xl">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load activities: {activitiesError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
@@ -178,31 +179,30 @@ export default async function TripDashboardPage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <div className="mb-5">
-        <Link
-          href="/trips"
-          className={buttonClass({
-            size: 'sm',
-            variant: 'ghost',
-            className: 'rounded-full text-[var(--text-strong)] hover:bg-[var(--brand-primary-soft)]',
-          })}
-        >
-          ← Back to Trips
-        </Link>
-      </div>
-
-      <div className="space-y-8">
-        <TripHeader
-          trip={{
-            id: trip.id,
-            title: trip.title,
-            destination: trip.destination,
-            startDate: trip.start_date,
-            endDate: trip.end_date,
-            coverImage: trip.cover_image,
-          }}
-        />
+    <TripPageShell className="space-y-8">
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
+        title={trip.title}
+        subtitle={trip.destination}
+        backHref="/trips"
+        backLabel="Back to Trips"
+        actions={
+          <>
+            <Link
+              href={`/trips/${trip.id}/itinerary`}
+              className={buttonClass({ variant: 'primary', size: 'sm', className: 'rounded-full' })}
+            >
+              View itinerary
+            </Link>
+            <Link
+              href={`/trips/${trip.id}/today`}
+              className={buttonClass({ variant: 'secondary', size: 'sm', className: 'rounded-full' })}
+            >
+              Today
+            </Link>
+          </>
+        }
+      />
 
         <WeatherDataProvider
           destination={trip.destination}
@@ -228,9 +228,9 @@ export default async function TripDashboardPage({ params }: Props) {
               ))
             ) : (
               <Card className="rounded-[2rem] border-dashed border-slate-200 bg-white p-8">
-                <h2 className="font-serif text-3xl text-slate-900">This is your story.</h2>
+                <h2 className="font-serif text-3xl text-slate-900">Start your first day chapter</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-                  Your trip exists, but the day-by-day chapters still need their first moments.
+                  Your trip is ready. Add the first moments to build a clear day-by-day flow.
                 </p>
                 <div className="mt-5">
                   <Link
@@ -301,7 +301,6 @@ export default async function TripDashboardPage({ params }: Props) {
           </div>
         </div>
         </WeatherDataProvider>
-      </div>
-    </main>
+    </TripPageShell>
   )
 }

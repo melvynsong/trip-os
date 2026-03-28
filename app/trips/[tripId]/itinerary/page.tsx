@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import { buttonClass } from '@/app/components/ui/Button'
 import { resolvePlaceType } from '@/lib/places'
 import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
@@ -150,26 +152,29 @@ export default async function ItineraryPage({ params }: Props) {
 
   if (daysError) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <TripPageShell>
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load itinerary days: {daysError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
   if (!days || days.length === 0) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <div className="mb-6">
-          <h1 className="font-serif text-4xl text-slate-900">{trip.title}</h1>
-          <p className="mt-2 text-base text-slate-600">{trip.destination}</p>
-        </div>
+      <TripPageShell className="space-y-6">
+        <TripHeader
+          dateRange={`${trip.start_date} → ${trip.end_date}`}
+          title={trip.title}
+          subtitle={trip.destination}
+          backHref={`/trips/${tripId}`}
+          backLabel="Back to Trip"
+        />
 
         <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50/70 p-6 text-slate-500">
           No itinerary days found for this trip.
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
@@ -187,11 +192,11 @@ export default async function ItineraryPage({ params }: Props) {
 
   if (activitiesError) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <TripPageShell className="max-w-5xl">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Failed to load activities: {activitiesError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
@@ -241,83 +246,70 @@ export default async function ItineraryPage({ params }: Props) {
   const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <div className="space-y-8">
-        <div className="space-y-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-            {trip.start_date} → {trip.end_date}
-          </p>
-          <div>
-            <h1 className="font-serif text-4xl text-slate-900 sm:text-5xl">{trip.title}</h1>
-            <p className="mt-2 text-base text-slate-600 sm:text-lg">{trip.destination}</p>
-          </div>
-        </div>
+    <TripPageShell className="space-y-8">
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
+        title={trip.title}
+        subtitle={trip.destination}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
+        actions={
+          <>
+            <Link
+              href={`/trips/${tripId}/today`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'primary',
+                className: 'rounded-full',
+              })}
+            >
+              📍 Today
+            </Link>
+            <Link
+              href={`/trips/${tripId}/ai-itinerary`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'secondary',
+                className: 'rounded-full',
+              })}
+            >
+              AI Generate Itinerary
+            </Link>
+            <WhatsAppShareSheet
+              title={`Share ${trip.title} itinerary`}
+              shortText={shortTripShareText}
+              detailedText={detailedTripShareText}
+              triggerLabel="Share itinerary"
+              triggerClassName={buttonClass({
+                size: 'sm',
+                variant: 'secondary',
+                className: 'rounded-full',
+              })}
+            />
+          </>
+        }
+      />
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/trips/${tripId}`}
-            className={buttonClass({
-              size: 'sm',
-              variant: 'ghost',
-              className: 'rounded-full text-slate-700 hover:bg-sky-50/70',
-            })}
-          >
-            ← Back to Trip
-          </Link>
-          <Link
-            href={`/trips/${tripId}/today`}
-            className={buttonClass({
-              size: 'sm',
-              variant: 'primary',
-              className: 'rounded-full',
-            })}
-          >
-            📍 Today
-          </Link>
-          <Link
-            href={`/trips/${tripId}/ai-itinerary`}
-            className={buttonClass({
-              size: 'sm',
-              variant: 'secondary',
-              className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
-            })}
-          >
-            AI Generate Itinerary
-          </Link>
-          <WhatsAppShareSheet
-            title={`Share ${trip.title} itinerary`}
-            shortText={shortTripShareText}
-            detailedText={detailedTripShareText}
-            triggerLabel="Share itinerary"
-            triggerClassName={buttonClass({
-              size: 'sm',
-              variant: 'secondary',
-              className: 'rounded-full border-slate-200 bg-slate-50/70 text-slate-700 hover:bg-sky-50/70',
-            })}
-          />
-        </div>
+      <div className="space-y-6">
+        {days.map((day) => {
+          const dayActivities = activities
+            .filter((activity) => activity.day_id === day.id)
+            .sort(sortActivitiesByTime)
 
-        <div className="space-y-6">
-          {days.map((day) => {
-            const dayActivities = activities
-              .filter((activity) => activity.day_id === day.id)
-              .sort(sortActivitiesByTime)
-
-            return (
-              <DayCard
-                key={day.id}
-                tripId={tripId}
-                tripTitle={trip.title}
-                destination={trip.destination}
-                hotel={hotel}
-                day={day}
-                activities={dayActivities}
-                moveActivityAction={moveActivity}
-              />
-            )
-          })}
-        </div>
+          return (
+            <DayCard
+              key={day.id}
+              tripId={tripId}
+              tripTitle={trip.title}
+              destination={trip.destination}
+              hotel={hotel}
+              day={day}
+              activities={dayActivities}
+              moveActivityAction={moveActivity}
+            />
+          )
+        })}
       </div>
-    </main>
+    </TripPageShell>
   )
 }

@@ -1,7 +1,11 @@
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AddPlaceDrawer from '@/app/components/places/picker/AddPlaceDrawer'
 import GooglePlacePicker from '@/app/components/places/picker/GooglePlacePicker'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
+import { buttonClass } from '@/app/components/ui/Button'
 import { type PlaceType } from '@/lib/places'
 
 type Props = {
@@ -48,8 +52,23 @@ export default async function NewPlacePage({ params, searchParams }: Props) {
     notFound()
   }
   return (
-    <main>
-      <div className="mx-auto max-w-5xl p-4 sm:p-6">
+    <TripPageShell className="max-w-5xl space-y-6">
+      <TripHeader
+        title="Save place"
+        subtitle={`${trip.title} · ${trip.destination}`}
+        backHref={`/trips/${tripId}/places`}
+        backLabel="Back to Places"
+        actions={
+          <Link
+            href={`/trips/${tripId}`}
+            className={buttonClass({ size: 'sm', variant: 'secondary', className: 'rounded-full' })}
+          >
+            Trip overview
+          </Link>
+        }
+      />
+
+      <div className="max-w-5xl p-1 sm:p-0">
         <GooglePlacePicker
           tripId={tripId}
           tripTitle={trip.title}
@@ -66,6 +85,6 @@ export default async function NewPlacePage({ params, searchParams }: Props) {
         destination={trip.destination}
         initialPlaceType={parsePlaceType(parsedSearch?.placeType)}
       />
-    </main>
+    </TripPageShell>
   )
 }

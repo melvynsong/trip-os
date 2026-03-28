@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TodayView from '@/app/components/today/TodayView'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import { buttonClass } from '@/app/components/ui/Button'
 import { type TodayItem } from '@/app/components/today/TimelineItemCard'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
@@ -87,17 +88,17 @@ export default async function TodayPage({ params }: Props) {
 
   if (daysError) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <TripPageShell>
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Failed to load trip days: {daysError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
   if (!days || days.length === 0) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10 space-y-4">
+      <TripPageShell className="space-y-4">
         <Link
           href={`/trips/${tripId}`}
           className={buttonClass({
@@ -125,7 +126,7 @@ export default async function TodayPage({ params }: Props) {
             AI Generate Itinerary
           </Link>
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 
@@ -146,11 +147,11 @@ export default async function TodayPage({ params }: Props) {
 
   if (activitiesError) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <TripPageShell>
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Failed to load activities: {activitiesError.message}
         </div>
-      </main>
+      </TripPageShell>
     )
   }
 

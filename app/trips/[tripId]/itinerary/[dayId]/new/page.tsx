@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import NewActivityForm from '@/app/components/itinerary/NewActivityForm'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
 import type { ActivityType } from '@/types/trip'
 
@@ -96,13 +98,14 @@ export default async function NewActivityPage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Add Activity</h1>
-        <p className="text-sm text-gray-500">
-          {trip.title} · Day {day.day_number} · {day.date}
-        </p>
-      </div>
+    <TripPageShell className="max-w-2xl space-y-6">
+      <TripHeader
+        dateRange={day.date}
+        title="Add activity"
+        subtitle={`${trip.title} · Day ${day.day_number}`}
+        backHref={`/trips/${tripId}/itinerary`}
+        backLabel="Back to Itinerary"
+      />
 
       <NewActivityForm
         tripId={tripId}
@@ -114,6 +117,6 @@ export default async function NewActivityPage({ params }: Props) {
         canUseFlights={flightAccess?.canAccess ?? false}
         flightAccessMessage={flightAccess ? getFlightAccessMessage(flightAccess) : 'Flight (Beta) is unavailable right now.'}
       />
-    </main>
+    </TripPageShell>
   )
 }

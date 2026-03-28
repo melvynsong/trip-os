@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { DM_Serif_Display, Inter } from 'next/font/google'
 import './globals.css'
 import Navigation from '@/app/components/Navigation'
-import DeploymentFooter from '@/app/components/DeploymentFooter'
+import AppFooter from '@/app/components/ui/AppFooter'
 import ToastProvider from '@/app/components/ui/ToastProvider'
 import { branding as BRAND } from '@/lib/branding'
 
@@ -84,7 +84,7 @@ export default function RootLayout({
         <ToastProvider>
           <Navigation />
           {children}
-          <DeploymentFooter />
+          <AppFooter />
         </ToastProvider>
       </body>
     </html>

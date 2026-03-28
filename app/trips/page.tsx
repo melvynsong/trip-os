@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserEntitlements } from '@/lib/entitlements'
 import { getCurrentUserMembership } from '@/lib/membership/server'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import TripCard from '@/app/components/trips/TripCard'
 import EmptyState from '@/app/components/ui/EmptyState'
 import { buttonClass } from '@/app/components/ui/Button'
@@ -197,10 +199,12 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
 
   if (error) {
     return (
-      <div className="p-6">
-        Failed to load trips.
-        <div className="mt-2 text-sm text-stone-600">{error.message}</div>
-      </div>
+      <TripPageShell>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+          Failed to load trips.
+          <div className="mt-2 text-sm text-stone-600">{error.message}</div>
+        </div>
+      </TripPageShell>
     )
   }
 
@@ -255,7 +259,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
     sortedTrips.find((trip) => getCountdownLabel(trip.start_date) !== null)?.id ?? null
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <TripPageShell className="space-y-8">
       {deleteSuccessMessage ? (
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {deleteSuccessMessage}
@@ -268,44 +272,37 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
         </div>
       ) : null}
 
-      <section className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-6 shadow-[0_2px_20px_rgba(28,25,23,0.07)] sm:p-8 lg:p-10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Your stories</p>
-            <h1 className="font-serif text-4xl leading-tight text-[var(--text-strong)] sm:text-5xl">
-              Welcome back, {displayName}
-            </h1>
-            <p className="text-lg text-[var(--text-subtle)]">Your next story starts here.</p>
-            <div className="inline-flex rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-subtle)]">
-              {tierLabel}
-            </div>
-            {entitlements.tripLimit !== 'unlimited' ? (
-              <p className="text-xs text-[var(--text-subtle)]">
-                {entitlements.tripsUsedThisYear} of {entitlements.tripLimit} trips used this year
-              </p>
-            ) : null}
-          </div>
-
+      <TripHeader
+        dateRange="Your stories"
+        title={`Welcome back, ${displayName}`}
+        subtitle="Plan with clarity, go with confidence, and share your journey."
+        actions={
           <Link
             href="/trips/new"
             className={buttonClass({
               variant: 'primary',
+              size: 'sm',
               className: 'rounded-full',
             })}
           >
             Start a new story
           </Link>
-        </div>
-      </section>
+        }
+        metadata={
+          <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-subtle)]">
+            <span className="inline-flex rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-1.5">
+              {tierLabel}
+            </span>
+            {entitlements.tripLimit !== 'unlimited' ? (
+              <span>
+                {entitlements.tripsUsedThisYear} of {entitlements.tripLimit} trips used this year
+              </span>
+            ) : null}
+          </div>
+        }
+      />
 
-      <section className="mt-8 space-y-5">
-        <div>
-          <h2 className="font-serif text-3xl text-[var(--text-strong)]">Your stories</h2>
-          <p className="mt-2 text-sm leading-7 text-[var(--text-subtle)] sm:text-base">
-            A warm view of the trips you’re shaping, revisiting, and turning into memories.
-          </p>
-        </div>
-
+      <section className="space-y-5">
         {sortedTrips.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
             {sortedTrips.map((trip) => (
@@ -343,6 +340,6 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
           />
         )}
       </section>
-    </main>
+    </TripPageShell>
   )
 }

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { buttonClass } from '@/app/components/ui/Button'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserMembership } from '@/lib/membership/server'
 import { getPackingAccessState } from '@/lib/feature-toggles'
 import PackingGenerator from '@/app/components/trips/packing/PackingGenerator'
@@ -142,19 +144,14 @@ export default async function PackingPage({ params }: Props) {
     : null
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
-      <div className="mb-5">
-        <Link
-          href={`/trips/${tripId}`}
-          className={buttonClass({
-            size: 'sm',
-            variant: 'ghost',
-            className: 'rounded-full text-[var(--text-strong)] hover:bg-[var(--brand-primary-soft)]',
-          })}
-        >
-          ← {trip.title}
-        </Link>
-      </div>
+    <TripPageShell className="max-w-3xl space-y-6">
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
+        title="Packing"
+        subtitle={`${trip.title} · ${trip.destination}`}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
+      />
 
       {canUsePacking ? (
         <PackingGenerator
@@ -187,6 +184,6 @@ export default async function PackingPage({ params }: Props) {
           </Link>
         </div>
       )}
-    </main>
+    </TripPageShell>
   )
 }

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { buttonClass } from '@/app/components/ui/Button'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
 import FlightPlanner from '@/app/components/trips/flight/FlightPlanner'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
@@ -41,19 +43,14 @@ export default async function FlightPage({ params }: Props) {
   const savedFlights = access.canAccess ? await listTripFlights(supabase, tripId) : []
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <div className="mb-5">
-        <Link
-          href={`/trips/${tripId}`}
-          className={buttonClass({
-            size: 'sm',
-            variant: 'ghost',
-            className: 'rounded-full text-[var(--text-strong)] hover:bg-[var(--brand-primary-soft)]',
-          })}
-        >
-          ← {trip.title}
-        </Link>
-      </div>
+    <TripPageShell className="max-w-5xl space-y-6">
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
+        title="Add Flight"
+        subtitle={`${trip.title} · ${trip.destination}`}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
+      />
 
       {access.canAccess ? (
         <FlightPlanner
@@ -85,6 +82,6 @@ export default async function FlightPage({ params }: Props) {
           </Link>
         </div>
       )}
-    </main>
+    </TripPageShell>
   )
 }
