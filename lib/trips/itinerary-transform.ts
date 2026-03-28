@@ -272,7 +272,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   console.log('[ItineraryDebug] flightTimelineItems:', flightTimelineItems.map(item => ({
     kind: item.kind,
     id: item.activity.id,
-    role: item.role,
+    role: item.kind === 'flight_card' ? item.role : undefined,
     type: item.activity.type,
     activity_time: item.activity.activity_time,
     title: item.activity.title,
