@@ -129,7 +129,16 @@ export default async function TripDashboardPage({ params }: Props) {
 
   const daySections = safeDays.map((day) => {
     const dayActivities = activities.filter((activity) => activity.day_id === day.id)
-    const { sections } = transformActivitiesForTimeline(dayActivities)
+    const { sections } = transformActivitiesForTimeline(
+      dayActivities.map((activity) => ({
+        ...activity,
+        places: activity.place_id
+          ? (placeNameById.has(activity.place_id)
+              ? { id: activity.place_id, name: placeNameById.get(activity.place_id)! }
+              : null)
+          : null,
+      }))
+    )
     // Convert sections to story groups format
     const groups = sections.map((section) => ({
       label: section.label,
