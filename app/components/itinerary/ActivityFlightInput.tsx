@@ -213,18 +213,6 @@ export default function ActivityFlightInput({
         return
       }
       const savedFlight = saveData.flight as SavedTripFlight
-
-      const timelineResp = await fetch(`/api/trips/${tripId}/flight/timeline`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ direction: selectedDirection }),
-      })
-      if (!timelineResp.ok) {
-        const tData = await timelineResp.json()
-        setError(tData.error || 'Flight saved, but could not add itinerary activities.')
-      }
-
       setAllFlights((prev) => {
         const filtered = prev.filter((f) => f.direction !== savedFlight.direction)
         return [...filtered, savedFlight]
@@ -232,8 +220,10 @@ export default function ActivityFlightInput({
       setLookupResult(null)
       setFlightNumberInput('')
       setIsReplacing(false)
-      setSuccessMessage('Flight saved. Departure & arrival added to your itinerary.')
+      setSuccessMessage('Flight saved! Both departure and arrival activities have been added to your itinerary.')
       onFlightSelected?.(savedFlight)
+      // Optionally, refresh the itinerary page or redirect as needed
+      // window.location.href = `/trips/${tripId}/itinerary`;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save flight.')
     } finally {

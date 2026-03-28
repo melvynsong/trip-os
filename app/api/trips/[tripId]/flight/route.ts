@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
 import { listTripFlights, saveTripFlightSelection, deleteTripFlight } from '@/lib/flights/trip'
+import { mapFlightToActivities } from '@/lib/trips/flight-activity'
 import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
 
 export const runtime = 'nodejs'
@@ -118,10 +119,34 @@ export async function POST(request: Request, { params }: Params) {
       flight,
     })
 
+    // Fetch all days for the trip
+    const { data: days } = await ownedTrip.supabase
+      .from('days')
+      .select('id, date')
+      .eq('trip_id', tripId)
+    const dayIdMap = Object.fromEntries((days || []).map((d: any) => [d.date, d.id]))
+
+    // Map flight to activities
+    const [departureActivity, arrivalActivity] = mapFlightToActivities(savedFlight, dayIdMap)
+
+    // Insert both activities
+    const { error: depErr } = await ownedTrip.supabase.from('activities').insert({
+      ...departureActivity,
+      status: 'planned',
+    })
+    const { error: arrErr } = await ownedTrip.supabase.from('activities').insert({
+      ...arrivalActivity,
+      status: 'planned',
+    })
+    if (depErr || arrErr) {
+      return NextResponse.json({ error: 'Failed to create flight activities.' }, { status: 500 })
+    }
+
     revalidatePath(`/trips/${tripId}`)
     revalidatePath(`/trips/${tripId}/flight`)
+    revalidatePath(`/trips/${tripId}/itinerary`)
 
-    return NextResponse.json({ flight: savedFlight })
+    return NextResponse.json({ flight: savedFlight, activities: [departureActivity, arrivalActivity] })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unexpected error.' },
