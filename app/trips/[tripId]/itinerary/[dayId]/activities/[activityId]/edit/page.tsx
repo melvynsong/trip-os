@@ -4,6 +4,16 @@ import { createClient } from '@/lib/supabase/server'
 import EditActivityForm from '@/app/components/itinerary/EditActivityForm'
 import type { ActivityType } from '@/types/trip'
 
+const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
+  { value: 'food', label: '🍜 Food' },
+  { value: 'attraction', label: '📍 Attraction' },
+  { value: 'shopping', label: '🛍️ Shopping' },
+  { value: 'transport', label: '✈️ Transport (Flight/Train/Bus)' },
+  { value: 'hotel', label: '🏨 Hotel' },
+  { value: 'note', label: '📝 Note' },
+  { value: 'other', label: '📌 Other' },
+]
+
 type Props = {
   params: Promise<{
     tripId: string
