@@ -1,5 +1,5 @@
 import ActivityCard from '@/app/components/itinerary/ActivityCard'
-import FlightActivityCard from './FlightActivityCard'
+import FlightActivityCard from '@/app/components/itinerary/FlightActivityCard'
 import type { ItineraryTimelineItem } from '@/lib/trips/itinerary-transform'
 
 type ItineraryActivityRendererProps = {

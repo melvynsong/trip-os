@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Card from '@/app/components/ui/Card'
+import { renderStoryTimelineItem } from '@/app/components/trips/story/StoryActivityRenderer'
 import { buttonClass } from '@/app/components/ui/Button'
 import TimelineBlock from '@/app/components/trips/story/TimelineBlock'
 import { DayWeather } from '@/app/components/trips/story/DayWeather'
@@ -72,28 +72,13 @@ export default function DaySection({
             {groups.map((group) =>
               group.items.length > 0 ? (
                 <TimelineBlock key={group.label} label={group.label} description={group.description}>
-                  {group.items.map((item) => (
-                    <Card key={item.id} className="rounded-xl border-[var(--border-soft)] bg-[var(--surface-panel)] p-4 shadow-none">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0 space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {item.time ? (
-                              <span className="rounded-full bg-[var(--brand-primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]/20">
-                                {formatTimeLabel(item.time)}
-                              </span>
-                            ) : null}
-                            {item.location ? (
-                              <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-subtle)]">
-                                {item.location}
-                              </span>
-                            ) : null}
-                          </div>
-                          <h3 className="text-base font-semibold text-[var(--text-strong)] sm:text-lg">{item.title}</h3>
-                          {item.notes ? <p className="text-sm leading-7 text-[var(--text-subtle)]">{item.notes}</p> : null}
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+                  {group.items.map((item) =>
+                    renderStoryTimelineItem({
+                      tripId,
+                      dayId: day.id,
+                      item: item as any, // type cast for now; will be unified in transform
+                    })
+                  )}
                 </TimelineBlock>
               ) : null
             )}

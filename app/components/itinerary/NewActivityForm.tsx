@@ -64,8 +64,11 @@ export default function NewActivityForm({
     try {
       const formData = new FormData(e.currentTarget)
       await createActivity(formData)
+      // If createActivity succeeds, it will redirect and this code will not run.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create activity')
+    } finally {
+      // Only runs if there was an error (no redirect)
       setIsSubmitting(false)
     }
   }

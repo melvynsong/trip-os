@@ -6,7 +6,7 @@ import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import Card from '@/app/components/ui/Card'
 import { buttonClass } from '@/app/components/ui/Button'
 import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
-import { transformItineraryDayActivities } from '@/lib/trips/itinerary-transform'
+import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
 import { Day as DayType, Activity as ActivityType } from '@/types/trip'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
@@ -42,7 +42,7 @@ export default function DayCard({
       ? day.title
       : null
 
-  const { orderedItems, sections } = transformItineraryDayActivities(activities)
+  const { orderedItems, sections } = transformActivitiesForTimeline(activities)
 
   const shareActivities = orderedItems.map((item) => {
     if (item.kind === 'activity') {

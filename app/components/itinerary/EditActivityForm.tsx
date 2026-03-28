@@ -98,8 +98,11 @@ export default function EditActivityForm({
     try {
       const formData = new FormData(e.currentTarget)
       await updateActivity(formData)
+      // If updateActivity succeeds, it will redirect and this code will not run.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update activity')
+    } finally {
+      // Only runs if there was an error (no redirect)
       setIsSubmitting(false)
     }
   }
@@ -112,8 +115,11 @@ export default function EditActivityForm({
     setIsDeleting(true)
     try {
       await deleteActivity()
+      // If deleteActivity succeeds, it will redirect and this code will not run.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete activity')
+    } finally {
+      // Only runs if there was an error (no redirect)
       setIsDeleting(false)
     }
   }

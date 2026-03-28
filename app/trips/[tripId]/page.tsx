@@ -11,7 +11,7 @@ import { WeatherDataProvider } from '@/app/components/trips/story/WeatherDataPro
 import Card from '@/app/components/ui/Card'
 import { getCurrentUserMembership } from '@/lib/membership/server'
 import { getFlightAccessState, getPackingAccessState } from '@/lib/feature-toggles'
-import { getStoryPeriod } from '@/lib/trip-storytelling'
+import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
 import {
   Trip as TripType,
   Day as DayType,
@@ -128,30 +128,31 @@ export default async function TripDashboardPage({ params }: Props) {
   const placeNameById = new Map(safePlaces.map((place) => [place.id, place.name]))
 
   const daySections = safeDays.map((day) => {
-    const dayActivities = activities
-      .filter((activity) => activity.day_id === day.id)
-      .map((activity) => ({
-        id: activity.id,
-        title: activity.title,
-        time: activity.activity_time,
-        location: activity.place_id ? placeNameById.get(activity.place_id) || null : null,
-        notes: activity.notes,
-      }))
-
-    const morning = dayActivities.filter((item) => getStoryPeriod(item.time) === 'morning')
-    const afternoon = dayActivities.filter((item) => getStoryPeriod(item.time) === 'afternoon')
-    const evening = dayActivities.filter((item) => getStoryPeriod(item.time) === 'evening')
-    const anytime = dayActivities.filter((item) => getStoryPeriod(item.time) === 'anytime')
-
-    return {
-      day,
-      groups: [
-        { label: 'Morning', description: 'Ease into the day with a clear beginning.', items: morning },
-        { label: 'Afternoon', description: 'The middle chapter where the journey opens up.', items: afternoon },
-        { label: 'Evening', description: 'A softer ending, dinner, notes, and atmosphere.', items: evening },
-        { label: 'Anytime', description: 'Moments without a fixed time still belong in the story.', items: anytime },
-      ],
-    }
+    const dayActivities = activities.filter((activity) => activity.day_id === day.id)
+    const { sections } = transformActivitiesForTimeline(dayActivities)
+    // Convert sections to story groups format
+    const groups = sections.map((section) => ({
+      label: section.label,
+      description:
+        section.key === 'morning'
+          ? 'Ease into the day with a clear beginning.'
+          : section.key === 'afternoon'
+          ? 'The middle chapter where the journey opens up.'
+          : section.key === 'evening'
+          ? 'A softer ending, dinner, notes, and atmosphere.'
+          : 'Moments without a fixed time still belong in the story.',
+      items: section.items.map((item) => ({
+        id: item.kind === 'activity' ? item.activity.id : item.activity.id,
+        title: item.kind === 'activity' ? item.activity.title : item.activity.title,
+        time: item.kind === 'activity' ? item.activity.activity_time : item.activity.activity_time,
+        location:
+          item.kind === 'activity'
+            ? item.activity.places?.name || (item.activity.place_id ? placeNameById.get(item.activity.place_id) || null : null)
+            : null,
+        notes: item.kind === 'activity' ? item.activity.notes : item.activity.notes,
+      })),
+    }))
+    return { day, groups }
   })
 
   let canSeePackingLink = false
