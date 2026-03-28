@@ -41,20 +41,49 @@ const DIRECTION_LABEL: Record<FlightDirection, string> = {
 function formatDateTime(dateTime: string | null) {
   if (!dateTime) return '—'
 
-  const value = new Date(dateTime)
-  if (Number.isNaN(value.getTime())) return dateTime.replace('T', ' ')
+  const match = /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/.exec(dateTime)
+  if (!match) return dateTime.replace('T', ' ')
 
-  return new Intl.DateTimeFormat('en', {
+  const [, year, month, day, hourRaw, minute] = match
+  const hour24 = Number(hourRaw)
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12
+  const ampm = hour24 >= 12 ? 'PM' : 'AM'
+
+  const monthLabel = new Intl.DateTimeFormat('en', {
     month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(value)
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))))
+
+  return `${monthLabel} ${Number(day)}, ${hour12}:${minute} ${ampm}`
+}
+
+function getDurationLabel(departureTime: string | null, arrivalTime: string | null): string | null {
+  if (!departureTime || !arrivalTime) return null
+
+  const departure = new Date(departureTime)
+  const arrival = new Date(arrivalTime)
+
+  if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())) {
+    return null
+  }
+
+  const diffMs = arrival.getTime() - departure.getTime()
+  if (diffMs <= 0) {
+    return null
+  }
+
+  const totalMinutes = Math.round(diffMs / 60000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours === 0) return `${minutes}m`
+  if (minutes === 0) return `${hours}h`
+  return `${hours}h ${minutes}m`
 }
 
 function normalizeFlightNumberForInput(value: string): string {
   const compact = value.toUpperCase().replace(/\s+/g, '')
-  const match = /^([A-Z0-9]{2,3})(\d{1,4}[A-Z]?)$/.exec(compact)
+  const match = /^([A-Z]{2,3})(\d{1,4}[A-Z]?)$/.exec(compact)
   if (!match) return value.toUpperCase().trim()
   return `${match[1]} ${match[2]}`
 }
@@ -72,6 +101,8 @@ function SavedFlightCard({
   onAddToTimeline: (direction: FlightDirection) => Promise<void>
   isActing: boolean
 }) {
+  const durationLabel = getDurationLabel(flight.departureTime, flight.arrivalTime)
+
   return (
     <Card className="space-y-4 rounded-[1.75rem] border-[var(--border-soft)] bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -102,6 +133,7 @@ function SavedFlightCard({
       <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-subtle)]">
         <span>{flight.airlineName || flight.airlineCode} {flight.flightNumber}</span>
         {flight.aircraftModel ? <span>• {flight.aircraftModel}</span> : null}
+        {durationLabel ? <span>• Duration: {durationLabel}</span> : null}
       </div>
 
       <Button
@@ -147,6 +179,11 @@ export default function FlightPlanner({
 
     return `${lookupResult.normalizedFlightNumber} · ${lookupResult.departureAirportCode || '—'} → ${lookupResult.arrivalAirportCode || '—'}`
   }, [lookupResult])
+
+  const lookupDurationLabel = useMemo(
+    () => getDurationLabel(lookupResult?.departureTime || null, lookupResult?.arrivalTime || null),
+    [lookupResult]
+  )
 
   async function handleLookup() {
     if (!hasLookupInputs || isLookingUp) return
@@ -402,6 +439,7 @@ export default function FlightPlanner({
             <span>{lookupResult.airlineName || lookupResult.airlineCode || 'Unknown airline'} {lookupResult.flightNumber}</span>
             {lookupResult.status ? <span>• Status: {lookupResult.status}</span> : null}
             {lookupResult.aircraftModel ? <span>• {lookupResult.aircraftModel}</span> : null}
+            {lookupDurationLabel ? <span>• Duration: {lookupDurationLabel}</span> : null}
           </div>
 
           <Button type="button" variant="primary" loading={isSaving} onClick={handleSaveSelection} className="rounded-full">

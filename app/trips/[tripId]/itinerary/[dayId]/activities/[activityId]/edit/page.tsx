@@ -3,6 +3,17 @@ import { notFound, redirect } from 'next/navigation'
 import { buttonClass } from '@/app/components/ui/Button'
 import { createClient } from '@/lib/supabase/server'
 import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPlacePickerField'
+import type { ActivityType } from '@/types/trip'
+
+const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
+  { value: 'food', label: '🍜 Food' },
+  { value: 'attraction', label: '📍 Attraction' },
+  { value: 'shopping', label: '🛍️ Shopping' },
+  { value: 'transport', label: '✈️ Transport (Flight/Train/Bus)' },
+  { value: 'hotel', label: '🏨 Hotel' },
+  { value: 'note', label: '📝 Note' },
+  { value: 'other', label: '📌 Other' },
+]
 
 type Props = {
   params: Promise<{
@@ -77,8 +88,13 @@ export default async function EditActivityPage({ params }: Props) {
 
     const title = String(formData.get('title') || '').trim()
     const activity_time = String(formData.get('activity_time') || '').trim()
+    const rawType = String(formData.get('type') || '').trim()
     const notes = String(formData.get('notes') || '').trim()
     const place_id = String(formData.get('place_id') || '').trim()
+
+    const type: ActivityType = ACTIVITY_TYPES.some((option) => option.value === rawType)
+      ? (rawType as ActivityType)
+      : 'other'
 
     if (!title) {
       throw new Error('Title is required')
@@ -89,6 +105,7 @@ export default async function EditActivityPage({ params }: Props) {
       .update({
         title,
         activity_time: activity_time || null,
+        type,
         notes: notes || null,
         place_id: place_id || null,
       })
@@ -157,6 +174,21 @@ export default async function EditActivityPage({ params }: Props) {
             defaultValue={activity.activity_time || ''}
             className="w-full rounded-xl border px-3 py-2"
           />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">Type</label>
+          <select
+            name="type"
+            defaultValue={activity.type || 'other'}
+            className="w-full rounded-xl border px-3 py-2"
+          >
+            {ACTIVITY_TYPES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <ActivityPlacePickerField

@@ -185,8 +185,28 @@ function getDatePart(dateTime: string): string | null {
 }
 
 function getTimePart(dateTime: string): string | null {
-  const match = /T(\d{2}:\d{2})/.exec(dateTime)
+  const match = /[T\s](\d{2}:\d{2})/.exec(dateTime)
   return match ? match[1] : null
+}
+
+function getDurationLabel(departureTime: string, arrivalTime: string): string | null {
+  const departure = new Date(departureTime)
+  const arrival = new Date(arrivalTime)
+
+  if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())) {
+    return null
+  }
+
+  const diffMs = arrival.getTime() - departure.getTime()
+  if (diffMs <= 0) return null
+
+  const totalMinutes = Math.round(diffMs / 60000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours === 0) return `${minutes}m`
+  if (minutes === 0) return `${hours}h`
+  return `${hours}h ${minutes}m`
 }
 
 function isBefore(a: string, b: string): boolean {
@@ -221,9 +241,12 @@ function buildFlightNote(
   kind: 'departure' | 'arrival',
   usedFallbackDay: boolean
 ): string {
+  const durationLabel = getDurationLabel(flight.departureTime, flight.arrivalTime)
+
   const base = [
     `${flight.airlineName || flight.airlineCode} ${flight.flightNumber}`,
     `${flight.departureAirportCode} → ${flight.arrivalAirportCode}`,
+    durationLabel ? `Duration ${durationLabel}` : null,
     kind === 'departure'
       ? flight.departureTerminal
         ? `Terminal ${flight.departureTerminal}`
