@@ -185,13 +185,12 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       });
       return;
     }
-    // ...existing code...
 
     // Extract duration from notes if present
     const durationMatch = (activity.notes || '').match(/(\d+h\s*)?(\d+m)?/);
     const durationStr = durationMatch ? durationMatch[0] : null;
     const durationMinutes = parseFlightDuration(durationStr);
-
+              detectedRole: detectFlightRole(activity)
     // Try to get explicit arrival time from notes (e.g. "Arrives: 2026-04-10T00:15:00")
     let explicitArrival: string | null = null;
     const explicitArrivalMatch = (activity.notes || '').match(/Arrives?:\s*([\dT:-]+)/i);
@@ -205,6 +204,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     const airline = extractAirline((activity.notes || '').toUpperCase()) || undefined;
     const flightNumber = extractFlightNumber(combined) || undefined;
     const route = extractRoute(combined) || undefined;
+            const role = detectFlightRole(activity);
     // Debug output for flight meta extraction
     console.log('[FlightMetaDebug]', {
       id: activity.id,
