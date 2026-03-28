@@ -270,13 +270,11 @@ export default function DayCard({
         if (flight.departureTime && flight.arrivalTime) {
           duration = getDuration(flight.departureTime, flight.arrivalTime)
         }
-        // Compose meta fields for FlightActivityCard
         const meta = {
           airline: flight.airlineName,
           flightNumber: flight.flightNumber ? `SQ${flight.flightNumber}` : '',
           route: `${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
         }
-        // Compose activity fields for FlightActivityCard
         const activity = {
           id: `flight-dep-${flight.id}`,
           day_id: day.id,
@@ -290,14 +288,17 @@ export default function DayCard({
           places: null,
         }
         return (
-          <FlightActivityCard
-            key={flight.id + '-dep'}
-            tripId={tripId}
-            dayId={day.id}
-            activity={activity}
-            role="departure"
-            meta={meta}
-          />
+          <div>
+            <div style={{fontSize: '10px', color: '#888'}}>Flight ID: {flight.id}</div>
+            <FlightActivityCard
+              key={flight.id + '-dep'}
+              tripId={tripId}
+              dayId={day.id}
+              activity={activity}
+              role="departure"
+              meta={meta}
+            />
+          </div>
         )
       })}
       {/* Flight Departure Cards (for flights that arrive on this day, but show as Departure) */}
@@ -307,15 +308,18 @@ export default function DayCard({
           duration = getDuration(flight.departureTime, flight.arrivalTime);
         }
         return (
-          <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
-            <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
-            {duration && (
-              <div className="text-xs text-blue-700">Duration: {duration}</div>
-            )}
-            <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
-            <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
-            <div className="text-xs text-blue-700">Expected Departure: {formatDate(flight.departureTime)} at {formatTime(flight.departureTime)}</div>
+          <div>
+            <div style={{fontSize: '10px', color: '#888'}}>Flight ID: {flight.id}</div>
+            <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
+              <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
+              {duration && (
+                <div className="text-xs text-blue-700">Duration: {duration}</div>
+              )}
+              <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {formatTime(flight.departureTime)}</div>
+              <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
+              <div className="text-xs text-blue-700">Expected Departure: {formatDate(flight.departureTime)} at {formatTime(flight.departureTime)}</div>
+            </div>
           </div>
         );
       })}
