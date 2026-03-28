@@ -266,7 +266,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
         kind: 'flight_card',
         activity: {
           ...arrival,
-        detectedRole: detectFlightRole(activity)
+          detectedRole: detectFlightRole(activity),
           activity_time: arrDateTime!.slice(11, 16),
         },
         role: 'arrival',
