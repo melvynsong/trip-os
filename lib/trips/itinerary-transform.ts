@@ -185,7 +185,6 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       });
       return;
     }
-    // Use the detected role below as before
     // ...existing code...
 
     // Extract duration from notes if present
