@@ -44,7 +44,7 @@ export default function DayCard({
       ? day.title
       : null
 
-  // Inject flights as activities for this day
+  // Transform flights into valid ItineraryActivity objects for this day
   const flightActivities = (flights || []).flatMap(flight => {
     const items = []
     // Departure
@@ -54,18 +54,12 @@ export default function DayCard({
         day_id: day.id,
         title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
         activity_time: flight.departureTime.slice(11, 16),
-        type: 'transport',
-        notes: `${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''})`,
+        type: 'transport' as ActivityType,
+        notes: `Flight ${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''}) | flightId:${flight.id} | tripId:${flight.tripId}`,
         sort_order: 0,
         place_id: null,
         created_at: flight.updatedAt,
         places: null,
-        _flightRole: 'departure',
-        _flightMeta: {
-          airline: flight.airlineName,
-          flightNumber: flight.flightNumber,
-          route: `${flight.departureAirportCode} → ${flight.arrivalAirportCode}`,
-        },
       })
     }
     // Arrival
@@ -75,18 +69,12 @@ export default function DayCard({
         day_id: day.id,
         title: `${flight.departureAirportName} → ${flight.arrivalAirportName}`,
         activity_time: flight.arrivalTime.slice(11, 16),
-        type: 'transport',
-        notes: `${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''})`,
+        type: 'transport' as ActivityType,
+        notes: `Flight ${flight.airlineName || ''} ${flight.flightNumber || ''} (${flight.airlineCode || ''}) | flightId:${flight.id} | tripId:${flight.tripId}`,
         sort_order: 0,
         place_id: null,
         created_at: flight.updatedAt,
         places: null,
-        _flightRole: 'arrival',
-        _flightMeta: {
-          airline: flight.airlineName,
-          flightNumber: flight.flightNumber,
-          route: `${flight.departureAirportCode} → ${flight.arrivalAirportCode}`,
-        },
       })
     }
     return items
