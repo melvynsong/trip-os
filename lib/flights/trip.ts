@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { buildFlightTimelineTitle } from '@/lib/flights/activity'
 import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
 
 type TripFlightRow = {
@@ -318,7 +319,11 @@ export async function addSavedFlightToTripTimeline(input: {
     departureDay && departureTime
       ? {
           day: departureDay,
-          title: 'Flight departs',
+          title: buildFlightTimelineTitle('departure', {
+            city: flight.departureCity,
+            airportName: flight.departureAirportName,
+            airportCode: flight.departureAirportCode,
+          }),
           activity_time: departureTime,
           note: buildFlightNote(flight, 'departure', departureDay.date !== departureDate),
         }
@@ -326,7 +331,11 @@ export async function addSavedFlightToTripTimeline(input: {
     arrivalDay && arrivalTime
       ? {
           day: arrivalDay,
-          title: 'Flight arrives',
+          title: buildFlightTimelineTitle('arrival', {
+            city: flight.arrivalCity,
+            airportName: flight.arrivalAirportName,
+            airportCode: flight.arrivalAirportCode,
+          }),
           activity_time: arrivalTime,
           note: buildFlightNote(flight, 'arrival', arrivalDay.date !== arrivalDate),
         }

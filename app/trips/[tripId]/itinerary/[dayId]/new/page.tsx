@@ -67,8 +67,13 @@ export default async function NewActivityPage({ params }: Props) {
     const title = String(formData.get('title') || '').trim()
     const activity_time = String(formData.get('activity_time') || '').trim()
     const rawType = String(formData.get('type') || '').trim()
+    const flightMode = String(formData.get('flight_mode') || '') === '1'
     const notes = String(formData.get('notes') || '').trim()
     const place_id = String(formData.get('place_id') || '').trim()
+
+    if (flightMode) {
+      redirect(`/trips/${tripId}/itinerary`)
+    }
 
     if (!title) {
       throw new Error('Title is required')

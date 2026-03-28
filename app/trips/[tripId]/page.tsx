@@ -209,7 +209,7 @@ export default async function TripDashboardPage({ params }: Props) {
           startDate={trip.start_date}
           endDate={trip.end_date}
         >
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,360px)] xl:items-start">
           <div className="space-y-8">
             {daySections.length > 0 ? (
               daySections.map(({ day, groups }, index) => (
@@ -247,7 +247,7 @@ export default async function TripDashboardPage({ params }: Props) {
             )}
           </div>
 
-          <div className="min-w-0 space-y-6 xl:sticky xl:top-6">
+          <div className="min-w-0 space-y-6 overflow-x-hidden xl:sticky xl:top-6">
             <StoryGenerator tripId={tripId} tripTitle={trip.title} />
 
             <TripWeatherSection

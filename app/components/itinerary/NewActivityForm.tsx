@@ -50,6 +50,7 @@ export default function NewActivityForm({
   const [storyType, setStoryType] = useState<StoryEngineType>('other')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isFlightMode = storyType === 'flight'
 
   function handleStoryTypeChange(nextType: StoryEngineType) {
     setStoryType(nextType)
@@ -75,11 +76,16 @@ export default function NewActivityForm({
         <label className="mb-1 block text-sm font-medium">Title</label>
         <input
           name="title"
-          required
+          required={!isFlightMode}
           className="w-full rounded-xl border px-3 py-2"
-          placeholder="e.g. Lunch at Tao Tao Ju"
-          disabled={isSubmitting}
+          placeholder={isFlightMode ? 'Derived from selected flight details' : 'e.g. Lunch at Tao Tao Ju'}
+          disabled={isSubmitting || isFlightMode}
         />
+        {isFlightMode ? (
+          <p className="mt-1 text-xs text-[var(--text-subtle)]">
+            For flights, title and timing are taken from the selected departure and arrival details.
+          </p>
+        ) : null}
       </div>
 
       <div>
@@ -88,11 +94,12 @@ export default function NewActivityForm({
           type="time"
           name="activity_time"
           className="w-full rounded-xl border px-3 py-2"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isFlightMode}
         />
       </div>
 
       <input type="hidden" name="type" value={storyTypeToActivityType(storyType)} />
+      <input type="hidden" name="flight_mode" value={isFlightMode ? '1' : '0'} />
 
       <ActivityPlacePickerField
         tripId={tripId}
@@ -126,7 +133,7 @@ export default function NewActivityForm({
           disabled={isSubmitting}
           className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
         >
-          {isSubmitting ? 'Saving...' : 'Save Activity'}
+          {isSubmitting ? 'Saving...' : isFlightMode ? 'Done' : 'Save Activity'}
         </button>
 
         <Link

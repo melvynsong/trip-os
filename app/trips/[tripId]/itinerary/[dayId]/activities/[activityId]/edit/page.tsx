@@ -4,6 +4,7 @@ import EditActivityForm from '@/app/components/itinerary/EditActivityForm'
 import TripHeader from '@/app/components/trips/TripHeader'
 import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
+import { isLikelyFlightActivity } from '@/lib/flights/activity'
 import type { ActivityType } from '@/types/trip'
 
 const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
@@ -92,8 +93,13 @@ export default async function EditActivityPage({ params }: Props) {
     const title = String(formData.get('title') || '').trim()
     const activity_time = String(formData.get('activity_time') || '').trim()
     const rawType = String(formData.get('type') || '').trim()
+    const flightMode = String(formData.get('flight_mode') || '') === '1'
     const notes = String(formData.get('notes') || '').trim()
     const place_id = String(formData.get('place_id') || '').trim()
+
+    if (flightMode) {
+      redirect(`/trips/${tripId}/itinerary`)
+    }
 
     const type: ActivityType = ACTIVITY_TYPES.some((option) => option.value === rawType)
       ? (rawType as ActivityType)
@@ -166,6 +172,7 @@ export default async function EditActivityPage({ params }: Props) {
         initialTitle={activity.title}
         initialTime={activity.activity_time}
         initialType={activity.type as ActivityType}
+        initialIsFlight={isLikelyFlightActivity({ type: activity.type as ActivityType, title: activity.title, notes: activity.notes })}
         initialPlaceId={activity.place_id}
         initialNotes={activity.notes}
         initialPlaces={places || []}

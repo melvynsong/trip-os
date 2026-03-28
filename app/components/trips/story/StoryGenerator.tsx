@@ -113,10 +113,10 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
   return (
     <section
       id="trip-story-generator"
-      className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-5 shadow-[0_2px_16px_rgba(28,25,23,0.06)] sm:p-7"
+      className="min-w-0 overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-5 shadow-[0_2px_16px_rgba(28,25,23,0.06)] sm:p-7"
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(300px,340px)_minmax(0,1fr)]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-6">
+        <div className="min-w-0 space-y-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">AI Story</p>
             <h2 className="mt-3 font-serif text-3xl text-[var(--text-strong)]">Turn this into a story</h2>
@@ -125,7 +125,7 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
             </p>
           </div>
 
-          <div className="space-y-4 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)]/60 p-4">
+          <div className="min-w-0 space-y-4 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)]/60 p-4">
             <SegmentedControl
               label="Tone"
               value={tone}

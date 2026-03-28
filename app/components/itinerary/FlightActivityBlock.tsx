@@ -36,9 +36,8 @@ export default function FlightActivityBlock({ tripId, dayId, group }: FlightActi
 
   const departureId = group.departure?.id || group.summary?.id || null
   const arrivalId = group.arrival?.id && group.arrival.id !== departureId ? group.arrival.id : null
-
-  const departureLabel = group.departure ? 'Depart' : group.summary ? 'Scheduled' : 'Depart'
-  const arrivalLabel = group.arrival ? 'Arrive' : 'Arrive'
+  const departureTitle = group.departure?.title || group.summary?.title || 'Flight departure'
+  const arrivalTitle = group.arrival?.title || 'Flight arrival'
 
   return (
     <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/60 p-4 transition-colors hover:bg-sky-50/60">
@@ -54,15 +53,19 @@ export default function FlightActivityBlock({ tripId, dayId, group }: FlightActi
         </span>
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <div className="rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{departureLabel}</p>
-          <p className="mt-1 font-medium text-slate-900">{formatTime(group.departure?.activity_time || group.summary?.activity_time)}</p>
+      <div className="mt-3 space-y-2">
+        <div className="rounded-xl bg-white px-3 py-3 text-sm text-slate-700 ring-1 ring-slate-200">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-medium text-slate-900">✈️ {departureTitle}</p>
+            <p className="shrink-0 font-semibold text-slate-900">{formatTime(group.departure?.activity_time || group.summary?.activity_time)}</p>
+          </div>
         </div>
 
-        <div className="rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{arrivalLabel}</p>
-          <p className="mt-1 font-medium text-slate-900">{formatTime(group.arrival?.activity_time)}</p>
+        <div className="rounded-xl bg-white px-3 py-3 text-sm text-slate-700 ring-1 ring-slate-200">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-medium text-slate-900">✈️ {arrivalTitle}</p>
+            <p className="shrink-0 font-semibold text-slate-900">{formatTime(group.arrival?.activity_time)}</p>
+          </div>
         </div>
       </div>
 
