@@ -262,13 +262,12 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       });
     }
     if (group.arrDateTime && typeof group.arrival !== 'undefined' && group.arrival !== undefined) {
-      const arrival = group.arrival as ItineraryActivity;
       const arrDateTime = group.arrDateTime;
       flightTimelineItems.push({
         kind: 'flight_card',
         activity: {
           ...arrival,
-          day_id: arrDateTime!.slice(0, 10),
+        detectedRole: detectFlightRole(activity)
           activity_time: arrDateTime!.slice(11, 16),
         },
         role: 'arrival',
@@ -317,7 +316,8 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
   }
 
   const sections: TimeOfDaySection[] = (['morning', 'afternoon', 'evening', 'flexible'] as TimeOfDayKey[])
-    .map((key) => ({ key, label: SECTION_LABELS[key], items: sectionsByKey.get(key) || [] }))
+      const role = detectFlightRole(activity);
+      if (role === 'departure') {
     .filter((section) => section.items.length > 0)
 
   return { orderedItems, sections }
