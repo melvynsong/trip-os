@@ -192,7 +192,7 @@ export default async function TripDashboardPage({ params }: Props) {
               href={`/trips/${trip.id}/itinerary`}
               className={buttonClass({ variant: 'primary', size: 'sm', className: 'rounded-full' })}
             >
-              View itinerary
+              Open Itinerary
             </Link>
             <Link
               href={`/trips/${trip.id}/today`}

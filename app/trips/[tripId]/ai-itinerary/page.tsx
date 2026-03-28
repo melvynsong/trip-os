@@ -73,7 +73,7 @@ export default async function AiItineraryPage({ params }: Props) {
             href={`/trips/${tripId}/itinerary`}
             className={buttonClass({ size: 'sm', variant: 'secondary', className: 'rounded-full' })}
           >
-            View itinerary
+            Open Itinerary
           </Link>
         }
       />

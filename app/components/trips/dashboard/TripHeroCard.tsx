@@ -42,7 +42,7 @@ export default function TripHeroCard({
             View Today
           </Link>
           <Link href={`/trips/${tripId}/itinerary`} className={buttonClass({ variant: 'secondary', className: 'border-white/45 bg-white/10 text-white hover:bg-white/20 active:bg-white/25' })}>
-            View Itinerary
+            Open Itinerary
           </Link>
           {shareButton}
         </div>

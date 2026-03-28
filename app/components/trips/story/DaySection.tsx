@@ -63,7 +63,7 @@ export default function DaySection({
             href={`/trips/${tripId}/itinerary`}
             className={buttonClass({ variant: 'secondary', className: 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]' })}
           >
-            Continue your story
+            Open Itinerary
           </Link>
         </div>
 

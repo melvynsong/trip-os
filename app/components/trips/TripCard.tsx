@@ -1,8 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import Link from 'next/link'
 import Card from '@/app/components/ui/Card'
+import TripModeActionGroup from '@/app/components/trips/TripModeActionGroup'
 import DestinationCoverArt from '@/app/components/trips/story/DestinationCoverArt'
 import { buttonClass } from '@/app/components/ui/Button'
 import CountdownBadge from '@/app/components/trips/CountdownBadge'
@@ -109,25 +109,16 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
             : 'This journey is ready to become something memorable.'}
         </p>
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/trips/${trip.id}`}
-            className={buttonClass({ variant: 'primary', className: 'rounded-full' })}
-          >
-            View story
-          </Link>
-          <Link
-            href={`/trips/${trip.id}/itinerary`}
-            className={buttonClass({
-              variant: 'secondary',
-              className: isPrimaryUpcoming
-                ? 'rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20'
-                : 'rounded-full border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]',
-            })}
-          >
-            Continue planning
-          </Link>
-        </div>
+        <TripModeActionGroup
+          tripId={trip.id}
+          primaryMode="itinerary"
+          itineraryClassName={isPrimaryUpcoming ? '' : undefined}
+          storyClassName={
+            isPrimaryUpcoming
+              ? 'border-white/30 bg-white/10 text-white hover:bg-white/20'
+              : 'border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-strong)]'
+          }
+        />
       </div>
 
       <form ref={formRef} action={onDeleteTrip} className="relative z-20">
