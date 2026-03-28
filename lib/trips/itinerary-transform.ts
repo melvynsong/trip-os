@@ -6,6 +6,7 @@ export type ItineraryActivity = Pick<
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id' | 'created_at'
 > & {
   places: { id: string; name: string } | null
+  arrival_datetime?: string | null
 }
 
 export type FlightActivityGroup = {
