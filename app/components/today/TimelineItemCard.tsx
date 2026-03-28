@@ -22,10 +22,10 @@ type TimelineItemCardProps = {
 }
 
 function formatTime(t: string) {
-  const [h, m] = t.split(':').map(Number)
-  const period = h >= 12 ? 'PM' : 'AM'
-  const displayH = h % 12 || 12
-  return `${displayH}:${String(m).padStart(2, '0')} ${period}`
+  // Always return 24-hour format (HH:mm)
+  const [h, m] = t.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return t;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 export default function TimelineItemCard({
