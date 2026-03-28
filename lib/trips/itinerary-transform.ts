@@ -268,6 +268,17 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     }
   }
 
+  // DEBUG: Log flightTimelineItems
+  console.log('[ItineraryDebug] flightTimelineItems:', flightTimelineItems.map(item => ({
+    kind: item.kind,
+    id: item.activity.id,
+    role: item.role,
+    type: item.activity.type,
+    activity_time: item.activity.activity_time,
+    title: item.activity.title,
+    notes: item.activity.notes
+  })));
+
   // --- FIX: Always include flightTimelineItems in orderedItems ---
   const orderedItems = [...standaloneItems, ...flightTimelineItems].sort((a, b) => {
     const aTime = getItemPrimaryTime(a);
