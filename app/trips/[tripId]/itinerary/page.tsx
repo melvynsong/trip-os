@@ -10,6 +10,7 @@ import { buttonClass } from '@/app/components/ui/Button'
 import { resolvePlaceType } from '@/lib/places'
 import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
 import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
+import { listTripFlights } from '@/lib/flights/trip'
 
 type Props = {
   params: Promise<{ tripId: string }>
@@ -232,6 +233,9 @@ export default async function ItineraryPage({ params }: Props) {
   const shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' })
   const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
 
+  // Fetch flights for this trip
+  const flights = await listTripFlights(supabase, tripId)
+
   return (
     <TripPageShell className="space-y-8">
       <TripHeader
@@ -281,6 +285,9 @@ export default async function ItineraryPage({ params }: Props) {
         {days.map((day) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id)
 
+          // Find flights for this day (departure and arrival)
+          const dayFlights = flights.filter(flight => flight.flightDate === day.date)
+
           return (
             <DayCard
               key={day.id}
@@ -290,6 +297,7 @@ export default async function ItineraryPage({ params }: Props) {
               hotel={hotel}
               day={day}
               activities={dayActivities}
+              flights={dayFlights}
               moveActivityAction={moveActivity}
             />
           )

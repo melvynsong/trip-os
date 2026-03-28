@@ -25,6 +25,7 @@ type DayCardProps = {
   hotel: string | null
   day: DayCardDay
   activities: DayCardActivity[]
+  flights?: any[]
   moveActivityAction: (formData: FormData) => Promise<void>
 }
 
@@ -35,6 +36,7 @@ export default function DayCard({
   hotel,
   day,
   activities,
+  flights = [],
   moveActivityAction,
 }: DayCardProps) {
   const normalizedDayTitle =
@@ -89,6 +91,10 @@ export default function DayCard({
     },
     { length: 'detailed' }
   )
+
+  // Find departure and arrival flights for this day
+  const departureFlights = flights.filter(f => f.departureTime.startsWith(day.date))
+  const arrivalFlights = flights.filter(f => f.arrivalTime.startsWith(day.date))
 
   return (
     <Card key={day.id} className="rounded-[2rem] border-slate-200 bg-white p-5 sm:p-6">
@@ -158,6 +164,24 @@ export default function DayCard({
           No activities yet
         </div>
       )}
+      {/* Flight Departure Cards */}
+      {departureFlights.map(flight => (
+        <div key={flight.id + '-dep'} className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+          <div className="font-semibold text-blue-900">✈️ Flight Departure</div>
+          <div className="text-sm text-blue-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
+          <div className="text-xs text-blue-700">From {flight.departureAirportName} ({flight.departureAirportCode}) at {flight.departureTime}</div>
+          <div className="text-xs text-blue-700">To {flight.arrivalAirportName} ({flight.arrivalAirportCode})</div>
+        </div>
+      ))}
+      {/* Flight Arrival Cards */}
+      {arrivalFlights.map(flight => (
+        <div key={flight.id + '-arr'} className="mb-3 rounded-xl border border-green-200 bg-green-50 p-4">
+          <div className="font-semibold text-green-900">🛬 Flight Arrival</div>
+          <div className="text-sm text-green-800">{flight.airlineName} {flight.flightNumber} ({flight.airlineCode})</div>
+          <div className="text-xs text-green-700">Arrives at {flight.arrivalAirportName} ({flight.arrivalAirportCode}) at {flight.arrivalTime}</div>
+          <div className="text-xs text-green-700">From {flight.departureAirportName} ({flight.departureAirportCode})</div>
+        </div>
+      ))}
     </Card>
   )
 }
