@@ -263,17 +263,25 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     }
     if (group.arrDateTime && typeof group.arrival !== 'undefined' && group.arrival !== undefined) {
       const arrDateTime = group.arrDateTime;
+      // Compute 24-hour time string from arrDateTime
+      let arrival_time_24h = '';
+      if (arrDateTime) {
+        const arrDate = new Date(arrDateTime);
+        const hours = arrDate.getUTCHours().toString().padStart(2, '0');
+        const minutes = arrDate.getUTCMinutes().toString().padStart(2, '0');
+        arrival_time_24h = `${hours}:${minutes}`;
+      }
       flightTimelineItems.push({
         kind: 'flight_card',
         activity: {
           ...(group.arrival as ItineraryActivity),
-          activity_time: arrDateTime!.slice(11, 16),
+          activity_time: arrival_time_24h,
           arrival_datetime: arrDateTime,
         },
         role: 'arrival',
         meta: group.meta || {},
         originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(arrDateTime!.slice(11, 16)),
+        sortMinutes: parseActivityMinutes(arrival_time_24h),
       });
     }
   }
