@@ -81,14 +81,17 @@ function extractFlightNumber(text: string): string | null {
 }
 
 function extractAirline(text: string): string | null {
-  const flightNumber = extractFlightNumber(text)
-  if (!flightNumber) return null
-  const escaped = flightNumber.replace(/\s+/, '\\s*')
-  const regex = new RegExp(`^(.*?)\\s+${escaped}`)
-  const match = regex.exec(text)
-  if (!match) return null
-  const airline = match[1].trim()
-  return airline || null
+  // Try to match 'AirlineName XX 123' or 'AirlineName XX123'
+  const match = text.match(/([A-Z][A-Z\s]+?)\s+[A-Z]{2,3}\s?\d{1,4}[A-Z]?/);
+  if (match) {
+    return match[1].trim();
+  }
+  // Fallback: try to match 'AirlineName' before '·' or 'FLIGHT'
+  const fallback = text.match(/([A-Z][A-Z\s]+?)\s+·/);
+  if (fallback) {
+    return fallback[1].trim();
+  }
+  return null;
 }
 
 function isLikelyFlight(activity: ItineraryActivity): boolean {
