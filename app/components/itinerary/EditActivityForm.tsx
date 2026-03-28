@@ -7,16 +7,6 @@ import ActivityPlacePickerField from '@/app/components/places/picker/ActivityPla
 import type { StoryEngineType } from '@/app/components/places/picker/StoryEngineSection'
 import type { ActivityType } from '@/types/trip'
 
-const ACTIVITY_TYPES: Array<{ value: ActivityType; label: string }> = [
-  { value: 'food', label: '🍜 Food' },
-  { value: 'attraction', label: '📍 Attraction' },
-  { value: 'shopping', label: '🛍️ Shopping' },
-  { value: 'transport', label: '✈️ Transport (Flight/Train/Bus)' },
-  { value: 'hotel', label: '🏨 Hotel' },
-  { value: 'note', label: '📝 Note' },
-  { value: 'other', label: '📌 Other' },
-]
-
 type EditActivityFormProps = {
   tripId: string
   tripTitle: string
@@ -88,20 +78,13 @@ export default function EditActivityForm({
   canUseFlights = true,
   flightAccessMessage,
 }: EditActivityFormProps) {
-  const [activityType, setActivityType] = useState<ActivityType>(initialType)
   const [storyType, setStoryType] = useState<StoryEngineType>(activityTypeToStoryType(initialType))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function handleActivityTypeChange(nextType: ActivityType) {
-    setActivityType(nextType)
-    setStoryType(activityTypeToStoryType(nextType))
-  }
-
   function handleStoryTypeChange(nextType: StoryEngineType) {
     setStoryType(nextType)
-    setActivityType(storyTypeToActivityType(nextType))
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -158,22 +141,7 @@ export default function EditActivityForm({
           />
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
-          <select
-            name="type"
-            value={activityType}
-            onChange={(e) => handleActivityTypeChange(e.target.value as ActivityType)}
-            className="w-full rounded-xl border px-3 py-2"
-            disabled={isSubmitting}
-          >
-            {ACTIVITY_TYPES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <input type="hidden" name="type" value={storyTypeToActivityType(storyType)} />
 
         <ActivityPlacePickerField
           tripId={tripId}

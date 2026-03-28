@@ -331,15 +331,12 @@ export default function StoryEngineSection({
 
       <Card className="max-w-full space-y-5 overflow-hidden rounded-[1.75rem] border-[var(--border-soft)] bg-white p-4 sm:p-5">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
             Story Engine
           </p>
-          <div>
-            <h3 className="text-xl font-serif text-[var(--text-strong)]">Story Engine</h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--text-subtle)]">
-              Add places, flights, and moments — and watch your trip come to life.
-            </p>
-          </div>
+          <p className="max-w-2xl text-sm leading-6 text-[var(--text-subtle)]">
+            Add places, flights, and moments — and watch your trip come to life.
+          </p>
         </div>
 
         <div className="space-y-3">
@@ -361,13 +358,14 @@ export default function StoryEngineSection({
         </div>
 
         {storyType === 'flight' ? (
-          <ActivityFlightInput
-            tripId={tripId}
-            flightDate={flightDate}
-            canUseFlights={canUseFlights}
-            accessMessage={flightAccessMessage}
-            className="border-0 bg-[var(--surface-muted)] p-4 shadow-none"
-          />
+          <div className="rounded-2xl bg-[var(--surface-muted)] p-2">
+            <ActivityFlightInput
+              tripId={tripId}
+              flightDate={flightDate}
+              canUseFlights={canUseFlights}
+              accessMessage={flightAccessMessage}
+            />
+          </div>
         ) : (
           <>
             <div className="space-y-2">
