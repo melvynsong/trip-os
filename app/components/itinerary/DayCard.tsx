@@ -60,7 +60,7 @@ export default function DayCard({
         place_id: null,
         created_at: flight.updatedAt,
         places: null,
-      })
+      } as ItineraryActivity)
     }
     // Arrival
     if (flight.arrivalTime && flight.arrivalTime.startsWith(day.date)) {
@@ -75,7 +75,7 @@ export default function DayCard({
         place_id: null,
         created_at: flight.updatedAt,
         places: null,
-      })
+      } as ItineraryActivity)
     }
     return items
   })
