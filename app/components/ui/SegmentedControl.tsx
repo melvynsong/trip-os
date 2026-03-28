@@ -13,6 +13,7 @@ type SegmentedControlProps<T extends string> = {
   className?: string
   disabled?: boolean
   columns?: number
+  layout?: 'grid' | 'wrap'
 }
 
 export default function SegmentedControl<T extends string>({
@@ -23,6 +24,7 @@ export default function SegmentedControl<T extends string>({
   className,
   disabled = false,
   columns,
+  layout = 'grid',
 }: SegmentedControlProps<T>) {
   const columnCount = columns ?? options.length
 
@@ -33,10 +35,16 @@ export default function SegmentedControl<T extends string>({
       ) : null}
       <div
         className={cn(
-          'grid w-full gap-1 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-1',
+          layout === 'wrap'
+            ? 'flex w-full flex-wrap gap-2 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-2'
+            : 'grid w-full gap-1 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-1',
           disabled && 'opacity-60'
         )}
-        style={{ gridTemplateColumns: `repeat(${Math.max(columnCount, 1)}, minmax(0, 1fr))` }}
+        style={
+          layout === 'grid'
+            ? { gridTemplateColumns: `repeat(${Math.max(columnCount, 1)}, minmax(0, 1fr))` }
+            : undefined
+        }
         role="tablist"
         aria-disabled={disabled}
       >
@@ -51,7 +59,9 @@ export default function SegmentedControl<T extends string>({
               disabled={disabled}
               onClick={() => onChange(option.value)}
               className={cn(
-                'rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
+                layout === 'wrap'
+                  ? 'max-w-full rounded-full px-3 py-1.5 text-left text-sm font-medium leading-5 whitespace-normal break-words transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]'
+                  : 'rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
                 active
                   ? 'bg-white text-[var(--text-strong)] shadow-sm'
                   : 'text-[var(--text-subtle)] hover:text-[var(--text-strong)]',

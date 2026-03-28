@@ -225,7 +225,7 @@ export default function StoryGenerationSheet({
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[92vh] flex-col rounded-t-2xl border-t bg-white shadow-2xl md:bottom-auto md:left-1/2 md:top-1/2 md:max-h-[88vh] md:w-[min(760px,94vw)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:border">
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[92vh] flex-col overflow-hidden rounded-t-2xl border-t bg-white shadow-2xl md:bottom-auto md:left-1/2 md:top-1/2 md:max-h-[88vh] md:w-[min(980px,96vw)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:border">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
                 <h2 className="font-semibold">{title}</h2>
@@ -239,8 +239,9 @@ export default function StoryGenerationSheet({
               </button>
             </div>
 
-            <div className="grid flex-1 gap-4 overflow-y-auto px-5 py-4 md:grid-cols-[280px_1fr]">
-              <div className="space-y-3 rounded-xl border p-3">
+            <div className="grid min-h-0 flex-1 gap-4 overflow-hidden px-5 py-4 md:grid-cols-[minmax(300px,340px)_minmax(0,1fr)]">
+              <div className="min-h-0 overflow-y-auto rounded-xl border p-3">
+                <div className="space-y-3">
                 {draft && isDraftOptionsCollapsed ? (
                   <div className="space-y-3">
                     <div className="rounded-lg border border-sky-100 bg-sky-50/70 px-3 py-2 text-sm text-slate-700">
@@ -305,9 +306,10 @@ export default function StoryGenerationSheet({
                     ) : null}
                   </>
                 )}
+                </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="min-h-0 space-y-3 overflow-y-auto pr-1">
                 {error ? (
                   <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                     {error}

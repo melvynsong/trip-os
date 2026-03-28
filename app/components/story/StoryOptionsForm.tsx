@@ -43,6 +43,7 @@ export default function StoryOptionsForm({
         value={tone}
         onChange={(v) => onToneChange(v as StoryTone)}
         options={STORY_TONE_OPTIONS}
+        layout="wrap"
       />
 
       <SegmentedControl
@@ -50,6 +51,7 @@ export default function StoryOptionsForm({
         value={length}
         onChange={(v) => onLengthChange(v as StoryLength)}
         options={STORY_LENGTH_OPTIONS}
+        layout="wrap"
       />
 
       {scope === 'day' ? (
@@ -58,6 +60,7 @@ export default function StoryOptionsForm({
           value={dayFocus}
           onChange={(v) => onDayFocusChange(v as DayStoryFocus)}
           options={DAY_STORY_FOCUS_OPTIONS}
+          layout="wrap"
         />
       ) : (
         <SegmentedControl
@@ -65,6 +68,7 @@ export default function StoryOptionsForm({
           value={placeStoryType}
           onChange={(v) => onPlaceStoryTypeChange(v as PlaceStoryTypeOption)}
           options={PLACE_STORY_TYPE_OPTIONS}
+          layout="wrap"
         />
       )}
     </div>

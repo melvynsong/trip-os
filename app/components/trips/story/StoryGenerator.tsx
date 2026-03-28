@@ -115,7 +115,7 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
       id="trip-story-generator"
       className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-panel)] p-5 shadow-[0_2px_16px_rgba(28,25,23,0.06)] sm:p-7"
     >
-      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-1">
+      <div className="grid gap-6 lg:grid-cols-[minmax(300px,340px)_minmax(0,1fr)]">
         <div className="space-y-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">AI Story</p>
@@ -131,12 +131,14 @@ export default function StoryGenerator({ tripId, tripTitle }: { tripId: string; 
               value={tone}
               onChange={(value) => setTone(value as StoryTone)}
               options={STORY_TONE_OPTIONS}
+              layout="wrap"
             />
             <SegmentedControl
               label="Length"
               value={length}
               onChange={(value) => setLength(value as StoryLength)}
               options={STORY_LENGTH_OPTIONS}
+              layout="wrap"
             />
             <Button
               variant="primary"
