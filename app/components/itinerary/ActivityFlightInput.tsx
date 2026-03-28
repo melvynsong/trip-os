@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import FlightRouteMap from '@/app/components/trips/flight/FlightRouteMap'
+import BetaBadge from '@/app/components/ui/BetaBadge'
 import Button from '@/app/components/ui/Button'
+import SegmentedControl from '@/app/components/ui/SegmentedControl'
 import type { SavedTripFlight } from '@/lib/flights/trip'
 import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
-import { buttonClass } from '@/app/components/ui/Button'
 
 type ActivityFlightInputProps = {
   tripId: string
@@ -13,6 +14,11 @@ type ActivityFlightInputProps = {
   onFlightSelected?: (flight: SavedTripFlight | null) => void
   canUseFlights?: boolean
   accessMessage?: string | null
+}
+
+type FlightsPayload = {
+  flights?: SavedTripFlight[]
+  error?: string
 }
 
 function normalizeFlightNumberForInput(value: string): string {
@@ -71,14 +77,61 @@ export default function ActivityFlightInput({
 }: ActivityFlightInputProps) {
   const [flightNumberInput, setFlightNumberInput] = useState('')
   const [lookupResult, setLookupResult] = useState<FlightLookupResult | null>(null)
+  const [savedFlights, setSavedFlights] = useState<SavedTripFlight[]>([])
   const [isLookingUp, setIsLookingUp] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoadingFlights, setIsLoadingFlights] = useState(false)
   const [selectedDirection, setSelectedDirection] = useState<FlightDirection>('outbound')
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const hasLookupInputs = Boolean(flightNumberInput.trim() && flightDate)
   const durationLabel = getDurationLabel(lookupResult?.departureTime || null, lookupResult?.arrivalTime || null)
+
+  useEffect(() => {
+    if (!canUseFlights) {
+      setSavedFlights([])
+      return
+    }
+
+    let active = true
+
+    async function loadFlights() {
+      setIsLoadingFlights(true)
+      try {
+        const response = await fetch(`/api/trips/${tripId}/flight`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+
+        const payload = (await response.json()) as FlightsPayload
+        if (!response.ok) {
+          if (active) {
+            setError(payload.error || 'Failed to load saved flights.')
+          }
+          return
+        }
+
+        if (active) {
+          setSavedFlights(payload.flights || [])
+        }
+      } catch {
+        if (active) {
+          setError('Failed to load saved flights.')
+        }
+      } finally {
+        if (active) {
+          setIsLoadingFlights(false)
+        }
+      }
+    }
+
+    void loadFlights()
+
+    return () => {
+      active = false
+    }
+  }, [tripId, canUseFlights])
 
   async function handleLookup() {
     if (!hasLookupInputs || !canUseFlights || isLookingUp) return
@@ -139,8 +192,17 @@ export default function ActivityFlightInput({
         return
       }
 
+      const savedFlight = data.flight as SavedTripFlight | undefined
       setLookupResult(data.flight || lookupResult)
       setSuccessMessage('Flight added to your trip story.')
+
+      if (savedFlight) {
+        setSavedFlights((current) => {
+          const filtered = current.filter((item) => item.direction !== savedFlight.direction)
+          return [...filtered, savedFlight]
+        })
+      }
+
       if (onFlightSelected && data.flight) {
         onFlightSelected(data.flight)
       }
@@ -154,9 +216,12 @@ export default function ActivityFlightInput({
   return (
     <div className="space-y-4 rounded-2xl border border-[var(--border-soft)] bg-white p-4">
       <div className="space-y-1">
-        <h4 className="font-medium text-[var(--text-strong)]">Add Flight Beta</h4>
+        <div className="flex items-center gap-2">
+          <h4 className="font-medium text-[var(--text-strong)]">Add Flight</h4>
+          <BetaBadge />
+        </div>
         <p className="text-sm text-[var(--text-subtle)]">
-          Use flight number + date lookup to attach a flight to your story.
+          Add flights to shape your journey — we’ll map your story as you go.
         </p>
       </div>
 
@@ -166,8 +231,8 @@ export default function ActivityFlightInput({
         </div>
       ) : null}
 
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="md:col-span-2">
+      <div className="grid gap-3">
+        <div>
           <label className="mb-1 block text-xs font-medium text-[var(--text-subtle)]">Flight Number</label>
           <input
             type="text"
@@ -178,19 +243,17 @@ export default function ActivityFlightInput({
             className="h-10 w-full rounded-lg border border-[var(--border-soft)] px-3 text-sm text-[var(--text-strong)] outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--ring-brand)] disabled:opacity-60"
           />
         </div>
-        <div className="md:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-[var(--text-subtle)]">Journey Role</label>
-          <select
-            value={selectedDirection}
-            onChange={(e) => setSelectedDirection(e.target.value as FlightDirection)}
-            disabled={!canUseFlights}
-            className="h-10 w-full rounded-lg border border-[var(--border-soft)] px-3 text-sm text-[var(--text-strong)] outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--ring-brand)] disabled:opacity-60"
-          >
-            <option value="outbound">Outbound</option>
-            <option value="return">Return</option>
-            <option value="unknown">Other / Not sure yet</option>
-          </select>
-        </div>
+
+        <SegmentedControl
+          value={selectedDirection}
+          onChange={setSelectedDirection}
+          disabled={!canUseFlights}
+          options={[
+            { label: 'Outbound', value: 'outbound' },
+            { label: 'Return', value: 'return' },
+            { label: 'Unknown', value: 'unknown' },
+          ]}
+        />
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -214,16 +277,6 @@ export default function ActivityFlightInput({
         >
           Save to trip
         </Button>
-        <Link
-          href={`/trips/${tripId}/flight`}
-          className={buttonClass({
-            size: 'sm',
-            variant: 'ghost',
-            className: 'rounded-full text-[var(--text-subtle)] hover:bg-[var(--surface-muted)]',
-          })}
-        >
-          Open full Add Flight Beta
-        </Link>
       </div>
 
       {lookupResult ? (
@@ -245,6 +298,8 @@ export default function ActivityFlightInput({
           Duration: <span className="font-medium">{durationLabel}</span>
         </div>
       ) : null}
+
+      {!isLoadingFlights ? <FlightRouteMap flights={savedFlights} /> : null}
 
       {error ? <p className="text-xs text-red-500">{error}</p> : null}
       {successMessage ? <p className="text-xs text-emerald-700">{successMessage}</p> : null}

@@ -322,7 +322,7 @@ export default function StoryEngineSection({
 
   const helperText =
     storyType === 'flight'
-      ? 'Add your flight details to place this journey into your story.'
+      ? 'Add flights to shape your journey — we’ll map your story as you go.'
       : 'Search for places, restaurants, and attractions.'
 
   return (

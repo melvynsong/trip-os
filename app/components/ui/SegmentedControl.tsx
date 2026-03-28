@@ -1,15 +1,17 @@
 import { cn } from '@/lib/utils/cn'
 
 type SegmentedOption<T extends string> = {
-  value: T
   label: string
+  value: T
 }
 
 type SegmentedControlProps<T extends string> = {
-  label: string
+  label?: string
   value: T
   options: SegmentedOption<T>[]
   onChange: (value: T) => void
+  className?: string
+  disabled?: boolean
   columns?: number
 }
 
@@ -18,28 +20,42 @@ export default function SegmentedControl<T extends string>({
   value,
   options,
   onChange,
+  className,
+  disabled = false,
   columns,
 }: SegmentedControlProps<T>) {
-  const cols = columns ?? Math.min(options.length, 3)
+  const columnCount = columns ?? options.length
+
   return (
-    <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{label}</p>
+    <div className={cn('space-y-2', className)}>
+      {label ? (
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">{label}</p>
+      ) : null}
       <div
-        className="grid gap-1.5 rounded-xl bg-[var(--surface-muted)] p-1"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        className={cn(
+          'grid w-full gap-1 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-1',
+          disabled && 'opacity-60'
+        )}
+        style={{ gridTemplateColumns: `repeat(${Math.max(columnCount, 1)}, minmax(0, 1fr))` }}
+        role="tablist"
+        aria-disabled={disabled}
       >
         {options.map((option) => {
-          const selected = option.value === value
+          const active = option.value === value
           return (
             <button
               key={option.value}
               type="button"
+              role="tab"
+              aria-selected={active}
+              disabled={disabled}
               onClick={() => onChange(option.value)}
               className={cn(
-                'min-h-10 rounded-lg border px-2 py-2 text-center text-sm font-medium tracking-[-0.01em] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
-                selected
-                  ? 'border-[var(--border-soft)] bg-white text-[var(--text-strong)] shadow-sm'
-                  : 'border-transparent bg-transparent text-[var(--text-subtle)] hover:text-[var(--text-strong)] hover:bg-white/60'
+                'rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
+                active
+                  ? 'bg-white text-[var(--text-strong)] shadow-sm'
+                  : 'text-[var(--text-subtle)] hover:text-[var(--text-strong)]',
+                disabled && 'cursor-not-allowed'
               )}
             >
               {option.label}
