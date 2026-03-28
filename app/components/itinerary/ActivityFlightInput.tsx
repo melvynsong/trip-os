@@ -8,8 +8,11 @@ import SegmentedControl from '@/app/components/ui/SegmentedControl'
 import type { SavedTripFlight } from '@/lib/flights/trip'
 import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
 
+// ─── types ────────────────────────────────────────────────────────────────────
+
 type ActivityFlightInputProps = {
   tripId: string
+  /** ISO date string for this day, e.g. "2026-03-28". Lookup is locked to this date. */
   flightDate: string
   onFlightSelected?: (flight: SavedTripFlight | null) => void
   canUseFlights?: boolean
@@ -21,52 +24,90 @@ type FlightsPayload = {
   error?: string
 }
 
-function normalizeFlightNumberForInput(value: string): string {
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+function normalizeFlightNumber(value: string): string {
   const compact = value.toUpperCase().replace(/\s+/g, '')
   const match = /^([A-Z]{2,3})(\d{1,4}[A-Z]?)$/.exec(compact)
   if (!match) return value.toUpperCase().trim()
   return `${match[1]} ${match[2]}`
 }
 
-function formatDateTime(dateTime: string | null) {
+function formatDate(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`)
+  return new Intl.DateTimeFormat('en', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(d)
+}
+
+function formatTime(dateTime: string | null): string {
   if (!dateTime) return '—'
-
-  const match = /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/.exec(dateTime)
-  if (!match) return dateTime.replace('T', ' ')
-
-  const [, year, month, day, hourRaw, minute] = match
-  const hour24 = Number(hourRaw)
+  const match = /[T\s](\d{2}):(\d{2})/.exec(dateTime)
+  if (!match) return '—'
+  const hour24 = Number(match[1])
+  const minute = match[2]
   const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12
   const ampm = hour24 >= 12 ? 'PM' : 'AM'
-
-  const monthLabel = new Intl.DateTimeFormat('en', {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))))
-
-  return `${monthLabel} ${Number(day)}, ${hour12}:${minute} ${ampm}`
+  return `${hour12}:${minute} ${ampm}`
 }
 
-function getDurationLabel(departureDateTime: string | null, arrivalDateTime: string | null) {
-  if (!departureDateTime || !arrivalDateTime) return null
-  const departure = new Date(departureDateTime)
-  const arrival = new Date(arrivalDateTime)
-
-  if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())) {
-    return null
-  }
-
-  const diffMs = arrival.getTime() - departure.getTime()
+function getDuration(dep: string | null, arr: string | null): string | null {
+  if (!dep || !arr) return null
+  const d = new Date(dep)
+  const a = new Date(arr)
+  if (Number.isNaN(d.getTime()) || Number.isNaN(a.getTime())) return null
+  const diffMs = a.getTime() - d.getTime()
   if (diffMs <= 0) return null
-
-  const totalMinutes = Math.round(diffMs / 60000)
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  if (hours === 0) return `${minutes}m`
-  if (minutes === 0) return `${hours}h`
-  return `${hours}h ${minutes}m`
+  const mins = Math.round(diffMs / 60000)
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
 }
+
+function directionLabel(dir: FlightDirection): string {
+  if (dir === 'outbound') return 'Outbound'
+  if (dir === 'return') return 'Return'
+  return 'Other'
+}
+
+// ─── departure / arrival leg card ─────────────────────────────────────────────
+
+type LegCardProps = {
+  label: string
+  airportCode: string
+  city: string | null
+  airportName: string | null
+  time: string | null
+  terminal: string | null
+}
+
+function LegCard({ label, airportCode, city, airportName, time, terminal }: LegCardProps) {
+  return (
+    <div className="rounded-xl border border-[var(--border-soft)] bg-white p-3 shadow-sm">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+        {label}
+      </p>
+      <p className="mt-1 text-2xl font-bold leading-none text-[var(--text-strong)]">
+        {airportCode || '—'}
+      </p>
+      <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
+        {city || airportName || '—'}
+      </p>
+      <p className="mt-2 text-sm font-semibold text-[var(--text-strong)]">{formatTime(time)}</p>
+      {terminal ? (
+        <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]">Terminal {terminal}</p>
+      ) : null}
+    </div>
+  )
+}
+
+// ─── component ────────────────────────────────────────────────────────────────
 
 export default function ActivityFlightInput({
   tripId,
@@ -75,231 +116,362 @@ export default function ActivityFlightInput({
   canUseFlights = true,
   accessMessage,
 }: ActivityFlightInputProps) {
+  const [allFlights, setAllFlights] = useState<SavedTripFlight[]>([])
+  const [isLoadingFlights, setIsLoadingFlights] = useState(false)
+
   const [flightNumberInput, setFlightNumberInput] = useState('')
+  const [selectedDirection, setSelectedDirection] = useState<FlightDirection>('outbound')
   const [lookupResult, setLookupResult] = useState<FlightLookupResult | null>(null)
-  const [savedFlights, setSavedFlights] = useState<SavedTripFlight[]>([])
+
   const [isLookingUp, setIsLookingUp] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [isLoadingFlights, setIsLoadingFlights] = useState(false)
-  const [selectedDirection, setSelectedDirection] = useState<FlightDirection>('outbound')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isReplacing, setIsReplacing] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const hasLookupInputs = Boolean(flightNumberInput.trim() && flightDate)
-  const durationLabel = getDurationLabel(lookupResult?.departureTime || null, lookupResult?.arrivalTime || null)
+  const flightOnThisDay = allFlights.find((f) => f.flightDate === flightDate) ?? null
+  const showLookupForm = !flightOnThisDay || isReplacing
+  const hasFlightNumber = flightNumberInput.trim().length > 0
+  const lookupDuration = getDuration(lookupResult?.departureTime ?? null, lookupResult?.arrivalTime ?? null)
+  const savedDuration = flightOnThisDay
+    ? getDuration(flightOnThisDay.departureTime, flightOnThisDay.arrivalTime)
+    : null
 
   useEffect(() => {
     if (!canUseFlights) {
-      setSavedFlights([])
+      setAllFlights([])
       return
     }
 
     let active = true
-
-    async function loadFlights() {
+    void (async () => {
       setIsLoadingFlights(true)
       try {
-        const response = await fetch(`/api/trips/${tripId}/flight`, {
+        const resp = await fetch(`/api/trips/${tripId}/flight`, {
           method: 'GET',
           credentials: 'include',
         })
-
-        const payload = (await response.json()) as FlightsPayload
-        if (!response.ok) {
-          if (active) {
-            setError(payload.error || 'Failed to load saved flights.')
-          }
+        const payload = (await resp.json()) as FlightsPayload
+        if (!resp.ok) {
+          if (active) setError(payload.error || 'Failed to load flights.')
           return
         }
-
-        if (active) {
-          setSavedFlights(payload.flights || [])
-        }
+        if (active) setAllFlights(payload.flights || [])
       } catch {
-        if (active) {
-          setError('Failed to load saved flights.')
-        }
+        if (active) setError('Failed to load flights.')
       } finally {
-        if (active) {
-          setIsLoadingFlights(false)
-        }
+        if (active) setIsLoadingFlights(false)
       }
-    }
+    })()
 
-    void loadFlights()
-
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [tripId, canUseFlights])
 
   async function handleLookup() {
-    if (!hasLookupInputs || !canUseFlights || isLookingUp) return
-
+    if (!hasFlightNumber || isLookingUp || !canUseFlights) return
     setError(null)
     setSuccessMessage(null)
+    setLookupResult(null)
     setIsLookingUp(true)
-
     try {
-      const response = await fetch('/api/flights/lookup', {
+      const resp = await fetch('/api/flights/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          tripId,
-          flightNumber: flightNumberInput.trim(),
-          flightDate,
-        }),
+        body: JSON.stringify({ tripId, flightNumber: flightNumberInput.trim(), flightDate }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Flight lookup failed')
+      const data = await resp.json()
+      if (!resp.ok) {
+        setError(data.error || 'Flight lookup failed.')
         return
       }
-
       setLookupResult(data.flight)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lookup failed')
+      setError(err instanceof Error ? err.message : 'Lookup failed.')
     } finally {
       setIsLookingUp(false)
     }
   }
 
-  async function handleSaveFlight() {
-    if (!lookupResult || !canUseFlights || isSaving) return
-
+  async function handleSaveToItinerary() {
+    if (!lookupResult || isSaving || !canUseFlights) return
     setError(null)
     setSuccessMessage(null)
     setIsSaving(true)
-
     try {
-      const response = await fetch(`/api/trips/${tripId}/flight`, {
+      const saveResp = await fetch(`/api/trips/${tripId}/flight`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          direction: selectedDirection,
-          flight: lookupResult,
-        }),
+        body: JSON.stringify({ direction: selectedDirection, flight: lookupResult }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to save flight')
+      const saveData = await saveResp.json()
+      if (!saveResp.ok) {
+        setError(saveData.error || 'Failed to save flight.')
         return
       }
+      const savedFlight = saveData.flight as SavedTripFlight
 
-      const savedFlight = data.flight as SavedTripFlight | undefined
-      setLookupResult(data.flight || lookupResult)
-      setSuccessMessage('Flight added to your trip story.')
-
-      if (savedFlight) {
-        setSavedFlights((current) => {
-          const filtered = current.filter((item) => item.direction !== savedFlight.direction)
-          return [...filtered, savedFlight]
-        })
+      const timelineResp = await fetch(`/api/trips/${tripId}/flight/timeline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ direction: selectedDirection }),
+      })
+      if (!timelineResp.ok) {
+        const tData = await timelineResp.json()
+        setError(tData.error || 'Flight saved, but could not add itinerary activities.')
       }
 
-      if (onFlightSelected && data.flight) {
-        onFlightSelected(data.flight)
-      }
+      setAllFlights((prev) => {
+        const filtered = prev.filter((f) => f.direction !== savedFlight.direction)
+        return [...filtered, savedFlight]
+      })
+      setLookupResult(null)
+      setFlightNumberInput('')
+      setIsReplacing(false)
+      setSuccessMessage('Flight saved. Departure & arrival added to your itinerary.')
+      onFlightSelected?.(savedFlight)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save flight')
+      setError(err instanceof Error ? err.message : 'Failed to save flight.')
     } finally {
       setIsSaving(false)
     }
   }
 
+  async function handleDelete(flight: SavedTripFlight) {
+    if (!confirm(`Remove ${flight.normalizedFlightNumber} from your trip?`)) return
+    setError(null)
+    setIsDeleting(true)
+    try {
+      const resp = await fetch(`/api/trips/${tripId}/flight`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ direction: flight.direction }),
+      })
+      if (!resp.ok) {
+        const d = await resp.json()
+        setError(d.error || 'Failed to delete flight.')
+        return
+      }
+      setAllFlights((prev) => prev.filter((f) => f.id !== flight.id))
+      onFlightSelected?.(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete flight.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  if (isLoadingFlights) {
+    return (
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-white p-4">
+        <p className="text-sm text-[var(--text-subtle)]">Loading flight info...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4 rounded-2xl border border-[var(--border-soft)] bg-white p-4">
-      <div className="space-y-1">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="font-medium text-[var(--text-strong)]">Add Flight</h4>
+          <h4 className="font-medium text-[var(--text-strong)]">Flight</h4>
           <BetaBadge />
         </div>
-        <p className="text-sm text-[var(--text-subtle)]">
-          Add flights to shape your journey — we’ll map your story as you go.
-        </p>
+        <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--text-subtle)]">
+          ✈️ {formatDate(flightDate)}
+        </span>
       </div>
 
       {!canUseFlights ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          {accessMessage || 'Flight is not available for this account yet.'}
+          {accessMessage || 'Flight features are not available for this account yet.'}
         </div>
       ) : null}
 
-      <div className="grid gap-3">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--text-subtle)]">Flight Number</label>
-          <input
-            type="text"
-            value={flightNumberInput}
-            onChange={(e) => setFlightNumberInput(normalizeFlightNumberForInput(e.target.value))}
-            placeholder="e.g. SQ 874"
-            disabled={!canUseFlights}
-            className="h-10 w-full rounded-lg border border-[var(--border-soft)] px-3 text-sm text-[var(--text-strong)] outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--ring-brand)] disabled:opacity-60"
+      {flightOnThisDay && !isReplacing ? (
+        <div className="space-y-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">
+                {directionLabel(flightOnThisDay.direction)}
+              </p>
+              <p className="text-base font-semibold text-[var(--text-strong)]">
+                {flightOnThisDay.normalizedFlightNumber}
+                {flightOnThisDay.airlineName ? ` · ${flightOnThisDay.airlineName}` : ''}
+              </p>
+              {flightOnThisDay.aircraftModel ? (
+                <p className="text-xs text-[var(--text-subtle)]">{flightOnThisDay.aircraftModel}</p>
+              ) : null}
+            </div>
+            {savedDuration ? (
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                {savedDuration}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <LegCard
+              label="Departs"
+              airportCode={flightOnThisDay.departureAirportCode}
+              city={flightOnThisDay.departureCity}
+              airportName={flightOnThisDay.departureAirportName}
+              time={flightOnThisDay.departureTime}
+              terminal={flightOnThisDay.departureTerminal}
+            />
+            <LegCard
+              label="Arrives"
+              airportCode={flightOnThisDay.arrivalAirportCode}
+              city={flightOnThisDay.arrivalCity}
+              airportName={flightOnThisDay.arrivalAirportName}
+              time={flightOnThisDay.arrivalTime}
+              terminal={flightOnThisDay.arrivalTerminal}
+            />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setIsReplacing(true)
+                setLookupResult(null)
+                setFlightNumberInput('')
+                setError(null)
+                setSuccessMessage(null)
+              }}
+            >
+              Replace flight
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              loading={isDeleting}
+              disabled={isDeleting}
+              onClick={() => handleDelete(flightOnThisDay)}
+            >
+              Delete flight
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {showLookupForm && canUseFlights ? (
+        <div className="space-y-3">
+          {isReplacing ? (
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-[var(--text-strong)]">Replace flight</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsReplacing(false)
+                  setLookupResult(null)
+                  setFlightNumberInput('')
+                  setError(null)
+                }}
+                className="text-xs text-[var(--text-subtle)] hover:underline"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-[var(--text-subtle)]">
+              No flight on this day yet. Enter a flight number to look it up.
+            </p>
+          )}
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-[var(--text-subtle)]">
+              Flight Number
+            </label>
+            <input
+              type="text"
+              value={flightNumberInput}
+              onChange={(e) => {
+                setFlightNumberInput(normalizeFlightNumber(e.target.value))
+                setLookupResult(null)
+              }}
+              placeholder="e.g. SQ 874"
+              className="h-10 w-full rounded-lg border border-[var(--border-soft)] px-3 text-sm text-[var(--text-strong)] outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--ring-brand)]"
+            />
+          </div>
+
+          <SegmentedControl
+            value={selectedDirection}
+            onChange={setSelectedDirection}
+            options={[
+              { label: 'Outbound', value: 'outbound' },
+              { label: 'Return', value: 'return' },
+              { label: 'Other', value: 'unknown' },
+            ]}
           />
-        </div>
 
-        <SegmentedControl
-          value={selectedDirection}
-          onChange={setSelectedDirection}
-          disabled={!canUseFlights}
-          options={[
-            { label: 'Outbound', value: 'outbound' },
-            { label: 'Return', value: 'return' },
-            { label: 'Unknown', value: 'unknown' },
-          ]}
-        />
-      </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            loading={isLookingUp}
+            disabled={!hasFlightNumber || isLookingUp}
+            onClick={handleLookup}
+          >
+            Search flight
+          </Button>
 
-      <div className="flex flex-wrap gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          loading={isLookingUp}
-          disabled={!hasLookupInputs || isLookingUp || !canUseFlights}
-          onClick={handleLookup}
-        >
-          Lookup flight
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          loading={isSaving}
-          disabled={!lookupResult || isSaving || !canUseFlights}
-          onClick={handleSaveFlight}
-        >
-          Save to trip
-        </Button>
-      </div>
+          {lookupResult ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <LegCard
+                  label="Departs"
+                  airportCode={lookupResult.departureAirportCode || '—'}
+                  city={lookupResult.departureCity}
+                  airportName={lookupResult.departureAirportName}
+                  time={lookupResult.departureTime}
+                  terminal={lookupResult.departureTerminal}
+                />
+                <LegCard
+                  label="Arrives"
+                  airportCode={lookupResult.arrivalAirportCode || '—'}
+                  city={lookupResult.arrivalCity}
+                  airportName={lookupResult.arrivalAirportName}
+                  time={lookupResult.arrivalTime}
+                  terminal={lookupResult.arrivalTerminal}
+                />
+              </div>
 
-      {lookupResult ? (
-        <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-3 text-sm text-[var(--text-subtle)]">
-          <p className="font-medium text-[var(--text-strong)]">{lookupResult.normalizedFlightNumber}</p>
-          <p className="mt-1">
-            {formatDateTime(lookupResult.departureTime)} ({lookupResult.departureAirportCode || '—'}) → {formatDateTime(lookupResult.arrivalTime)} ({lookupResult.arrivalAirportCode || '—'})
-          </p>
-          <p className="mt-1 text-xs">
-            {[lookupResult.airlineName || lookupResult.airlineCode, lookupResult.aircraftModel, durationLabel ? `Duration ${durationLabel}` : null]
-              .filter(Boolean)
-              .join(' • ')}
-          </p>
+              {lookupDuration || lookupResult.airlineName || lookupResult.aircraftModel ? (
+                <p className="text-xs text-[var(--text-subtle)]">
+                  {[
+                    lookupResult.airlineName || lookupResult.airlineCode,
+                    lookupResult.aircraftModel,
+                    lookupDuration,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              ) : null}
+
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                loading={isSaving}
+                disabled={isSaving}
+                onClick={handleSaveToItinerary}
+              >
+                Save to Itinerary
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
-      {lookupResult && durationLabel ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-          Duration: <span className="font-medium">{durationLabel}</span>
-        </div>
-      ) : null}
-
-      {!isLoadingFlights ? <FlightRouteMap flights={savedFlights} /> : null}
+      {allFlights.length >= 2 ? <FlightRouteMap flights={allFlights} /> : null}
 
       {error ? <p className="text-xs text-red-500">{error}</p> : null}
       {successMessage ? <p className="text-xs text-emerald-700">{successMessage}</p> : null}
