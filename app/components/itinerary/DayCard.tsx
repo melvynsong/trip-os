@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { ItineraryActivity } from '@/lib/trips/itinerary-transform'
 import ItineraryActivityRenderer from '@/app/components/itinerary/ItineraryActivityRenderer'
+import FlightActivityCard from '@/app/components/itinerary/FlightActivityCard'
 import TimeOfDaySection from '@/app/components/itinerary/TimeOfDaySection'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
@@ -8,13 +9,13 @@ import Card from '@/app/components/ui/Card'
 import { buttonClass } from '@/app/components/ui/Button'
 import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
 import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
-import { Day as DayType, Activity as ActivityType } from '@/types/trip'
+import { Day as DayType, Activity, ActivityType } from '@/types/trip'
 import { format, parseISO } from 'date-fns'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
 type DayCardActivity = Pick<
-  ActivityType,
+  Activity,
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id' | 'created_at'
 > & {
   places: { id: string; name: string } | null
@@ -281,7 +282,7 @@ export default function DayCard({
           day_id: day.id,
           title: `Flight Departure - ${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
           activity_time: flight.departureTime ? formatTime(flight.departureTime) : '',
-          type: 'transport',
+          type: 'transport' as ActivityType,
           notes: duration ? `Duration - ${duration}` : '',
           sort_order: 0,
           place_id: null,
