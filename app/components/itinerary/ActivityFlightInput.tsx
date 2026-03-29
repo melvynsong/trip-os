@@ -132,6 +132,7 @@ function LegCard({ label, airportCode, city, airportName, time, terminal }: LegC
 // ─── component ────────────────────────────────────────────────────────────────
 
 export default function ActivityFlightInput({
+    const [selectedDirection, setSelectedDirection] = useState<FlightDirection>('outbound')
   tripId,
   flightDate,
   onFlightSelected,
