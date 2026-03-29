@@ -11,7 +11,6 @@ type Params = { params: Promise<{ tripId: string }> }
 
 type SaveFlightPayload = {
   flight?: unknown
-}
 
 function parseFlight(input: unknown): FlightActivity | null {
   if (typeof input !== 'object' || input === null) return null
