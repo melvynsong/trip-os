@@ -1,8 +1,6 @@
 // Utility to get the local date (YYYY-MM-DD) from an ISO datetime string and IANA timezone
 // Uses date-fns-tz for robust timezone handling
-import * as tz from 'date-fns-tz'
-const utcToZonedTime = tz.utcToZonedTime
-const format = tz.format
+import { toZonedTime, format } from 'date-fns-tz';
 
 /**
  * Returns the local date (YYYY-MM-DD) in the given timezone for a datetime string.
@@ -22,7 +20,7 @@ export function getLocalDateFromIsoDatetime(isoDatetime: string, timezone: strin
   try {
     // Use new Date(isoDatetime) for robust UTC parsing, then convert to target timezone
     const utcDate = new Date(isoDatetime)
-    const zoned = utcToZonedTime(utcDate, timezone)
+    const zoned = toZonedTime(utcDate, timezone)
     return format(zoned, 'yyyy-MM-dd', { timeZone: timezone })
   } catch (e) {
     // Fallback: extract date from ISO string in UTC
