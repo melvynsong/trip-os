@@ -411,22 +411,7 @@ export async function addSavedFlightToTripTimeline(input: {
 }
 
 // Unified flight activity model
-export async function listTripFlights(
-  supabase: SupabaseClient,
-  tripId: string
-): Promise<FlightActivity[]> {
-  const { data, error } = await supabase
-    .from('activities')
-    .select('*')
-    .eq('trip_id', tripId)
-    .eq('type', 'flight')
-    .order('created_at', { ascending: true })
 
-  if (error || !data) {
-    return []
-  }
-  return data as FlightActivity[]
-}
 
 export async function saveUnifiedTripFlight(input: {
   supabase: SupabaseClient
