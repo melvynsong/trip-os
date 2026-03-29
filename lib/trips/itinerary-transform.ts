@@ -263,9 +263,9 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
         sortMinutes: parseActivityMinutes(departure.activity_time),
       });
     }
-    if (group.arrDateTime && typeof group.arrival !== 'undefined' && group.arrival !== undefined) {
+    if (typeof group.arrival !== 'undefined' && group.arrival !== undefined) {
       const arrDateTime = group.arrDateTime;
-      // Compute 24-hour time string from arrDateTime
+      // Compute 24-hour time string from arrDateTime if available, else use activity_time or placeholder
       let arrival_time_24h = '';
       if (arrDateTime) {
         const arrDate = new Date(arrDateTime);
@@ -277,11 +277,13 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
           arrival_time_24h = '—';
           console.warn('[ItineraryDebug] Invalid arrDateTime for arrival:', arrDateTime, group);
         }
+      } else if ((group.arrival as ItineraryActivity).activity_time) {
+        arrival_time_24h = (group.arrival as ItineraryActivity).activity_time;
       } else {
         arrival_time_24h = '—';
-        console.warn('[ItineraryDebug] Missing arrDateTime for arrival:', group);
+        console.warn('[ItineraryDebug] Missing arrDateTime and activity_time for arrival:', group);
       }
-      // Set day_id to the date part of arrDateTime (YYYY-MM-DD) for correct grouping
+      // Set day_id to the date part of arrDateTime (YYYY-MM-DD) for correct grouping if available
       let arrivalDayId = (group.arrival as ItineraryActivity).day_id;
       if (arrDateTime) {
         const arrDate = new Date(arrDateTime);
