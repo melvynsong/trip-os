@@ -85,7 +85,7 @@ export default function DayCard({
       title: item.activity.title,
       activity_time: item.activity.activity_time,
       type: 'transport' as const,
-      notes: [item.meta.airline, item.meta.flightNumber, item.meta.route].filter(Boolean).join(' • '),
+      notes: [item.activity.airline, item.activity.flightNumber, item.activity.route].filter(Boolean).join(' • '),
       placeName: null,
     }
   })
