@@ -128,14 +128,75 @@ export async function POST(request: Request, { params }: Params) {
 
 
     // Map flight to activities to get local dates
-    const [depActivity, arrActivity] = mapFlightToActivities(savedFlight, dayIdMap);
+    let [depActivity, arrActivity] = mapFlightToActivities(savedFlight, dayIdMap);
+    // If either activity is missing, try to auto-create the missing day(s) and retry
     if (!depActivity || !arrActivity) {
-      console.warn('[FlightActivityDebug] Blocked: Could not create both departure and arrival activities.', {
-        depActivity, arrActivity, dayIdMap, savedFlight
-      });
-      return NextResponse.json({
-        error: 'Cannot create both departure and arrival activities. Please ensure your trip covers both the departure and arrival dates of the flight.'
-      }, { status: 400 });
+      // Find which dates are missing
+      const missingDates = [];
+      if (!depActivity) {
+        const depDate = savedFlight.departureTime?.slice(0, 10);
+        if (depDate && !dayIdMap[depDate]) missingDates.push(depDate);
+      }
+      if (!arrActivity) {
+        const arrDate = savedFlight.arrivalTime?.slice(0, 10);
+        if (arrDate && !dayIdMap[arrDate]) missingDates.push(arrDate);
+      }
+      // Fetch trip start_date
+      const { data: tripData } = await ownedTrip.supabase
+        .from('trips')
+        .select('start_date')
+        .eq('id', tripId)
+        .single();
+      if (!tripData?.start_date) {
+        return NextResponse.json({ error: 'Trip start date not found.' }, { status: 400 });
+      }
+      const tripStart = new Date(tripData.start_date);
+      for (const date of missingDates) {
+        const target = new Date(date);
+        const dayNumber = Math.floor((target.getTime() - tripStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        if (dayNumber < 1) {
+          console.warn('[FlightDayDebug] Blocked creation: flight date before trip start', { date, dayNumber, tripStart: tripData.start_date });
+          return NextResponse.json({ error: `Flight date ${date} is before trip start date (${tripData.start_date}).` }, { status: 400 });
+        }
+        // Create the missing day
+        const { data: newDay, error: dayInsertError } = await ownedTrip.supabase
+          .from('days')
+          .insert({ trip_id: tripId, date, day_number: dayNumber })
+          .select('id')
+          .single();
+        if (!dayInsertError && newDay) {
+          dayIdMap[date] = newDay.id;
+        } else {
+          // If duplicate, try to fetch the day again
+          if (dayInsertError?.code === '23505' || dayInsertError?.message?.includes('duplicate')) {
+            const { data: existingDay } = await ownedTrip.supabase
+              .from('days')
+              .select('id')
+              .eq('trip_id', tripId)
+              .eq('date', date)
+              .single();
+            if (existingDay) {
+              dayIdMap[date] = existingDay.id;
+            } else {
+              console.warn('[FlightDayDebug] Duplicate day insert but could not fetch existing day:', { date });
+              return NextResponse.json({ error: `Failed to create or fetch day for date ${date}.` }, { status: 500 });
+            }
+          } else {
+            console.warn('[FlightDayDebug] Failed to insert day:', { date, dayNumber, error: dayInsertError });
+            return NextResponse.json({ error: `Failed to create day for date ${date}.` }, { status: 500 });
+          }
+        }
+      }
+      // Re-map activities with updated dayIdMap
+      [depActivity, arrActivity] = mapFlightToActivities(savedFlight, dayIdMap);
+      if (!depActivity || !arrActivity) {
+        console.warn('[FlightActivityDebug] Blocked: Could not create both departure and arrival activities after auto-creating days.', {
+          depActivity, arrActivity, dayIdMap, savedFlight
+        });
+        return NextResponse.json({
+          error: 'Cannot create both departure and arrival activities even after auto-creating days.'
+        }, { status: 400 });
+      }
     }
     // Insert both activities
     console.log('[FlightActivityDebug] Inserting departure activity:', depActivity);
