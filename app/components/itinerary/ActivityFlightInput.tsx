@@ -373,7 +373,7 @@ export default function ActivityFlightInput({
               city={flightOnThisDay.departure.city}
               airportName={flightOnThisDay.departure.airportName}
               time={flightOnThisDay.departure.datetime}
-              terminal={flightOnThisDay.departure.terminal}
+              terminal={flightOnThisDay.departure.terminal ?? null}
             />
             <LegCard
               label="Arrives"
@@ -381,7 +381,7 @@ export default function ActivityFlightInput({
               city={flightOnThisDay.arrival.city}
               airportName={flightOnThisDay.arrival.airportName}
               time={flightOnThisDay.arrival.datetime}
-              terminal={flightOnThisDay.arrival.terminal}
+              terminal={flightOnThisDay.arrival.terminal ?? null}
             />
           </div>
 
