@@ -35,88 +35,89 @@ async function verifyTripOwnership(tripId: string, userId: string) {
 }
 
 export async function GET(_: Request, { params }: Params) {
+  let response;
   try {
-    const { tripId } = await params
-    const supabase = await createClient()
+    const { tripId } = await params;
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+      response = NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    } else {
+      const access = await getCurrentUserFlightAccessState().catch(() => null);
+      if (!access) {
+        response = NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+      } else if (!access.canAccess) {
+        response = NextResponse.json({ error: getFlightAccessMessage(access) }, { status: 403 });
+      } else {
+        const ownedTrip = await verifyTripOwnership(tripId, user.id);
+        if (!ownedTrip) {
+          response = NextResponse.json({ error: 'Trip not found.' }, { status: 404 });
+        } else {
+          const flights = await listTripFlights(ownedTrip.supabase, tripId);
+          response = NextResponse.json({ flights });
+        }
+      }
     }
-
-    const access = await getCurrentUserFlightAccessState().catch(() => null)
-    if (!access) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-    }
-
-    if (!access.canAccess) {
-      return NextResponse.json({ error: getFlightAccessMessage(access) }, { status: 403 })
-    }
-
-    const ownedTrip = await verifyTripOwnership(tripId, user.id)
-    if (!ownedTrip) {
-      return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
-    }
-
-    const flights = await listTripFlights(ownedTrip.supabase, tripId)
-    return NextResponse.json({ flights })
   } catch (error) {
-    return NextResponse.json(
+    response = NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unexpected error.' },
       { status: 500 }
-    )
+    );
   }
+  return response;
 }
 
 export async function POST(request: Request, { params }: Params) {
+  let response;
   try {
-    const { tripId } = await params
-    const supabase = await createClient()
+    const { tripId } = await params;
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+      response = NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    } else {
+      const access = await getCurrentUserFlightAccessState().catch(() => null);
+      if (!access) {
+        response = NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+      } else if (!access.canAccess) {
+        response = NextResponse.json({ error: getFlightAccessMessage(access) }, { status: 403 });
+      } else {
+        const ownedTrip = await verifyTripOwnership(tripId, user.id);
+        if (!ownedTrip) {
+          response = NextResponse.json({ error: 'Trip not found.' }, { status: 404 });
+        } else {
+          const body = (await request.json().catch(() => null)) as SaveFlightPayload | null;
+          const flight = parseFlight(body?.flight);
+          if (!flight) {
+            response = NextResponse.json({ error: 'Flight data is required.' }, { status: 400 });
+          } else {
+            // Insert the unified flight activity
+            const savedFlight = await saveUnifiedTripFlight({
+              supabase: ownedTrip.supabase,
+              tripId,
+              flight,
+            });
+            revalidatePath(`/trips/${tripId}`);
+            revalidatePath(`/trips/${tripId}/flight`);
+            revalidatePath(`/trips/${tripId}/itinerary`);
+            response = NextResponse.json({ flight: savedFlight });
+          }
+        }
+      }
     }
-
-    const access = await getCurrentUserFlightAccessState().catch(() => null)
-    if (!access) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-    }
-
-    if (!access.canAccess) {
-      return NextResponse.json({ error: getFlightAccessMessage(access) }, { status: 403 })
-    }
-
-    const ownedTrip = await verifyTripOwnership(tripId, user.id)
-    if (!ownedTrip) {
-      return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
-    }
-
-    const body = (await request.json().catch(() => null)) as SaveFlightPayload | null
-    const flight = parseFlight(body?.flight)
-    if (!flight) {
-      return NextResponse.json({ error: 'Flight data is required.' }, { status: 400 })
-    }
-    // Insert the unified flight activity
-    const savedFlight = await saveUnifiedTripFlight({
-      supabase: ownedTrip.supabase,
-      tripId,
-      flight,
-    })
-    revalidatePath(`/trips/${tripId}`)
-    revalidatePath(`/trips/${tripId}/flight`)
-    revalidatePath(`/trips/${tripId}/itinerary`)
-    return NextResponse.json({ flight: savedFlight })
   } catch (error) {
-    return NextResponse.json(
+    response = NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unexpected error.' },
       { status: 500 }
-    )
+    );
   }
+  return response;
 }
 
 type DeleteFlightPayload = {
@@ -125,48 +126,51 @@ type DeleteFlightPayload = {
 
 
 
+export async function DELETE(request: Request, { params }: Params) {
+  let response;
   try {
-    const { tripId } = await params
-    const supabase = await createClient()
+    const { tripId } = await params;
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+      response = NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    } else {
+      const access = await getCurrentUserFlightAccessState().catch(() => null);
+      if (!access) {
+        response = NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+      } else if (!access.canAccess) {
+        response = NextResponse.json({ error: getFlightAccessMessage(access) }, { status: 403 });
+      } else {
+        const ownedTrip = await verifyTripOwnership(tripId, user.id);
+        if (!ownedTrip) {
+          response = NextResponse.json({ error: 'Trip not found.' }, { status: 404 });
+        } else {
+          const body = (await request.json().catch(() => null)) as DeleteFlightPayload | null;
+          const id = body?.id;
+          if (!id) {
+            response = NextResponse.json({ error: 'Flight id is required.' }, { status: 400 });
+          } else {
+            await deleteUnifiedTripFlight({
+              supabase: ownedTrip.supabase,
+              tripId,
+              id,
+            });
+            revalidatePath(`/trips/${tripId}`);
+            revalidatePath(`/trips/${tripId}/flight`);
+            response = NextResponse.json({ success: true });
+          }
+        }
+      }
     }
-
-    const access = await getCurrentUserFlightAccessState().catch(() => null)
-    if (!access) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-    }
-
-    if (!access.canAccess) {
-      return NextResponse.json({ error: getFlightAccessMessage(access) }, { status: 403 })
-    }
-
-    const ownedTrip = await verifyTripOwnership(tripId, user.id)
-    if (!ownedTrip) {
-      return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
-    }
-
-    const body = (await request.json().catch(() => null)) as DeleteFlightPayload | null
-    const id = body?.id
-    if (!id) {
-      return NextResponse.json({ error: 'Flight id is required.' }, { status: 400 })
-    }
-    await deleteUnifiedTripFlight({
-      supabase: ownedTrip.supabase,
-      tripId,
-      id,
-    })
-    revalidatePath(`/trips/${tripId}`)
-    revalidatePath(`/trips/${tripId}/flight`)
-    return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json(
+    response = NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unexpected error.' },
       { status: 500 }
-    )
+    );
   }
+  return response;
+}
 }
