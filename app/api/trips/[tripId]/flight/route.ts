@@ -132,6 +132,7 @@ export async function POST(request: Request, { params }: Params) {
     const depLocalDate = depActivity?.metadata?.departureTime?.slice(0, 10) || depActivity?.activity_time?.slice(0, 10);
     const arrLocalDate = arrActivity?.metadata?.arrivalTime?.slice(0, 10) || arrActivity?.activity_time?.slice(0, 10);
 
+
     // Ensure days exist for both depLocalDate and arrLocalDate
     const neededDates = [depLocalDate, arrLocalDate].filter(Boolean);
     for (const date of neededDates) {
@@ -159,8 +160,15 @@ export async function POST(request: Request, { params }: Params) {
       }
     }
 
-    // Re-map activities with updated dayIdMap (now guaranteed to have both dates)
-    const [finalDepartureActivity, finalArrivalActivity] = mapFlightToActivities(savedFlight, dayIdMap);
+    // Re-fetch all days to ensure dayIdMap is up to date
+    const { data: refreshedDays } = await ownedTrip.supabase
+      .from('days')
+      .select('id, date')
+      .eq('trip_id', tripId);
+    const refreshedDayIdMap = Object.fromEntries((refreshedDays || []).map((d: any) => [d.date, d.id]));
+
+    // Map activities with fully up-to-date dayIdMap
+    const [finalDepartureActivity, finalArrivalActivity] = mapFlightToActivities(savedFlight, refreshedDayIdMap);
 
     // Debug logs for mapping and activities
     console.log('dayIdMap:', dayIdMap);
