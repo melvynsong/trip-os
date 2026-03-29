@@ -29,7 +29,7 @@ export function mapFlightToActivities(
   const departureActivity = {
     id: uuidv4(),
     day_id: depDayId,
-    type: 'flight_departure' as ActivityType,
+    type: 'transport' as ActivityType,
     title: `Flight ${flight.flightNumber} Departure`,
     activity_time: flight.departureTime,
     notes: `${flight.airlineName || flight.airlineCode} ${flight.flightNumber} from ${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
@@ -41,12 +41,12 @@ export function mapFlightToActivities(
       segment: 'departure',
     },
     flight_ref: flightRef,
-  };
+  }
 
   const arrivalActivity = {
     id: uuidv4(),
     day_id: arrDayId,
-    type: 'flight_arrival' as ActivityType,
+    type: 'transport' as ActivityType,
     title: `Flight ${flight.flightNumber} Arrival`,
     activity_time: flight.arrivalTime,
     notes: `${flight.airlineName || flight.airlineCode} ${flight.flightNumber} arrives at ${flight.arrivalAirportCode}`,
@@ -58,7 +58,7 @@ export function mapFlightToActivities(
       segment: 'arrival',
     },
     flight_ref: flightRef,
-  };
+  }
 
   return [departureActivity, arrivalActivity];
 }
