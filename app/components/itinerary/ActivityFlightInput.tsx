@@ -88,7 +88,28 @@ type LegCardProps = {
   terminal: string | null
 }
 
+function formatDateTime(dateTime: string | null): string {
+  if (!dateTime) return '—'
+  const d = new Date(dateTime)
+  if (Number.isNaN(d.getTime())) return '—'
+  return new Intl.DateTimeFormat('en', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(d)
+}
+
 function LegCard({ label, airportCode, city, airportName, time, terminal }: LegCardProps) {
+  const formatted = formatDateTime(time);
+  if (typeof window !== 'undefined') {
+    // Log for troubleshooting date/time issues
+    // eslint-disable-next-line no-console
+    console.log('[LegCard] label:', label, 'raw:', time, 'formatted:', formatted);
+  }
   return (
     <div className="rounded-xl border border-[var(--border-soft)] bg-white p-3 shadow-sm">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
@@ -100,7 +121,7 @@ function LegCard({ label, airportCode, city, airportName, time, terminal }: LegC
       <p className="mt-0.5 text-xs text-[var(--text-subtle)]">
         {city || airportName || '—'}
       </p>
-      <p className="mt-2 text-sm font-semibold text-[var(--text-strong)]">{formatTime(time)}</p>
+      <p className="mt-2 text-sm font-semibold text-[var(--text-strong)]">{formatted}</p>
       {terminal ? (
         <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]">Terminal {terminal}</p>
       ) : null}
