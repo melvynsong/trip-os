@@ -15,8 +15,8 @@ export function mapFlightToActivities(
   const flightRef = uuidv4();
 
   // Defensive: require airport timezone fields (should be present from API or metadata)
-  const depTz = flight.departureAirportTimezone || flight.departureTimezone || flight.departure_tz || 'UTC';
-  const arrTz = flight.arrivalAirportTimezone || flight.arrivalTimezone || flight.arrival_tz || 'UTC';
+  const depTz = flight.departureAirportTimezone || flight.departure_tz || 'UTC';
+  const arrTz = flight.arrivalAirportTimezone || flight.arrival_tz || 'UTC';
 
   // Use local date at departure airport for departure activity
   const depLocalDate = getLocalDateFromIsoDatetime(flight.departureTime, depTz);
