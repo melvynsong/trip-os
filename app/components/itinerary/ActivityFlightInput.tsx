@@ -7,7 +7,7 @@ import BetaBadge from '@/app/components/ui/BetaBadge'
 import Button from '@/app/components/ui/Button'
 import SegmentedControl from '@/app/components/ui/SegmentedControl'
 import type { FlightActivity } from '@/lib/trips/flight-activity'
-import type { FlightLookupResult } from '@/src/lib/flights/types'
+import type { FlightLookupResult, FlightDirection } from '@/src/lib/flights/types'
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
