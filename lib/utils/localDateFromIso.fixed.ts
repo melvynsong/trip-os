@@ -1,4 +1,4 @@
-import { utcToZonedTime, format } from 'date-fns-tz'
+import { toZonedTime, format } from 'date-fns-tz'
 import { parseISO } from 'date-fns'
 
 /**
@@ -19,7 +19,7 @@ export function getLocalDateFromIsoDatetime(isoDatetime: string, timezone: strin
   try {
     // Use parseISO to ensure UTC parsing, then convert to target timezone
     const utcDate = parseISO(isoDatetime)
-    const zoned = utcToZonedTime(utcDate, timezone)
+    const zoned = toZonedTime(utcDate, timezone)
     return format(zoned, 'yyyy-MM-dd', { timeZone: timezone })
   } catch (e) {
     // Fallback: extract date from ISO string in UTC
