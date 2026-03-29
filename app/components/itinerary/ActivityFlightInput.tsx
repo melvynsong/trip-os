@@ -236,7 +236,7 @@ export default function ActivityFlightInput({
         type: 'flight',
         airline: lookupResult.airlineName || lookupResult.airlineCode || '',
         flightNumber: lookupResult.flightNumber,
-        carrierCode: lookupResult.airlineCode,
+        carrierCode: lookupResult.airlineCode || '',
         departure: {
           airportCode: lookupResult.departureAirportCode || '',
           airportName: lookupResult.departureAirportName || '',
