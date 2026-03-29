@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { buildFlightTimelineTitle } from '@/lib/flights/activity'
 import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
+import type { FlightActivity } from '@/lib/trips/flight-activity'
 
 type TripFlightRow = {
   id: string
@@ -406,5 +407,89 @@ export async function addSavedFlightToTripTimeline(input: {
   return {
     insertedCount: rowsToInsert.length,
     skippedCount: candidateEvents.length - rowsToInsert.length,
+  }
+}
+
+// Unified flight activity model
+export async function listTripFlights(
+  supabase: SupabaseClient,
+  tripId: string
+): Promise<FlightActivity[]> {
+  const { data, error } = await supabase
+    .from('activities')
+    .select('*')
+    .eq('trip_id', tripId)
+    .eq('type', 'flight')
+    .order('created_at', { ascending: true })
+
+  if (error || !data) {
+    return []
+  }
+  return data as FlightActivity[]
+}
+
+export async function saveUnifiedTripFlight(input: {
+  supabase: SupabaseClient
+  tripId: string
+  flight: FlightActivity
+}): Promise<FlightActivity> {
+  // Ensure the activity is anchored to the departure day
+  const depDate = input.flight.departure.datetime.slice(0, 10)
+  // Find or create the day for the departure
+  let dayId = input.flight.day_id
+  if (!dayId) {
+    const { data: dayRow, error: dayError } = await input.supabase
+      .from('days')
+      .select('id')
+      .eq('trip_id', input.tripId)
+      .eq('date', depDate)
+      .single()
+    if (dayRow) {
+      dayId = dayRow.id
+    } else {
+      // Create the day if missing
+      const { data: newDay, error: newDayError } = await input.supabase
+        .from('days')
+        .insert({ trip_id: input.tripId, date: depDate })
+        .select('id')
+        .single()
+      if (newDay) {
+        dayId = newDay.id
+      } else {
+        throw new Error(newDayError?.message || 'Failed to create day for flight')
+      }
+    }
+  }
+  const activity: FlightActivity = {
+    ...input.flight,
+    day_id: dayId,
+    type: 'flight',
+    created_at: input.flight.created_at || new Date().toISOString(),
+  }
+  // Upsert by trip, day, and flight number
+  const { data, error } = await input.supabase
+    .from('activities')
+    .upsert(activity, { onConflict: 'trip_id,day_id,flightNumber' })
+    .select('*')
+    .single()
+  if (error || !data) {
+    throw new Error(error?.message || 'Failed to save flight activity')
+  }
+  return data as FlightActivity
+}
+
+export async function deleteUnifiedTripFlight(input: {
+  supabase: SupabaseClient
+  tripId: string
+  id: string
+}): Promise<void> {
+  const { error } = await input.supabase
+    .from('activities')
+    .delete()
+    .eq('trip_id', input.tripId)
+    .eq('id', input.id)
+    .eq('type', 'flight')
+  if (error) {
+    throw new Error(error.message || 'Failed to delete flight activity')
   }
 }

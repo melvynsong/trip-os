@@ -31,15 +31,9 @@ export type ItineraryTimelineItem =
       sortMinutes: number | null
     }
   | {
-      /** A single departure or arrival flight activity, shown as its own card. */
+      /** A single unified flight activity, shown as a journey card. */
       kind: 'flight_card'
-      activity: ItineraryActivity
-      role: FlightRole
-      meta: {
-        airline?: string
-        flightNumber?: string
-        route?: string
-      }
+      activity: any // FlightActivity
       originalIndex: number
       sortMinutes: number | null
     }
@@ -149,177 +143,37 @@ function getSectionKey(minutes: number | null): TimeOfDayKey {
   return 'evening'
 }
 
-export function transformItineraryDayActivities(activities: ItineraryActivity[]): {
-  orderedItems: ItineraryTimelineItem[]
-  sections: TimeOfDaySection[]
+export function transformItineraryDayActivities(activities: any[]): {
+  orderedItems: ItineraryTimelineItem[];
+  sections: TimeOfDaySection[];
 } {
-
-  // --- Refactored flight grouping and timeline logic ---
-  const flightGroups = new Map<string, {
-    departure?: ItineraryActivity
-    arrival?: ItineraryActivity
-    meta: FlightActivityGroup['meta']
-    originalIndex: number
-    depDateTime?: string
-    arrDateTime?: string
-    durationMinutes?: number | null
-  }>();
-
+  const flightTimelineItems: ItineraryTimelineItem[] = [];
   const standaloneItems: ItineraryTimelineItem[] = [];
 
-
   activities.forEach((activity, index) => {
-    const likelyFlight = isLikelyFlight(activity);
-    const detectedRole = detectFlightRole(activity);
-    console.log('[ItineraryDebug] Activity role detection:', {
-      id: activity.id,
-      title: activity.title,
-      notes: activity.notes,
-      likelyFlight,
-      detectedRole
-    });
-    if (!likelyFlight) {
+    if (activity.type === 'flight') {
+      // Always place flight as first item of the day
+      flightTimelineItems.push({
+        kind: 'flight_card',
+        activity,
+        originalIndex: -1000 + index, // ensure flight is always first
+        sortMinutes: 0,
+      });
+    } else {
       standaloneItems.push({
         kind: 'activity',
         activity,
         originalIndex: index,
         sortMinutes: parseActivityMinutes(activity.activity_time),
       });
-      return;
     }
-
-    // Extract duration from notes if present
-    const durationMatch = (activity.notes || '').match(/(\d+h\s*)?(\d+m)?/);
-    const durationStr = durationMatch ? durationMatch[0] : null;
-    const durationMinutes = parseFlightDuration(durationStr);
-              detectedRole: detectFlightRole(activity)
-    // Try to get explicit arrival time from notes (e.g. "Arrives: 2026-04-10T00:15:00")
-    let explicitArrival: string | null = null;
-    const explicitArrivalMatch = (activity.notes || '').match(/Arrives?:\s*([\dT:-]+)/i);
-    if (explicitArrivalMatch) {
-      explicitArrival = explicitArrivalMatch[1];
-    }
-
-    const key = resolveFlightKey(activity) || `single|${activity.id}`;
-    const combined = `${activity.title} ${activity.notes || ''}`.toUpperCase();
-    const airline = extractAirline((activity.notes || '').toUpperCase()) || undefined;
-    const flightNumber = extractFlightNumber(combined) || undefined;
-    const route = extractRoute(combined) || undefined;
-    // Debug output for flight meta extraction
-    console.log('[FlightMetaDebug]', {
-      id: activity.id,
-      combined,
-      airline,
-      flightNumber,
-      route,
-    });
-    const meta = {
-      airline,
-      flightNumber,
-      route,
-    };
-
-    const group = flightGroups.get(key) || {
-      meta,
-      originalIndex: index,
-    };
-
-    if (detectedRole === 'departure') {
-      group.departure = activity;
-      group.depDateTime = activity.created_at || undefined;
-      group.durationMinutes = durationMinutes;
-
-    } else if (detectedRole === 'arrival') {
-      group.arrival = activity;
-      // Do NOT use created_at as fallback for arrDateTime
-      group.arrDateTime = undefined;
-    }
-
-    // If we have both, derive arrival datetime if needed
-    if (group.departure && group.durationMinutes != null) {
-      const depDateTime = group.departure.activity_time
-        ? `${group.departure.created_at?.slice(0, 10) || ''}T${group.departure.activity_time}`
-        : group.departure.created_at;
-      group.arrDateTime = deriveFlightArrivalDateTime(depDateTime || '', group.durationMinutes, explicitArrival) || undefined;
-    }
-
-    flightGroups.set(key, group);
   });
 
-  // Debug output for flight groups
-  console.log('[ItineraryDebug] Flight Groups:', Array.from(flightGroups.entries()));
-
-  // Emit only 2 cards per flight: departure and arrival, with correct day assignment
-  const flightTimelineItems: ItineraryTimelineItem[] = [];
-  for (const group of flightGroups.values()) {
-    if (typeof group.departure !== 'undefined' && group.departure !== undefined) {
-      const departure = group.departure as ItineraryActivity;
-      flightTimelineItems.push({
-        kind: 'flight_card',
-        activity: departure,
-        role: 'departure',
-        meta: group.meta || {},
-        originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(departure.activity_time),
-      });
-    }
-    if (typeof group.arrival !== 'undefined' && group.arrival !== undefined) {
-      const arrDateTime = group.arrDateTime;
-      // Compute 24-hour time string from arrDateTime if available, else use activity_time or placeholder
-      let arrival_time_24h = '';
-      if (arrDateTime) {
-        const arrDate = new Date(arrDateTime);
-        if (!isNaN(arrDate.getTime())) {
-          const hours = arrDate.getHours().toString().padStart(2, '0');
-          const minutes = arrDate.getMinutes().toString().padStart(2, '0');
-          arrival_time_24h = `${hours}:${minutes}`;
-        } else {
-          arrival_time_24h = '—';
-          console.warn('[ItineraryDebug] Invalid arrDateTime for arrival:', arrDateTime, group);
-        }
-      } else if ((group.arrival as ItineraryActivity).activity_time) {
-        arrival_time_24h = (group.arrival as ItineraryActivity).activity_time || '—';
-      } else {
-        arrival_time_24h = '—';
-        console.warn('[ItineraryDebug] Missing arrDateTime and activity_time for arrival:', group);
-      }
-      // Set day_id to the date part of arrDateTime (YYYY-MM-DD) for correct grouping if available
-      let arrivalDayId = (group.arrival as ItineraryActivity).day_id;
-      if (arrDateTime) {
-        const arrDate = new Date(arrDateTime);
-        if (!isNaN(arrDate.getTime())) {
-          arrivalDayId = arrDate.toISOString().slice(0, 10);
-        }
-      }
-      flightTimelineItems.push({
-        kind: 'flight_card',
-        activity: {
-          ...(group.arrival as ItineraryActivity),
-          day_id: arrivalDayId,
-          activity_time: arrival_time_24h,
-          arrival_datetime: arrDateTime,
-        },
-        role: 'arrival',
-        meta: group.meta || {},
-        originalIndex: group.originalIndex,
-        sortMinutes: parseActivityMinutes(arrival_time_24h),
-      });
-    }
-  }
-
-  // DEBUG: Log flightTimelineItems
-  console.log('[ItineraryDebug] flightTimelineItems:', flightTimelineItems.map(item => ({
-    kind: item.kind,
-    id: item.activity.id,
-    role: item.kind === 'flight_card' ? item.role : undefined,
-    type: item.activity.type,
-    activity_time: item.activity.activity_time,
-    title: item.activity.title,
-    notes: item.activity.notes
-  })));
-
-  // --- FIX: Always include flightTimelineItems in orderedItems ---
-  const orderedItems = [...standaloneItems, ...flightTimelineItems].sort((a, b) => {
+  // Flights always first
+  const orderedItems = [...flightTimelineItems, ...standaloneItems].sort((a, b) => {
+    if (a.kind === 'flight_card' && b.kind !== 'flight_card') return -1;
+    if (a.kind !== 'flight_card' && b.kind === 'flight_card') return 1;
+    // fallback to time/order
     const aTime = getItemPrimaryTime(a);
     const bTime = getItemPrimaryTime(b);
     if (aTime !== null && bTime !== null) {
@@ -331,19 +185,17 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
     return a.originalIndex - b.originalIndex;
   });
 
-  // --- FIX: Ensure flight_card items are included in sections ---
+  // Sectioning
   const sectionsByKey = new Map<TimeOfDayKey, ItineraryTimelineItem[]>([
     ['morning', []],
     ['afternoon', []],
     ['evening', []],
     ['flexible', []],
-  ])
-
+  ]);
   for (const item of orderedItems) {
-    const key = getSectionKey(getItemPrimaryTime(item))
-    sectionsByKey.get(key)?.push(item)
+    const key = getSectionKey(getItemPrimaryTime(item));
+    sectionsByKey.get(key)?.push(item);
   }
-
   const sections: TimeOfDaySection[] = (['morning', 'afternoon', 'evening', 'flexible'] as TimeOfDayKey[])
     .map((key) => ({
       key,
@@ -351,7 +203,6 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       items: sectionsByKey.get(key) || [],
     }))
     .filter((section) => section.items.length > 0);
-
   return { orderedItems, sections };
 }
 

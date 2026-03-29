@@ -6,8 +6,8 @@ import FlightRouteMap from '@/app/components/trips/flight/FlightRouteMap'
 import BetaBadge from '@/app/components/ui/BetaBadge'
 import Button from '@/app/components/ui/Button'
 import SegmentedControl from '@/app/components/ui/SegmentedControl'
-import type { SavedTripFlight } from '@/lib/flights/trip'
-import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
+import type { FlightActivity } from '@/lib/trips/flight-activity'
+import type { FlightLookupResult } from '@/src/lib/flights/types'
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -15,13 +15,13 @@ type ActivityFlightInputProps = {
   tripId: string
   /** ISO date string for this day, e.g. "2026-03-28". Lookup is locked to this date. */
   flightDate: string
-  onFlightSelected?: (flight: SavedTripFlight | null) => void
+  onFlightSelected?: (flight: FlightActivity | null) => void
   canUseFlights?: boolean
   accessMessage?: string | null
 }
 
 type FlightsPayload = {
-  flights?: SavedTripFlight[]
+  flights?: FlightActivity[]
   error?: string
 }
 
@@ -139,11 +139,10 @@ export default function ActivityFlightInput({
   accessMessage,
 }: ActivityFlightInputProps) {
   const router = useRouter()
-  const [allFlights, setAllFlights] = useState<SavedTripFlight[]>([])
+  const [allFlights, setAllFlights] = useState<FlightActivity[]>([])
   const [isLoadingFlights, setIsLoadingFlights] = useState(false)
 
   const [flightNumberInput, setFlightNumberInput] = useState('')
-  const [selectedDirection, setSelectedDirection] = useState<FlightDirection>('outbound')
   const [lookupResult, setLookupResult] = useState<FlightLookupResult | null>(null)
 
   const [isLookingUp, setIsLookingUp] = useState(false)
@@ -154,12 +153,12 @@ export default function ActivityFlightInput({
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const flightOnThisDay = allFlights.find((f) => f.flightDate === flightDate) ?? null
+  const flightOnThisDay = allFlights.find((f) => f.departure && f.departure.datetime && f.departure.datetime.startsWith(flightDate)) ?? null
   const showLookupForm = !flightOnThisDay || isReplacing
   const hasFlightNumber = flightNumberInput.trim().length > 0
   const lookupDuration = getDuration(lookupResult?.departureTime ?? null, lookupResult?.arrivalTime ?? null)
   const savedDuration = flightOnThisDay
-    ? getDuration(flightOnThisDay.departureTime, flightOnThisDay.arrivalTime)
+    ? getDuration(flightOnThisDay.departure.datetime, flightOnThisDay.arrival.datetime)
     : null
 
   // Debug log for troubleshooting flight date issues
@@ -230,28 +229,52 @@ export default function ActivityFlightInput({
     setSuccessMessage(null)
     setIsSaving(true)
     try {
+      // Map lookupResult to unified FlightActivity structure
+      const flightActivity: FlightActivity = {
+        id: lookupResult.id || '',
+        day_id: '', // Will be set by backend
+        type: 'flight',
+        airline: lookupResult.airlineName || lookupResult.airlineCode || '',
+        flightNumber: lookupResult.flightNumber,
+        carrierCode: lookupResult.airlineCode,
+        departure: {
+          airportCode: lookupResult.departureAirportCode || '',
+          airportName: lookupResult.departureAirportName || '',
+          city: lookupResult.departureCity || '',
+          terminal: lookupResult.departureTerminal || undefined,
+          datetime: lookupResult.departureTime || '',
+        },
+        arrival: {
+          airportCode: lookupResult.arrivalAirportCode || '',
+          airportName: lookupResult.arrivalAirportName || '',
+          city: lookupResult.arrivalCity || '',
+          terminal: lookupResult.arrivalTerminal || undefined,
+          datetime: lookupResult.arrivalTime || '',
+        },
+        duration: lookupDuration || undefined,
+        aircraft: lookupResult.aircraftModel || undefined,
+        notes: lookupResult.status || undefined,
+        rawMetadata: lookupResult.rawResponseJson || undefined,
+        created_at: new Date().toISOString(),
+      };
       const saveResp = await fetch(`/api/trips/${tripId}/flight`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ direction: selectedDirection, flight: lookupResult }),
+        body: JSON.stringify({ flight: flightActivity }),
       })
       const saveData = await saveResp.json()
       if (!saveResp.ok) {
         setError(saveData.error || 'Failed to save flight.')
         return
       }
-      const savedFlight = saveData.flight as SavedTripFlight
-      setAllFlights((prev) => {
-        const filtered = prev.filter((f) => f.direction !== savedFlight.direction)
-        return [...filtered, savedFlight]
-      })
+      const savedFlight = saveData.flight as FlightActivity
+      setAllFlights([savedFlight])
       setLookupResult(null)
       setFlightNumberInput('')
       setIsReplacing(false)
-      setSuccessMessage('Flight saved! Both departure and arrival activities have been added to your itinerary.')
+      setSuccessMessage('Flight saved! The journey has been added to your itinerary.')
       onFlightSelected?.(savedFlight)
-      // Automatically redirect to itinerary after save to avoid NEXT_REDIRECT error
       setTimeout(() => {
         router.push(`/trips/${tripId}/itinerary`)
       }, 1200)
@@ -262,8 +285,8 @@ export default function ActivityFlightInput({
     }
   }
 
-  async function handleDelete(flight: SavedTripFlight) {
-    if (!confirm(`Remove ${flight.normalizedFlightNumber} from your trip?`)) return
+  async function handleDelete(flight: FlightActivity) {
+    if (!confirm(`Remove flight ${flight.flightNumber} from your trip?`)) return
     setError(null)
     setIsDeleting(true)
     try {
@@ -271,14 +294,14 @@ export default function ActivityFlightInput({
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ direction: flight.direction }),
+        body: JSON.stringify({ id: flight.id }),
       })
       if (!resp.ok) {
         const d = await resp.json()
         setError(d.error || 'Failed to delete flight.')
         return
       }
-      setAllFlights((prev) => prev.filter((f) => f.id !== flight.id))
+      setAllFlights([])
       onFlightSelected?.(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete flight.')

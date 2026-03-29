@@ -1,5 +1,5 @@
 import ActivityCard from '@/app/components/itinerary/ActivityCard'
-import FlightActivityCard from '@/app/components/itinerary/FlightActivityCard'
+import FlightJourneyCard from '@/app/components/itinerary/FlightJourneyCard'
 import type { ItineraryTimelineItem } from '@/lib/trips/itinerary-transform'
 
 type ItineraryActivityRendererProps = {
@@ -20,15 +20,10 @@ export default function ItineraryActivityRenderer({
   moveActivityAction,
 }: ItineraryActivityRendererProps) {
   if (item.kind === 'flight_card') {
+    // Render unified flight journey card
     return (
-      <FlightActivityCard
-        tripId={tripId}
-        dayId={dayId}
-        activity={item.activity}
-        role={item.role}
-        meta={item.meta}
-      />
-    )
+      <FlightJourneyCard activity={item.activity} />
+    );
   }
 
   if (item.kind === 'activity') {
