@@ -22,7 +22,7 @@ export default async function AppFooter() {
         <div className="flex min-w-0 items-center gap-3">
           <Logo href="/" variant="icon" size="sm" />
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-[var(--text-strong)]">ToGoStory — Plan . Go . Share</p>
+            <p className="truncate text-xs font-medium text-[var(--text-strong)]">ToGoStory - Plan . Go . Share</p>
             <p className="truncate text-[11px] text-[var(--text-subtle)]">Currently in Beta</p>
           </div>
         </div>
