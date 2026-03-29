@@ -228,9 +228,11 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       group.departure = activity;
       group.depDateTime = activity.created_at || undefined;
       group.durationMinutes = durationMinutes;
+
     } else if (detectedRole === 'arrival') {
       group.arrival = activity;
-      group.arrDateTime = activity.created_at || undefined;
+      // Do NOT use created_at as fallback for arrDateTime
+      group.arrDateTime = undefined;
     }
 
     // If we have both, derive arrival datetime if needed
@@ -267,15 +269,25 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
       let arrival_time_24h = '';
       if (arrDateTime) {
         const arrDate = new Date(arrDateTime);
-        const hours = arrDate.getHours().toString().padStart(2, '0');
-        const minutes = arrDate.getMinutes().toString().padStart(2, '0');
-        arrival_time_24h = `${hours}:${minutes}`;
+        if (!isNaN(arrDate.getTime())) {
+          const hours = arrDate.getHours().toString().padStart(2, '0');
+          const minutes = arrDate.getMinutes().toString().padStart(2, '0');
+          arrival_time_24h = `${hours}:${minutes}`;
+        } else {
+          arrival_time_24h = '—';
+          console.warn('[ItineraryDebug] Invalid arrDateTime for arrival:', arrDateTime, group);
+        }
+      } else {
+        arrival_time_24h = '—';
+        console.warn('[ItineraryDebug] Missing arrDateTime for arrival:', group);
       }
       // Set day_id to the date part of arrDateTime (YYYY-MM-DD) for correct grouping
       let arrivalDayId = (group.arrival as ItineraryActivity).day_id;
       if (arrDateTime) {
         const arrDate = new Date(arrDateTime);
-        arrivalDayId = arrDate.toISOString().slice(0, 10);
+        if (!isNaN(arrDate.getTime())) {
+          arrivalDayId = arrDate.toISOString().slice(0, 10);
+        }
       }
       flightTimelineItems.push({
         kind: 'flight_card',
