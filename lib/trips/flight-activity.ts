@@ -1,3 +1,14 @@
+// Airport code to IANA timezone mapping (expand as needed)
+const AIRPORT_TIMEZONE_MAP: Record<string, string> = {
+  SIN: 'Asia/Singapore',
+  HKG: 'Asia/Hong_Kong',
+  // Add more as needed
+};
+
+function getAirportTimezone(airportCode: string, fallback: string = 'UTC'): string {
+  if (!airportCode) return fallback;
+  return AIRPORT_TIMEZONE_MAP[airportCode] || fallback;
+}
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityType } from '@/types/trip';
 import type { SavedTripFlight } from '@/lib/flights/trip';
@@ -16,8 +27,17 @@ export function mapFlightToActivities(
 
   // Defensive: require airport timezone fields (should be present from API or metadata)
   // Use correct IANA timezone for departure and arrival
-  const depTz = flight.departureAirportTimezone || 'UTC';
-  const arrTz = flight.arrivalAirportTimezone || 'UTC';
+  // Auto-correct timezones if missing or set to 'UTC'
+  let depTz = flight.departureAirportTimezone;
+  if (!depTz || depTz === 'UTC') {
+    depTz = getAirportTimezone(flight.departureAirportCode, 'Asia/Singapore');
+    console.warn('[FlightActivity][WARN] Auto-corrected departure timezone:', flight.departureAirportCode, '->', depTz);
+  }
+  let arrTz = flight.arrivalAirportTimezone;
+  if (!arrTz || arrTz === 'UTC') {
+    arrTz = getAirportTimezone(flight.arrivalAirportCode, 'Asia/Hong_Kong');
+    console.warn('[FlightActivity][WARN] Auto-corrected arrival timezone:', flight.arrivalAirportCode, '->', arrTz);
+  }
 
   // Normalize times to ISO if needed
   const depTimeIso = flight.departureTime?.replace(' ', 'T') ?? '';
