@@ -98,7 +98,19 @@ export async function POST(request: Request) {
       }
     }
 
+    // Add logging for debugging date matching issues
     const result = await lookupFlightByNumberAndDate(input)
+
+    // Log input and result details for debugging
+    // eslint-disable-next-line no-console
+    console.log('[FlightLookupAPI] Debug:', {
+      inputFlightDate: input.flightDate,
+      resultDepartureTime: result?.departureTime,
+      resultArrivalTime: result?.arrivalTime,
+      resultDepartureAirportTimezone: result?.departureAirportTimezone,
+      resultArrivalAirportTimezone: result?.arrivalAirportTimezone,
+      rawResponseJson: result?.rawResponseJson,
+    })
 
     if (!result) {
       return NextResponse.json(
@@ -109,10 +121,19 @@ export async function POST(request: Request) {
       )
     }
 
+    // Include debug info in the API response for troubleshooting
     return NextResponse.json({
       cached: false,
       from: 'provider',
       flight: result,
+      debug: {
+        inputFlightDate: input.flightDate,
+        resultDepartureTime: result?.departureTime,
+        resultArrivalTime: result?.arrivalTime,
+        resultDepartureAirportTimezone: result?.departureAirportTimezone,
+        resultArrivalAirportTimezone: result?.arrivalAirportTimezone,
+        rawResponseJson: result?.rawResponseJson,
+      },
     })
   } catch (error) {
     const status = error instanceof AeroDataBoxApiError ? error.status : 500

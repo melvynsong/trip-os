@@ -129,68 +129,23 @@ export async function POST(request: Request, { params }: Params) {
 
     // Map flight to activities to get local dates
     const [depActivity, arrActivity] = mapFlightToActivities(savedFlight, dayIdMap);
-    const depLocalDate = depActivity?.metadata?.departureTime?.slice(0, 10) || depActivity?.activity_time?.slice(0, 10);
-    const arrLocalDate = arrActivity?.metadata?.arrivalTime?.slice(0, 10) || arrActivity?.activity_time?.slice(0, 10);
-
-
-    // Ensure days exist for both depLocalDate and arrLocalDate
-    const neededDates = [depLocalDate, arrLocalDate].filter(Boolean);
-    for (const date of neededDates) {
-      if (!dayIdMap[date]) {
-        // Find the trip's start_date
-        const { data: tripData } = await ownedTrip.supabase
-          .from('trips')
-          .select('start_date')
-          .eq('id', tripId)
-          .single();
-        let dayNumber = 1;
-        if (tripData?.start_date) {
-          const start = new Date(tripData.start_date);
-          const target = new Date(date);
-          dayNumber = Math.floor((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-          if (dayNumber < 1) {
-            console.warn('[FlightDayDebug] Attempted to create day with day_number < 1:', { date, dayNumber, tripStart: tripData.start_date });
-            dayNumber = 1;
-          }
-        }
-        console.log('[FlightDayDebug] Creating day:', { tripId, date, dayNumber });
-        const { data: newDay, error: dayInsertError } = await ownedTrip.supabase
-          .from('days')
-          .insert({ trip_id: tripId, date, day_number: dayNumber })
-          .select('id')
-          .single();
-        if (!dayInsertError && newDay) {
-          dayIdMap[date] = newDay.id;
-        } else {
-          console.warn('[FlightDayDebug] Failed to insert day:', { date, dayNumber, error: dayInsertError });
-        }
-      }
+    if (!depActivity || !arrActivity) {
+      console.warn('[FlightActivityDebug] Blocked: Could not create both departure and arrival activities.', {
+        depActivity, arrActivity, dayIdMap, savedFlight
+      });
+      return NextResponse.json({
+        error: 'Cannot create both departure and arrival activities. Please ensure your trip covers both the departure and arrival dates of the flight.'
+      }, { status: 400 });
     }
-
-    // Re-fetch all days to ensure dayIdMap is up to date
-    const { data: refreshedDays } = await ownedTrip.supabase
-      .from('days')
-      .select('id, date')
-      .eq('trip_id', tripId);
-    const refreshedDayIdMap = Object.fromEntries((refreshedDays || []).map((d: any) => [d.date, d.id]));
-
-    // Map activities with fully up-to-date dayIdMap
-    const [finalDepartureActivity, finalArrivalActivity] = mapFlightToActivities(savedFlight, refreshedDayIdMap);
-
-    // Debug logs for mapping and activities
-    console.log('dayIdMap:', dayIdMap);
-    console.log('departureActivity:', finalDepartureActivity);
-    console.log('arrivalActivity:', finalArrivalActivity);
-
     // Insert both activities
-    console.log('[FlightActivityDebug] Inserting departure activity:', finalDepartureActivity);
+    console.log('[FlightActivityDebug] Inserting departure activity:', depActivity);
     const { error: depErr } = await ownedTrip.supabase.from('activities').insert({
-      ...finalDepartureActivity,
+      ...depActivity,
       status: 'planned',
     })
-    console.log('[FlightActivityDebug] Inserting arrival activity:', finalArrivalActivity);
+    console.log('[FlightActivityDebug] Inserting arrival activity:', arrActivity);
     const { error: arrErr } = await ownedTrip.supabase.from('activities').insert({
-      ...finalArrivalActivity,
+      ...arrActivity,
       status: 'planned',
     })
     if (depErr || arrErr) {
@@ -201,7 +156,7 @@ export async function POST(request: Request, { params }: Params) {
     revalidatePath(`/trips/${tripId}`)
     revalidatePath(`/trips/${tripId}/flight`)
     revalidatePath(`/trips/${tripId}/itinerary`)
-  return NextResponse.json({ flight: savedFlight, activities: [finalDepartureActivity, finalArrivalActivity] })
+    return NextResponse.json({ flight: savedFlight, activities: [depActivity, arrActivity] })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unexpected error.' },

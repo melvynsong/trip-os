@@ -162,6 +162,12 @@ export default function ActivityFlightInput({
     ? getDuration(flightOnThisDay.departureTime, flightOnThisDay.arrivalTime)
     : null
 
+  // Debug log for troubleshooting flight date issues
+  if (typeof window !== 'undefined' && lookupResult) {
+    // eslint-disable-next-line no-console
+    console.log('[ActivityFlightInput][DEBUG] flightDate prop:', flightDate, 'lookupResult.departureTime:', lookupResult.departureTime, 'lookupResult.arrivalTime:', lookupResult.arrivalTime);
+  }
+
   useEffect(() => {
     if (!canUseFlights) {
       setAllFlights([])
@@ -289,6 +295,14 @@ export default function ActivityFlightInput({
     )
   }
 
+  // Use the actual departure date from lookupResult if available, else fallback to flightDate prop
+  let displayDate = flightDate;
+  if (lookupResult && lookupResult.departureTime) {
+    // Extract YYYY-MM-DD from ISO string
+    const match = lookupResult.departureTime.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) displayDate = match[1];
+  }
+
   return (
     <div className="space-y-4 rounded-2xl border border-[var(--border-soft)] bg-white p-4">
       <div className="flex items-center justify-between">
@@ -297,7 +311,7 @@ export default function ActivityFlightInput({
           <BetaBadge />
         </div>
         <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--text-subtle)]">
-          ✈️ {formatDate(flightDate)}
+          ✈️ {formatDate(displayDate)}
         </span>
       </div>
 

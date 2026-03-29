@@ -62,6 +62,46 @@ export function mapFlightToActivities(
   const depDayId = dayIdMap[depLocalDate];
   const arrDayId = dayIdMap[arrLocalDate];
 
+  if (!depDayId || !arrDayId) {
+    console.warn('[FlightActivity][ERROR] Missing dayId for departure or arrival:', {
+      depLocalDate, arrLocalDate, depDayId, arrDayId, dayIdMapKeys: Object.keys(dayIdMap), flight,
+    });
+    return [
+      depDayId && flight.departureTime ? {
+        id: uuidv4(),
+        day_id: depDayId,
+        type: 'transport' as ActivityType,
+        title: `Flight ${flight.flightNumber} Departure`,
+        activity_time: flight.departureTime,
+        notes: `${flight.airlineName || flight.airlineCode} ${flight.flightNumber} from ${flight.departureAirportCode} to ${flight.arrivalAirportCode}`,
+        sort_order: 0,
+        place_id: null,
+        created_at: new Date().toISOString(),
+        metadata: {
+          ...flight,
+          segment: 'departure',
+        },
+        flight_ref: flightRef,
+      } : null,
+      arrDayId && flight.arrivalTime ? {
+        id: uuidv4(),
+        day_id: arrDayId,
+        type: 'transport' as ActivityType,
+        title: `Flight ${flight.flightNumber} Arrival`,
+        activity_time: flight.arrivalTime,
+        notes: `${flight.airlineName || flight.airlineCode} ${flight.flightNumber} arrives at ${flight.arrivalAirportCode}`,
+        sort_order: 0,
+        place_id: null,
+        created_at: new Date().toISOString(),
+        metadata: {
+          ...flight,
+          segment: 'arrival',
+        },
+        flight_ref: flightRef,
+      } : null,
+    ].filter(Boolean);
+  }
+
   const departureActivity = {
     id: uuidv4(),
     day_id: depDayId,
