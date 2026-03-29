@@ -198,7 +198,7 @@ export default function EditActivityForm({
             defaultValue={initialNotes || ''}
             className="w-full rounded-xl border px-3 py-2"
             placeholder="Optional notes..."
-            disabled={isSubmitting}
+            disabled={isSubmitting || isFlightMode}
           />
         </div>
 
@@ -207,7 +207,7 @@ export default function EditActivityForm({
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
-            disabled={isSubmitting || isDeleting}
+            disabled={isSubmitting || isDeleting || isFlightMode}
             className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
           >
             {isSubmitting ? 'Saving...' : isFlightMode ? 'Done' : 'Save Changes'}

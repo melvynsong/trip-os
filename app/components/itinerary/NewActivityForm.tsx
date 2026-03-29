@@ -136,7 +136,7 @@ export default function NewActivityForm({
           rows={4}
           className="w-full rounded-xl border px-3 py-2"
           placeholder="Optional notes..."
-          disabled={isSubmitting}
+          disabled={isSubmitting || isFlightMode}
         />
       </div>
 
@@ -145,7 +145,7 @@ export default function NewActivityForm({
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isFlightMode}
           className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
         >
           {isSubmitting ? 'Saving...' : isFlightMode ? 'Done' : 'Save Activity'}
