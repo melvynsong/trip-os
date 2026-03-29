@@ -22,11 +22,13 @@ export type FlightLookupResult = {
   departureCity: string | null
   departureTime: string | null
   departureTerminal: string | null
+  departureAirportTimezone?: string | null
   arrivalAirportCode: string | null
   arrivalAirportName: string | null
   arrivalCity: string | null
   arrivalTime: string | null
   arrivalTerminal: string | null
+  arrivalAirportTimezone?: string | null
   status: string | null
   aircraftModel: string | null
   dataProvider: 'aerodatabox' | 'manual' | 'cache'

@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityType } from '@/types/trip';
 import type { SavedTripFlight } from '@/lib/flights/trip';
+import { getLocalDateFromIsoDatetime } from '@/lib/utils/localDateFromIso';
 
 /**
  * Map a flight search result to two activities: departure and arrival.
@@ -12,10 +13,18 @@ export function mapFlightToActivities(
   dayIdMap: Record<string, string>
 ) {
   const flightRef = uuidv4();
-  // Use flightDate for departure, and extract date from arrivalTime for arrival
-  const depDayId = dayIdMap[flight.flightDate];
-  const arrDate = flight.arrivalTime.split('T')[0];
-  const arrDayId = dayIdMap[arrDate];
+
+  // Defensive: require airport timezone fields (should be present from API or metadata)
+  const depTz = flight.departureAirportTimezone || flight.departureTimezone || flight.departure_tz || 'UTC';
+  const arrTz = flight.arrivalAirportTimezone || flight.arrivalTimezone || flight.arrival_tz || 'UTC';
+
+  // Use local date at departure airport for departure activity
+  const depLocalDate = getLocalDateFromIsoDatetime(flight.departureTime, depTz);
+  const depDayId = dayIdMap[depLocalDate];
+
+  // Use local date at arrival airport for arrival activity
+  const arrLocalDate = getLocalDateFromIsoDatetime(flight.arrivalTime, arrTz);
+  const arrDayId = dayIdMap[arrLocalDate];
 
   const departureActivity = {
     id: uuidv4(),

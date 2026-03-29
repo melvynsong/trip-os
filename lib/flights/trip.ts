@@ -49,11 +49,13 @@ export type SavedTripFlight = {
   departureCity: string | null
   departureTime: string
   departureTerminal: string | null
+  departureAirportTimezone?: string | null
   arrivalAirportCode: string
   arrivalAirportName: string | null
   arrivalCity: string | null
   arrivalTime: string
   arrivalTerminal: string | null
+  arrivalAirportTimezone?: string | null
   status: string | null
   aircraftModel: string | null
   dataProvider: string
