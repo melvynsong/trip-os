@@ -352,8 +352,8 @@ export default function ActivityFlightInput({
                 Flight
               </p>
               <p className="text-base font-semibold text-[var(--text-strong)]">
-                {flightOnThisDay.normalizedFlightNumber}
-                {flightOnThisDay.airlineName ? ` · ${flightOnThisDay.airlineName}` : ''}
+                {flightOnThisDay.flightNumber}
+                {flightOnThisDay.airline ? ` · ${flightOnThisDay.airline}` : ''}
               </p>
               {flightOnThisDay.aircraftModel ? (
                 <p className="text-xs text-[var(--text-subtle)]">{flightOnThisDay.aircraftModel}</p>
