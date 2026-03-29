@@ -20,10 +20,10 @@ export function mapFlightToActivities(
 
   // Use local date at departure airport for departure activity
   const depLocalDate = getLocalDateFromIsoDatetime(flight.departureTime, depTz);
-  const depDayId = dayIdMap[depLocalDate];
-
-  // Use local date at arrival airport for arrival activity
   const arrLocalDate = getLocalDateFromIsoDatetime(flight.arrivalTime, arrTz);
+  // Debug logs for date mapping
+  console.log('depLocalDate:', depLocalDate, 'arrLocalDate:', arrLocalDate, 'dayIdMap keys:', Object.keys(dayIdMap));
+  const depDayId = dayIdMap[depLocalDate];
   const arrDayId = dayIdMap[arrLocalDate];
 
   const departureActivity = {
