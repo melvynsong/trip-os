@@ -15,11 +15,14 @@ export function mapFlightToActivities(
   const flightRef = uuidv4();
 
   // Defensive: require airport timezone fields (should be present from API or metadata)
+  // Use correct IANA timezone for departure and arrival
   const depTz = flight.departureAirportTimezone || 'UTC';
   const arrTz = flight.arrivalAirportTimezone || 'UTC';
 
   // Use local date at departure airport for departure activity
+  // Use local date at departure airport for departure activity
   const depLocalDate = getLocalDateFromIsoDatetime(flight.departureTime, depTz);
+  // Use local date at arrival airport for arrival activity (ensure correct timezone)
   const arrLocalDate = getLocalDateFromIsoDatetime(flight.arrivalTime, arrTz);
   // Debug logs for date mapping
   console.log('depLocalDate:', depLocalDate, 'arrLocalDate:', arrLocalDate, 'dayIdMap keys:', Object.keys(dayIdMap));
