@@ -126,21 +126,46 @@ export async function POST(request: Request, { params }: Params) {
       .eq('trip_id', tripId)
     const dayIdMap = Object.fromEntries((days || []).map((d: any) => [d.date, d.id]))
 
+
     // Map flight to activities
-    const [departureActivity, arrivalActivity] = mapFlightToActivities(savedFlight, dayIdMap)
+    const [departureActivity, arrivalActivity, depLocalDate, arrLocalDate] = (() => {
+      const [dep, arr] = mapFlightToActivities(savedFlight, dayIdMap);
+      // Extract local dates from metadata if available, else fallback
+      const depDate = dep?.metadata?.departureTime?.slice(0, 10) || dep?.activity_time?.slice(0, 10);
+      const arrDate = arr?.metadata?.arrivalTime?.slice(0, 10) || arr?.activity_time?.slice(0, 10);
+      return [dep, arr, depDate, arrDate];
+    })();
+
+    // Ensure days exist for both depLocalDate and arrLocalDate
+    const neededDates = [depLocalDate, arrLocalDate].filter(Boolean);
+    for (const date of neededDates) {
+      if (!dayIdMap[date]) {
+        const { data: newDay, error: dayInsertError } = await ownedTrip.supabase
+          .from('days')
+          .insert({ trip_id: tripId, date })
+          .select('id')
+          .single();
+        if (!dayInsertError && newDay) {
+          dayIdMap[date] = newDay.id;
+        }
+      }
+    }
+
+    // Re-map activities with updated dayIdMap
+    const [finalDepartureActivity, finalArrivalActivity] = mapFlightToActivities(savedFlight, dayIdMap);
 
     // Debug logs for mapping and activities
     console.log('dayIdMap:', dayIdMap);
-    console.log('departureActivity:', departureActivity);
-    console.log('arrivalActivity:', arrivalActivity);
+    console.log('departureActivity:', finalDepartureActivity);
+    console.log('arrivalActivity:', finalArrivalActivity);
 
     // Insert both activities
     const { error: depErr } = await ownedTrip.supabase.from('activities').insert({
-      ...departureActivity,
+      ...finalDepartureActivity,
       status: 'planned',
     })
     const { error: arrErr } = await ownedTrip.supabase.from('activities').insert({
-      ...arrivalActivity,
+      ...finalArrivalActivity,
       status: 'planned',
     })
     if (depErr || arrErr) {

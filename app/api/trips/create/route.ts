@@ -149,6 +149,26 @@ export async function POST(request: Request) {
       }
     }
 
+    // Insert all days from start_date to end_date (inclusive)
+    if (createdTrip) {
+      const days = [];
+      let current = new Date(startDate);
+      const end = new Date(endDate);
+      while (current <= end) {
+        days.push({
+          trip_id: createdTrip.id,
+          date: current.toISOString().slice(0, 10),
+        });
+        current.setDate(current.getDate() + 1);
+      }
+      const { error: daysInsertError } = await supabase.from('days').insert(days);
+      if (daysInsertError) {
+        console.warn('Failed to seed days for trip', {
+          tripId: createdTrip.id,
+          error: daysInsertError.message,
+        });
+      }
+    }
     return NextResponse.json({ success: true })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected error creating trip.'
