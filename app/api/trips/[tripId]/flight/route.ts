@@ -148,7 +148,12 @@ export async function POST(request: Request, { params }: Params) {
           const start = new Date(tripData.start_date);
           const target = new Date(date);
           dayNumber = Math.floor((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          if (dayNumber < 1) {
+            console.warn('[FlightDayDebug] Attempted to create day with day_number < 1:', { date, dayNumber, tripStart: tripData.start_date });
+            dayNumber = 1;
+          }
         }
+        console.log('[FlightDayDebug] Creating day:', { tripId, date, dayNumber });
         const { data: newDay, error: dayInsertError } = await ownedTrip.supabase
           .from('days')
           .insert({ trip_id: tripId, date, day_number: dayNumber })
@@ -156,6 +161,8 @@ export async function POST(request: Request, { params }: Params) {
           .single();
         if (!dayInsertError && newDay) {
           dayIdMap[date] = newDay.id;
+        } else {
+          console.warn('[FlightDayDebug] Failed to insert day:', { date, dayNumber, error: dayInsertError });
         }
       }
     }
@@ -176,15 +183,18 @@ export async function POST(request: Request, { params }: Params) {
     console.log('arrivalActivity:', finalArrivalActivity);
 
     // Insert both activities
+    console.log('[FlightActivityDebug] Inserting departure activity:', finalDepartureActivity);
     const { error: depErr } = await ownedTrip.supabase.from('activities').insert({
       ...finalDepartureActivity,
       status: 'planned',
     })
+    console.log('[FlightActivityDebug] Inserting arrival activity:', finalArrivalActivity);
     const { error: arrErr } = await ownedTrip.supabase.from('activities').insert({
       ...finalArrivalActivity,
       status: 'planned',
     })
     if (depErr || arrErr) {
+      console.warn('[FlightActivityDebug] Failed to insert activities:', { depErr, arrErr });
       return NextResponse.json({ error: 'Failed to create flight activities.' }, { status: 500 })
     }
 
