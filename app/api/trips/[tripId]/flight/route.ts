@@ -127,14 +127,10 @@ export async function POST(request: Request, { params }: Params) {
     const dayIdMap = Object.fromEntries((days || []).map((d: any) => [d.date, d.id]))
 
 
-    // Map flight to activities
-    const [departureActivity, arrivalActivity, depLocalDate, arrLocalDate] = (() => {
-      const [dep, arr] = mapFlightToActivities(savedFlight, dayIdMap);
-      // Extract local dates from metadata if available, else fallback
-      const depDate = dep?.metadata?.departureTime?.slice(0, 10) || dep?.activity_time?.slice(0, 10);
-      const arrDate = arr?.metadata?.arrivalTime?.slice(0, 10) || arr?.activity_time?.slice(0, 10);
-      return [dep, arr, depDate, arrDate];
-    })();
+    // Map flight to activities to get local dates
+    const [depActivity, arrActivity] = mapFlightToActivities(savedFlight, dayIdMap);
+    const depLocalDate = depActivity?.metadata?.departureTime?.slice(0, 10) || depActivity?.activity_time?.slice(0, 10);
+    const arrLocalDate = arrActivity?.metadata?.arrivalTime?.slice(0, 10) || arrActivity?.activity_time?.slice(0, 10);
 
     // Ensure days exist for both depLocalDate and arrLocalDate
     const neededDates = [depLocalDate, arrLocalDate].filter(Boolean);
@@ -163,7 +159,7 @@ export async function POST(request: Request, { params }: Params) {
       }
     }
 
-    // Re-map activities with updated dayIdMap
+    // Re-map activities with updated dayIdMap (now guaranteed to have both dates)
     const [finalDepartureActivity, finalArrivalActivity] = mapFlightToActivities(savedFlight, dayIdMap);
 
     // Debug logs for mapping and activities
