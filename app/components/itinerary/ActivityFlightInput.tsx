@@ -356,7 +356,7 @@ export default function ActivityFlightInput({
                 {flightOnThisDay.airline ? ` · ${flightOnThisDay.airline}` : ''}
               </p>
               {flightOnThisDay.aircraftModel ? (
-                <p className="text-xs text-[var(--text-subtle)]">{flightOnThisDay.aircraftModel}</p>
+                <p className="text-xs text-[var(--text-subtle)]">{flightOnThisDay.aircraft}</p>
               ) : null}
             </div>
             {savedDuration ? (
