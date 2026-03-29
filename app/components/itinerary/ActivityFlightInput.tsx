@@ -349,7 +349,7 @@ export default function ActivityFlightInput({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">
-                {directionLabel(flightOnThisDay.direction)}
+                Flight
               </p>
               <p className="text-base font-semibold text-[var(--text-strong)]">
                 {flightOnThisDay.normalizedFlightNumber}
