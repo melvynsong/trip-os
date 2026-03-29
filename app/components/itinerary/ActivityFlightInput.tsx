@@ -231,7 +231,7 @@ export default function ActivityFlightInput({
     try {
       // Map lookupResult to unified FlightActivity structure
       const flightActivity: FlightActivity = {
-        id: lookupResult.id || '',
+        id: '', // No id in lookupResult; will be set by backend or generated later
         day_id: '', // Will be set by backend
         type: 'flight',
         airline: lookupResult.airlineName || lookupResult.airlineCode || '',
