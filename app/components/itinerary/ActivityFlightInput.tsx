@@ -369,19 +369,19 @@ export default function ActivityFlightInput({
           <div className="grid grid-cols-2 gap-3">
             <LegCard
               label="Departs"
-              airportCode={flightOnThisDay.departureAirportCode}
-              city={flightOnThisDay.departureCity}
-              airportName={flightOnThisDay.departureAirportName}
-              time={flightOnThisDay.departureTime}
-              terminal={flightOnThisDay.departureTerminal}
+              airportCode={flightOnThisDay.departure.airportCode}
+              city={flightOnThisDay.departure.city}
+              airportName={flightOnThisDay.departure.airportName}
+              time={flightOnThisDay.departure.datetime}
+              terminal={flightOnThisDay.departure.terminal}
             />
             <LegCard
               label="Arrives"
-              airportCode={flightOnThisDay.arrivalAirportCode}
-              city={flightOnThisDay.arrivalCity}
-              airportName={flightOnThisDay.arrivalAirportName}
-              time={flightOnThisDay.arrivalTime}
-              terminal={flightOnThisDay.arrivalTerminal}
+              airportCode={flightOnThisDay.arrival.airportCode}
+              city={flightOnThisDay.arrival.city}
+              airportName={flightOnThisDay.arrival.airportName}
+              time={flightOnThisDay.arrival.datetime}
+              terminal={flightOnThisDay.arrival.terminal}
             />
           </div>
 
