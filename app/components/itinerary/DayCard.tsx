@@ -49,24 +49,13 @@ export default function DayCard({
       ? day.title
       : null
 
-  // --- DEBUG LOGS ---
-  console.log('[ItineraryDebug] activities:', activities.map(a => ({
-    id: a.id,
-    type: a.type,
-    activity_time: a.activity_time,
-    title: a.title,
-    notes: a.notes
-  })));
+  // --- ENHANCED DEBUG LOGS ---
+  console.log('[ItineraryDebug][DayCard] activities:', activities);
 
   const { orderedItems, sections } = transformActivitiesForTimeline(activities);
-  console.log('[ItineraryDebug] orderedItems:', orderedItems.map(item => ({
-    kind: item.kind,
-    id: item.activity.id,
-    type: item.activity.type,
-    activity_time: item.activity.activity_time,
-    title: item.activity.title,
-    notes: item.activity.notes
-  })));
+
+  console.log('[ItineraryDebug][DayCard] orderedItems:', orderedItems);
+  console.log('[ItineraryDebug][DayCard] sections:', sections);
   console.log('[ItineraryDebug] sections:', sections.map(section => ({
     key: section.key,
     label: section.label,
