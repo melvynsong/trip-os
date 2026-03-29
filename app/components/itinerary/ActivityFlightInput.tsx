@@ -3,6 +3,36 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import FlightRouteMap from '@/app/components/trips/flight/FlightRouteMap'
+import type { SavedTripFlight } from '@/lib/flights/trip'
+// Minimal conversion from FlightActivity to SavedTripFlight for map rendering
+function toSavedTripFlightFromActivity(fa: FlightActivity): SavedTripFlight {
+  return {
+    id: fa.id,
+    tripId: '',
+    direction: 'unknown',
+    normalizedFlightNumber: fa.flightNumber,
+    flightDate: '',
+    airlineCode: fa.carrierCode || '',
+    airlineName: fa.airline,
+    flightNumber: fa.flightNumber,
+    departureAirportCode: fa.departure.airportCode,
+    departureAirportName: fa.departure.airportName,
+    departureCity: fa.departure.city,
+    departureTime: fa.departure.datetime,
+    departureTerminal: fa.departure.terminal || null,
+    arrivalAirportCode: fa.arrival.airportCode,
+    arrivalAirportName: fa.arrival.airportName,
+    arrivalCity: fa.arrival.city,
+    arrivalTime: fa.arrival.datetime,
+    arrivalTerminal: fa.arrival.terminal || null,
+    status: fa.notes || null,
+    aircraftModel: fa.aircraft || null,
+    dataProvider: '',
+    rawResponseJson: fa.rawMetadata,
+    selectedAt: fa.created_at,
+    updatedAt: fa.created_at,
+  }
+}
 import BetaBadge from '@/app/components/ui/BetaBadge'
 import Button from '@/app/components/ui/Button'
 import SegmentedControl from '@/app/components/ui/SegmentedControl'
@@ -524,7 +554,7 @@ export default function ActivityFlightInput({
         </div>
       ) : null}
 
-      {allFlights.length >= 2 ? <FlightRouteMap flights={allFlights} /> : null}
+      {allFlights.length >= 2 ? <FlightRouteMap flights={allFlights.map(toSavedTripFlightFromActivity)} /> : null}
 
       {error ? <p className="text-xs text-red-500">{error}</p> : null}
       {successMessage ? <p className="text-xs text-emerald-700">{successMessage}</p> : null}
