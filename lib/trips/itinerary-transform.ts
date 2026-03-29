@@ -278,7 +278,7 @@ export function transformItineraryDayActivities(activities: ItineraryActivity[])
           console.warn('[ItineraryDebug] Invalid arrDateTime for arrival:', arrDateTime, group);
         }
       } else if ((group.arrival as ItineraryActivity).activity_time) {
-        arrival_time_24h = (group.arrival as ItineraryActivity).activity_time;
+        arrival_time_24h = (group.arrival as ItineraryActivity).activity_time || '—';
       } else {
         arrival_time_24h = '—';
         console.warn('[ItineraryDebug] Missing arrDateTime and activity_time for arrival:', group);
