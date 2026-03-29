@@ -14,9 +14,11 @@ type SaveFlightPayload = {
   flight?: unknown;
 };
 
+
 function parseFlight(input: unknown): FlightActivity | null {
-  if (typeof input !== 'object' || input === null) return null
-  return input as FlightActivity
+  if (typeof input !== 'object' || input === null) return null;
+  return input as FlightActivity;
+}
 
 async function verifyTripOwnership(tripId: string, userId: string) {
   const supabase = await createClient()
