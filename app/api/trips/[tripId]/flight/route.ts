@@ -129,6 +129,11 @@ export async function POST(request: Request, { params }: Params) {
     // Map flight to activities
     const [departureActivity, arrivalActivity] = mapFlightToActivities(savedFlight, dayIdMap)
 
+    // Debug logs for mapping and activities
+    console.log('dayIdMap:', dayIdMap);
+    console.log('departureActivity:', departureActivity);
+    console.log('arrivalActivity:', arrivalActivity);
+
     // Insert both activities
     const { error: depErr } = await ownedTrip.supabase.from('activities').insert({
       ...departureActivity,
