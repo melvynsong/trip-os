@@ -19,13 +19,26 @@ export function mapFlightToActivities(
   const depTz = flight.departureAirportTimezone || 'UTC';
   const arrTz = flight.arrivalAirportTimezone || 'UTC';
 
+  // Normalize times to ISO if needed
+  const depTimeIso = flight.departureTime?.replace(' ', 'T') ?? '';
+  const arrTimeIso = flight.arrivalTime?.replace(' ', 'T') ?? '';
   // Use local date at departure airport for departure activity
-  // Use local date at departure airport for departure activity
-  const depLocalDate = getLocalDateFromIsoDatetime(flight.departureTime, depTz);
+  const depLocalDate = getLocalDateFromIsoDatetime(depTimeIso, depTz);
   // Use local date at arrival airport for arrival activity (ensure correct timezone)
-  const arrLocalDate = getLocalDateFromIsoDatetime(flight.arrivalTime, arrTz);
-  // Debug logs for date mapping
-  console.log('depLocalDate:', depLocalDate, 'arrLocalDate:', arrLocalDate, 'dayIdMap keys:', Object.keys(dayIdMap));
+  const arrLocalDate = getLocalDateFromIsoDatetime(arrTimeIso, arrTz);
+  // Enhanced debug logs for date mapping
+  console.log('[FlightActivity][DEBUG]', {
+    departureTime: flight.departureTime,
+    departureAirportTimezone: depTz,
+    depTimeIso,
+    depLocalDate,
+    arrivalTime: flight.arrivalTime,
+    arrivalAirportTimezone: arrTz,
+    arrTimeIso,
+    arrLocalDate,
+    dayIdMapKeys: Object.keys(dayIdMap),
+    flight,
+  });
   const depDayId = dayIdMap[depLocalDate];
   const arrDayId = dayIdMap[arrLocalDate];
 
