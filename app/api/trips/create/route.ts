@@ -154,12 +154,15 @@ export async function POST(request: Request) {
       const days = [];
       let current = new Date(startDate);
       const end = new Date(endDate);
+      let dayNumber = 1;
       while (current <= end) {
         days.push({
           trip_id: createdTrip.id,
           date: current.toISOString().slice(0, 10),
+          day_number: dayNumber,
         });
         current.setDate(current.getDate() + 1);
+        dayNumber++;
       }
       const { error: daysInsertError } = await supabase.from('days').insert(days);
       if (daysInsertError) {

@@ -140,9 +140,21 @@ export async function POST(request: Request, { params }: Params) {
     const neededDates = [depLocalDate, arrLocalDate].filter(Boolean);
     for (const date of neededDates) {
       if (!dayIdMap[date]) {
+        // Find the trip's start_date
+        const { data: tripData } = await ownedTrip.supabase
+          .from('trips')
+          .select('start_date')
+          .eq('id', tripId)
+          .single();
+        let dayNumber = 1;
+        if (tripData?.start_date) {
+          const start = new Date(tripData.start_date);
+          const target = new Date(date);
+          dayNumber = Math.floor((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        }
         const { data: newDay, error: dayInsertError } = await ownedTrip.supabase
           .from('days')
-          .insert({ trip_id: tripId, date })
+          .insert({ trip_id: tripId, date, day_number: dayNumber })
           .select('id')
           .single();
         if (!dayInsertError && newDay) {
