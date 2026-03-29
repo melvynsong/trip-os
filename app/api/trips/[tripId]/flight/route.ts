@@ -183,8 +183,7 @@ export async function POST(request: Request, { params }: Params) {
     revalidatePath(`/trips/${tripId}`)
     revalidatePath(`/trips/${tripId}/flight`)
     revalidatePath(`/trips/${tripId}/itinerary`)
-
-    return NextResponse.json({ flight: savedFlight, activities: [departureActivity, arrivalActivity] })
+  return NextResponse.json({ flight: savedFlight, activities: [finalDepartureActivity, finalArrivalActivity] })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unexpected error.' },
