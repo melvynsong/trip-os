@@ -15,7 +15,9 @@ type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 type Activity = Pick<
   ActivityType,
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'status' | 'sort_order'
->
+> & {
+  metadata?: any;
+}
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 /** Determine the best day to show for Today View (closest to real today) */
