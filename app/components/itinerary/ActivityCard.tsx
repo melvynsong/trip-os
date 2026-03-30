@@ -1,8 +1,11 @@
+
 import Link from 'next/link'
 import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import { buttonClass } from '@/app/components/ui/Button'
+import Card from '@/app/components/ui/Card'
+import { Typography } from '@/app/components/design-system/Typography'
 
 type ActivityCardActivity = Pick<
   ActivityType,
@@ -19,7 +22,6 @@ type ActivityCardProps = {
   moveActivityAction: (formData: FormData) => Promise<void>
 }
 
-export default function ActivityCard({
   tripId,
   activity,
   canMoveUp,
@@ -27,20 +29,19 @@ export default function ActivityCard({
   moveActivityAction,
 }: ActivityCardProps) {
   return (
-    <div
-      key={activity.id}
-      className="rounded-[1.4rem] border border-slate-200 bg-slate-50/60 p-4 transition-colors hover:bg-sky-50/60"
-    >
+    <Card key={activity.id}>
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 text-base font-semibold text-slate-900 sm:text-[1.1rem]">
+        <Typography variant="cardTitle" className="min-w-0">
           {getEmoji(activity.type, { title: activity.title, notes: activity.notes })} {activity.title}
-        </div>
-        <div className="shrink-0 text-sm font-medium text-slate-500">
+        </Typography>
+        <span className="text-xs font-medium text-slate-500">
           {activity.activity_time || 'No time'}
-        </div>
+        </span>
       </div>
 
-      <div className="mt-1 text-sm text-slate-500 capitalize">{activity.type}</div>
+      <Typography variant="meta" className="mt-1 capitalize">
+        {activity.type}
+      </Typography>
 
       {activity.places && (
         <div className="mt-2 inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800 ring-1 ring-sky-200">
@@ -49,7 +50,9 @@ export default function ActivityCard({
       )}
 
       {activity.notes ? (
-        <div className="mt-3 text-sm leading-7 text-slate-600">{activity.notes}</div>
+        <Typography variant="helper" className="mt-3 leading-7 text-slate-600">
+          {activity.notes}
+        </Typography>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -95,6 +98,6 @@ export default function ActivityCard({
           Edit
         </Link>
       </div>
-    </div>
+    </Card>
   )
 }

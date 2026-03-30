@@ -1,8 +1,11 @@
 'use client'
 
+
 import { getEmoji } from '@/lib/utils/getEmoji'
 import { Activity as ActivityType } from '@/types/trip'
 import { buttonClass } from '@/app/components/ui/Button'
+import Card from '@/app/components/ui/Card'
+import { Typography } from '@/app/components/design-system/Typography'
 
 export type TodayItem = Pick<
   ActivityType,
@@ -28,7 +31,6 @@ function formatTime(t: string) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-export default function TimelineItemCard({
   item,
   canMoveUp,
   canMoveDown,
@@ -41,13 +43,7 @@ export default function TimelineItemCard({
   const isDone = item.status === 'done'
 
   return (
-    <div
-      className={`flex gap-3 rounded-[1.25rem] border p-4 transition-all ${
-        isDone
-          ? 'border-slate-100 bg-slate-50/70 opacity-70'
-          : 'border-slate-200 bg-white shadow-sm active:scale-[0.995]'
-      }`}
-    >
+    <Card className={`flex gap-3 ${isDone ? 'opacity-70' : ''}`}>
       {/* Done toggle */}
       <button
         onClick={() => onToggleDone(item)}
@@ -69,9 +65,9 @@ export default function TimelineItemCard({
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className={`font-medium leading-snug text-slate-900 ${isDone ? 'line-through text-slate-400' : ''}`}>
+          <Typography variant="cardTitle" className={isDone ? 'line-through text-slate-400' : ''}>
             {getEmoji(item.type, { title: item.title, notes: item.notes })} {item.title}
-          </div>
+          </Typography>
           {item.activity_time && (
             <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs tabular-nums font-medium text-slate-600">
               {formatTime(item.activity_time)}
@@ -79,10 +75,14 @@ export default function TimelineItemCard({
           )}
         </div>
 
-        <div className="mt-0.5 text-xs capitalize text-slate-500">{item.type}</div>
+        <Typography variant="meta" className="mt-0.5 capitalize">
+          {item.type}
+        </Typography>
 
         {item.notes && !isDone && (
-          <div className="mt-1.5 text-sm leading-7 text-slate-600">{item.notes}</div>
+          <Typography variant="helper" className="mt-1.5 leading-7 text-slate-600">
+            {item.notes}
+          </Typography>
         )}
 
         {/* Action row */}
@@ -110,6 +110,6 @@ export default function TimelineItemCard({
           </button>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
