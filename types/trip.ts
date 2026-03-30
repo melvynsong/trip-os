@@ -78,6 +78,8 @@ export type Activity = {
   status: ActivityStatus
   sort_order: number
   created_at: string
+  metadata?: any;
+  [key: string]: any;
 }
 
 export type JournalEntry = {

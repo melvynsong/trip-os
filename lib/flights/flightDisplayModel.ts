@@ -1,6 +1,8 @@
 // Helper to extract and normalize flight display data from a saved activity row
 // Handles backward compatibility and missing fields gracefully
-export function getFlightDisplayModel(activity) {
+import type { Activity } from '@/types/trip';
+
+export function getFlightDisplayModel(activity: Activity) {
   if (!activity || activity.type !== 'transport' || !activity.metadata) return null;
   const meta = activity.metadata || {};
   // Fallbacks for backward compatibility
