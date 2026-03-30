@@ -5,6 +5,7 @@ import TripHeader from '@/app/components/trips/TripHeader'
 import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserFlightAccessState, getFlightAccessMessage } from '@/lib/flights/access'
 import { isLikelyFlightActivity } from '@/lib/flights/activity'
+import { getFlightDisplayModel } from '@/lib/flights/flightDisplayModel'
 import type { ActivityType } from '@/types/trip'
 import type { ActivityActionResult } from '@/lib/trips/activity-types'
 
@@ -61,7 +62,7 @@ export default async function EditActivityPage({ params }: Props) {
 
   const { data: activity, error: activityError } = await supabase
     .from('activities')
-    .select('id, day_id, title, activity_time, type, notes, sort_order, place_id')
+    .select('*, metadata')
     .eq('id', activityId)
     .eq('day_id', dayId)
     .single()
@@ -155,6 +156,18 @@ export default async function EditActivityPage({ params }: Props) {
     return { ok: true, redirect: `/trips/${tripId}/itinerary` }
   }
 
+  // --- FLIGHT REHYDRATION ---
+  let initialIsFlight = isLikelyFlightActivity({ type: activity.type as ActivityType, title: activity.title, notes: activity.notes });
+  let flightModel = null;
+  if (activity.type === 'transport' && activity.metadata) {
+    flightModel = getFlightDisplayModel(activity);
+    initialIsFlight = true;
+  }
+  // Debug log
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[EditActivity][DEBUG] raw:', activity, 'flightModel:', flightModel);
+  }
   return (
     <TripPageShell className="max-w-2xl space-y-6">
       <TripHeader
@@ -170,17 +183,19 @@ export default async function EditActivityPage({ params }: Props) {
         tripTitle={trip.title}
         destination={trip.destination}
         dayDate={day.date}
-        initialTitle={activity.title}
-        initialTime={activity.activity_time}
+        initialTitle={flightModel ? `${flightModel.airline} ${flightModel.flightNumber}` : activity.title}
+        initialTime={flightModel ? flightModel.departure.datetime.slice(11, 16) : activity.activity_time}
         initialType={activity.type as ActivityType}
-        initialIsFlight={isLikelyFlightActivity({ type: activity.type as ActivityType, title: activity.title, notes: activity.notes })}
+        initialIsFlight={initialIsFlight}
         initialPlaceId={activity.place_id}
-        initialNotes={activity.notes}
+        initialNotes={flightModel ? flightModel.notes : activity.notes}
         initialPlaces={places || []}
         updateActivity={updateActivity}
         deleteActivity={deleteActivity}
         canUseFlights={flightAccess?.canAccess ?? false}
         flightAccessMessage={flightAccess ? getFlightAccessMessage(flightAccess) : 'Flight (Beta) is unavailable right now.'}
+        // Pass full flightModel for further customization if needed
+        flightModel={flightModel}
       />
     </TripPageShell>
   )

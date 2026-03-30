@@ -1,12 +1,19 @@
 import React from 'react';
-import type { FlightActivity } from '@/lib/trips/flight-activity';
+// Accepts normalized flight model (from getFlightDisplayModel)
+
 
 interface FlightJourneyCardProps {
-  activity: FlightActivity;
+  activity: any;
 }
 
-export const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity }) => {
+
+const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity }) => {
   const { airline, flightNumber, carrierCode, departure, arrival, duration, aircraft, notes } = activity;
+  // Debug log
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[FlightJourneyCard][DEBUG] activity:', activity);
+  }
 
   // Helper to format date/time
   const formatDateTime = (iso: string) => {

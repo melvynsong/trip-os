@@ -1,5 +1,6 @@
 import ActivityCard from '@/app/components/itinerary/ActivityCard'
 import FlightJourneyCard from '@/app/components/itinerary/FlightJourneyCard'
+import { getFlightDisplayModel } from '@/lib/flights/flightDisplayModel'
 import type { ItineraryTimelineItem } from '@/lib/trips/itinerary-transform'
 
 type ItineraryActivityRendererProps = {
@@ -20,9 +21,15 @@ export default function ItineraryActivityRenderer({
   moveActivityAction,
 }: ItineraryActivityRendererProps) {
   if (item.kind === 'flight_card') {
-    // Render unified flight journey card
+    // Use normalized flight display model
+    const flightModel = getFlightDisplayModel(item.activity) || item.activity;
+    // Debug log
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.log('[FlightCard][Renderer] raw:', item.activity, 'model:', flightModel);
+    }
     return (
-      <FlightJourneyCard activity={item.activity} />
+      <FlightJourneyCard activity={flightModel} />
     );
   }
 
