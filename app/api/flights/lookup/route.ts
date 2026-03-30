@@ -99,7 +99,8 @@ export async function POST(request: Request) {
     }
 
     // Add logging for debugging date matching issues
-    const result = await lookupFlightByNumberAndDate(input)
+    // Enforce strict departure-day mode for Add Activity
+    const result = await lookupFlightByNumberAndDate({ ...input, mode: 'departure-day' })
 
     // Log input and result details for debugging
     // eslint-disable-next-line no-console

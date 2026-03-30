@@ -65,9 +65,10 @@ function findArrivalDate(record: UnknownRecord): string | null {
   return dt.slice(0, 10)
 }
 
+
 export function transformAeroDataBoxLookupToFlight(
   payload: unknown,
-  input: { normalizedFlightNumber: string; flightDate: string }
+  input: { normalizedFlightNumber: string; flightDate: string; mode?: 'departure-day' | 'arrival-day' | 'either' }
 ): FlightLookupResult | null {
   const rows = Array.isArray(payload)
     ? payload
@@ -80,13 +81,52 @@ export function transformAeroDataBoxLookupToFlight(
   }
 
   const normalizedDate = input.flightDate
+  const mode = input.mode || 'either';
 
-  const matchedRaw = rows.find((row) => {
-    if (!isRecord(row)) return false
-    const depDate = findArrivalDate(isRecord(row.departure) ? row.departure : {})
-    const arrDate = findArrivalDate(isRecord(row.arrival) ? row.arrival : {})
-    return depDate === normalizedDate || arrDate === normalizedDate
-  })
+  // Debug: log all candidate rows and their dates
+  if (typeof console !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[FlightLookup][transformAeroDataBoxLookupToFlight] candidates:', rows.map((row) => {
+      if (!isRecord(row)) return null;
+      const depDate = findArrivalDate(isRecord(row.departure) ? row.departure : {});
+      const arrDate = findArrivalDate(isRecord(row.arrival) ? row.arrival : {});
+      return {
+        number: row.number,
+        depDate,
+        arrDate,
+      };
+    }));
+  }
+
+  let matchedRaw: unknown = null;
+  if (mode === 'departure-day') {
+    matchedRaw = rows.find((row) => {
+      if (!isRecord(row)) return false;
+      const depDate = findArrivalDate(isRecord(row.departure) ? row.departure : {});
+      return depDate === normalizedDate;
+    });
+    if (!matchedRaw && typeof console !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.log('[FlightLookup][transformAeroDataBoxLookupToFlight] No departure-day match for', normalizedDate);
+    }
+  } else if (mode === 'arrival-day') {
+    matchedRaw = rows.find((row) => {
+      if (!isRecord(row)) return false;
+      const arrDate = findArrivalDate(isRecord(row.arrival) ? row.arrival : {});
+      return arrDate === normalizedDate;
+    });
+    if (!matchedRaw && typeof console !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.log('[FlightLookup][transformAeroDataBoxLookupToFlight] No arrival-day match for', normalizedDate);
+    }
+  } else {
+    matchedRaw = rows.find((row) => {
+      if (!isRecord(row)) return false;
+      const depDate = findArrivalDate(isRecord(row.departure) ? row.departure : {});
+      const arrDate = findArrivalDate(isRecord(row.arrival) ? row.arrival : {});
+      return depDate === normalizedDate || arrDate === normalizedDate;
+    });
+  }
 
   const selectedRaw = isRecord(matchedRaw)
     ? matchedRaw

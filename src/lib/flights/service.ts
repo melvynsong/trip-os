@@ -52,7 +52,7 @@ export function validateFlightLookupInput(input: unknown): FlightLookupInput {
 }
 
 export async function lookupFlightByNumberAndDate(
-  input: FlightLookupInput
+  input: FlightLookupInput & { mode?: 'departure-day' | 'arrival-day' | 'either' }
 ): Promise<FlightLookupResult | null> {
   const normalized = normalizeFlightNumber(input.flightNumber)
   const raw = await lookupAeroDataBoxFlight({
@@ -64,5 +64,6 @@ export async function lookupFlightByNumberAndDate(
   return transformAeroDataBoxLookupToFlight(raw, {
     normalizedFlightNumber: normalized.normalized,
     flightDate: input.flightDate,
+    mode: input.mode || 'either',
   })
 }
