@@ -604,6 +604,25 @@ export default function ActivityFlightInput({
                 />
               </div>
 
+              {/* Cross-midnight flight alignment notice */}
+              {(() => {
+                const { departureDate, arrivalDate } = getFlightLocalDates(lookupResult);
+                const alignment = classifyFlightAgainstPageDate(flightDate, departureDate, arrivalDate);
+                if (
+                  alignment === 'arrival' &&
+                  departureDate !== arrivalDate
+                ) {
+                  return (
+                    <div className="rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-800">
+                      This is a cross-midnight flight: it departs the previous day ({departureDate}) and arrives on your selected day ({arrivalDate}).
+                      <br />
+                      You are adding this flight to the <b>arrival day</b> of your itinerary.
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               {lookupDuration || lookupResult.airlineName || lookupResult.aircraftModel ? (
                 <p className="text-xs text-[var(--text-subtle)]">
                   {[
