@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './FlightJourneyCard.module.css';
 import Card from '@/app/components/ui/Card';
-import { PlaneIcon, PlaneTakeoffIcon, PlaneLandingIcon } from './PlaneIcon';
+import { PlaneChip } from './PlaneIcon';
 
 
 
@@ -44,11 +44,8 @@ function getFlightDirection(activity: any): 'departure' | 'arrival' | 'unknown' 
   return 'departure';
 }
 
-function getFlightDirectionIcon(direction: 'departure' | 'arrival' | 'unknown', size = 18, style = {}) {
-  if (direction === 'departure') return <PlaneTakeoffIcon size={size} style={style} />;
-  if (direction === 'arrival') return <PlaneLandingIcon size={size} style={style} />;
-  return <PlaneIcon size={size} style={style} />;
-}
+
+// PlaneChip is now the only icon used for flights (emoji-style)
 
 function formatDateTime(iso: string) {
   if (!iso) return '';
@@ -77,9 +74,6 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
     status,
   } = activity;
 
-  // Directional icon logic
-  const direction = getFlightDirection(activity);
-
   // Secondary details
   const secondary: string[] = [];
   if (_meta.checkInDesk) secondary.push(`Check-in: ${_meta.checkInDesk}`);
@@ -87,20 +81,25 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
   if (_meta.codeshare) secondary.push(`Codeshare: ${_meta.codeshare}`);
   if (_meta.status && !notes) secondary.push(formatFlightStatusForDisplay(_meta.status));
 
+  // Title: Flight · {FlightNumber} · {OriginCity} → {DestinationCity}
+  const origin = departure.city || departure.airportName || '';
+  const destination = arrival.city || arrival.airportName || '';
+  let headerTitle = '';
+  if (flightNumber && origin && destination) {
+    headerTitle = `Flight · ${flightNumber} · ${origin} → ${destination}`;
+  } else if (flightNumber) {
+    headerTitle = `Flight · ${flightNumber}`;
+  } else if (airline) {
+    headerTitle = `Flight · ${airline}`;
+  } else {
+    headerTitle = activity.title || 'Flight';
+  }
+
   return (
     <Card className={styles.flightCard}>
       <div className={styles.topRow}>
-        <span className={styles.directionLabel}>
-          {getFlightDirectionIcon(direction, 18, { marginRight: 6, verticalAlign: 'middle' })}
-          {direction === 'departure' ? 'DEPARTURE' : direction === 'arrival' ? 'ARRIVAL' : 'FLIGHT'}
-        </span>
-        <span className={styles.title}>
-          {flightNumber ? (
-            <>{airline ? `${flightNumber} · ${airline}` : flightNumber}</>
-          ) : (
-            airline
-          )}
-        </span>
+        <span className={styles.chipIcon}><PlaneChip /></span>
+        <span className={styles.title}>{headerTitle}</span>
         {aircraft && <span className={styles.aircraft}>{aircraft}</span>}
         {duration && <span className={styles.durationPill}>{duration}</span>}
       </div>
@@ -108,7 +107,7 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
         <div className={styles.block}>
           <div className={styles.label}>Departs</div>
           <div className={styles.airportCode}>{departure.airportCode || '-'}</div>
-          <div className={styles.city}>{departure.city || departure.airportName || ''}</div>
+          <div className={styles.city}>{origin}</div>
           <div>{formatDateTime(departure.datetime)}</div>
           {departure.terminal && (
             <div className={styles.terminal}>Terminal {departure.terminal}</div>
@@ -117,7 +116,7 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
         <div className={styles.block}>
           <div className={styles.label}>Arrives</div>
           <div className={styles.airportCode}>{arrival.airportCode || '-'}</div>
-          <div className={styles.city}>{arrival.city || arrival.airportName || ''}</div>
+          <div className={styles.city}>{destination}</div>
           <div>{formatDateTime(arrival.datetime)}</div>
           {arrival.terminal && (
             <div className={styles.terminal}>Terminal {arrival.terminal}</div>

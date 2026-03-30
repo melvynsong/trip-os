@@ -4,6 +4,54 @@ import { render } from '@testing-library/react';
 import React from 'react';
 
 describe('FlightJourneyCard', () => {
+      it('renders emoji-style flight icon chip', () => {
+        const activity = {
+          type: 'transport',
+          metadata: {
+            flightNumber: 'SQ 852',
+            departure: { city: 'Singapore', airportCode: 'SIN' },
+            arrival: { city: 'Guangzhou', airportCode: 'CAN' },
+          },
+          id: '1',
+          day_id: 'd1',
+        };
+        const model = getFlightDisplayModel(activity);
+        const { container } = render(<FlightJourneyCard activity={model} />);
+        // Emoji ✈️ should be present
+        expect(container.textContent).toContain('✈️');
+        // Should not contain SVG system icons
+        expect(container.querySelector('svg')).toBeNull();
+      });
+
+      it('renders new header format with cities', () => {
+        const activity = {
+          type: 'transport',
+          metadata: {
+            flightNumber: 'SQ 852',
+            departure: { city: 'Singapore', airportCode: 'SIN' },
+            arrival: { city: 'Guangzhou', airportCode: 'CAN' },
+          },
+          id: '1',
+          day_id: 'd1',
+        };
+        const model = getFlightDisplayModel(activity);
+        const { getByText } = render(<FlightJourneyCard activity={model} />);
+        expect(getByText('Flight · SQ 852 · Singapore → Guangzhou')).toBeInTheDocument();
+      });
+
+      it('renders fallback header if cities missing', () => {
+        const activity = {
+          type: 'transport',
+          metadata: {
+            flightNumber: 'SQ 999',
+          },
+          id: '2',
+          day_id: 'd2',
+        };
+        const model = getFlightDisplayModel(activity);
+        const { getByText } = render(<FlightJourneyCard activity={model} />);
+        expect(getByText('Flight · SQ 999')).toBeInTheDocument();
+      });
     it('does NOT show Edit action for flights', () => {
       const activity = {
         type: 'transport',
