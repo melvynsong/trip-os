@@ -194,8 +194,6 @@ export default async function EditActivityPage({ params }: Props) {
         deleteActivity={deleteActivity}
         canUseFlights={flightAccess?.canAccess ?? false}
         flightAccessMessage={flightAccess ? getFlightAccessMessage(flightAccess) : 'Flight (Beta) is unavailable right now.'}
-        // Pass full flightModel for further customization if needed
-        flightModel={flightModel}
       />
     </TripPageShell>
   )
