@@ -96,14 +96,16 @@ export async function POST(request: Request, { params }: Params) {
         } else {
           const body = (await request.json().catch(() => null)) as SaveFlightPayload | null;
           const flight = parseFlight(body?.flight);
+          const context = body?.context;
           if (!flight) {
             response = NextResponse.json({ error: 'Flight data is required.' }, { status: 400 });
           } else {
-            // Insert the unified flight activity
+            // Insert the unified flight activity, pass context
             const savedFlight = await saveUnifiedTripFlight({
               supabase: ownedTrip.supabase,
               tripId,
               flight,
+              context,
             });
             revalidatePath(`/trips/${tripId}`);
             revalidatePath(`/trips/${tripId}/flight`);

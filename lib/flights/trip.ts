@@ -420,6 +420,7 @@ export async function saveUnifiedTripFlight(input: {
   supabase: SupabaseClient
   tripId: string
   flight: FlightActivity
+  context?: 'departure' | 'arrival' | 'none'
 }): Promise<FlightActivity> {
   // Ensure both departure and arrival days exist
   const depDate = input.flight.departure.datetime.slice(0, 10)
@@ -461,10 +462,18 @@ export async function saveUnifiedTripFlight(input: {
     arrDayId = await ensureDay(arrDate)
   }
 
-  // Use the correct day_id for the activity (default to departure day)
+  // Use the correct day_id for the activity
+  let chosenDayId = depDayId;
+  if (
+    input.context === 'arrival' &&
+    arrDayId &&
+    arrDayId !== depDayId
+  ) {
+    chosenDayId = arrDayId;
+  }
   const activity: FlightActivity = {
     ...input.flight,
-    day_id: depDayId,
+    day_id: chosenDayId,
     type: 'flight',
     created_at: input.flight.created_at || new Date().toISOString(),
   }
