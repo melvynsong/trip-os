@@ -1,25 +1,12 @@
 'use client'
 
 import TimelineItemCard, { type TodayItem } from '@/app/components/today/TimelineItemCard'
+import TimeOfDaySection from '@/app/components/itinerary/TimeOfDaySection'
+import ItineraryActivityRenderer from '@/app/components/itinerary/ItineraryActivityRenderer'
+import { sectionTodayItemsByTime } from '@/app/components/today/sectionTodayItemsByTime'
 
 type TimePeriod = 'morning' | 'afternoon' | 'evening' | 'unscheduled'
 
-const PERIOD_LABELS: Record<TimePeriod, string> = {
-  morning: '🌅 Morning',
-  afternoon: '☀️ Afternoon',
-  evening: '🌙 Evening',
-  unscheduled: '📋 Unscheduled',
-}
-
-function getTimePeriod(time: string | null): TimePeriod {
-  if (!time) return 'unscheduled'
-  const [h] = time.split(':').map(Number)
-  if (h < 12) return 'morning'
-  if (h < 17) return 'afternoon'
-  return 'evening'
-}
-
-const PERIOD_ORDER: TimePeriod[] = ['morning', 'afternoon', 'evening', 'unscheduled']
 
 type DayTimelineProps = {
   tripId: string
@@ -50,16 +37,8 @@ export default function DayTimeline({
     )
   }
 
-  // Group by time period
-  const groups = new Map<TimePeriod, TodayItem[]>()
-  for (const period of PERIOD_ORDER) {
-    groups.set(period, [])
-  }
-  for (const item of items) {
-    const period = getTimePeriod(item.activity_time)
-    groups.get(period)!.push(item)
-  }
-
+  // Section items by time of day using shared logic
+  const sections = sectionTodayItemsByTime(items)
   // For up/down we need the global index across the full ordered list
   const allSorted = [...items].sort((a, b) => {
     if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
@@ -71,37 +50,26 @@ export default function DayTimeline({
 
   return (
     <div className="space-y-6">
-      {PERIOD_ORDER.map((period) => {
-        const periodItems = groups.get(period)!
-        if (periodItems.length === 0) return null
-
-        return (
-          <div key={period}>
-            <div className="mb-2 text-sm font-semibold text-slate-500">
-              {PERIOD_LABELS[period]}
-            </div>
-            <div className="space-y-2">
-              {periodItems.map((item) => {
-                const globalIdx = allSorted.findIndex((i) => i.id === item.id)
-                return (
-                  <TimelineItemCard
-                    key={item.id}
-                    tripId={tripId}
-                    item={item}
-                    canMoveUp={globalIdx > 0}
-                    canMoveDown={globalIdx < allSorted.length - 1}
-                    isActing={actingIds.has(item.id)}
-                    onToggleDone={onToggleDone}
-                    onDelete={onDelete}
-                    onMoveUp={onMoveUp}
-                    onMoveDown={onMoveDown}
-                  />
-                )
-              })}
-            </div>
-          </div>
+      {sections.map((section) =>
+        section.items.length === 0 ? null : (
+          <TimeOfDaySection key={section.key} label={section.label}>
+            {section.items.map((item) => {
+              const globalIdx = allSorted.findIndex((i) => i.id === item.id)
+              return (
+                <ItineraryActivityRenderer
+                  key={item.id}
+                  tripId={tripId}
+                  dayId={item.day_id}
+                  item={{ kind: 'activity', activity: item }}
+                  canMoveUp={globalIdx > 0}
+                  canMoveDown={globalIdx < allSorted.length - 1}
+                  moveActivityAction={() => {}}
+                />
+              )
+            })}
+          </TimeOfDaySection>
         )
-      })}
+      )}
     </div>
   )
 }
