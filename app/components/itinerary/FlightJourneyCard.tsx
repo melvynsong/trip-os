@@ -79,18 +79,7 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
   const secondary: string[] = [];
   if (_meta.checkInDesk) secondary.push(`Check-in: ${_meta.checkInDesk}`);
   if (_meta.gate) secondary.push(`Gate: ${_meta.gate}`);
-  if (_meta.codeshare) secondary.push(`Codeshare: ${_meta.codeshare}`);
-  if (_meta.status && !notes) secondary.push(formatFlightStatusForDisplay(_meta.status));
-
-  // Title: Flight · {FlightNumber} · {OriginCity} → {DestinationCity}
-  const origin = departure.city || departure.airportName || '';
-  const destination = arrival.city || arrival.airportName || '';
-  let headerTitle = '';
-  if (flightNumber && origin && destination) {
-    headerTitle = `Flight · ${flightNumber} · ${origin} → ${destination}`;
-  } else if (flightNumber) {
-    headerTitle = `Flight · ${flightNumber}`;
-  } else if (airline) {
+  import { isFlightActivity } from '@/lib/flights/isFlightActivity';
     headerTitle = `Flight · ${airline}`;
   } else {
     headerTitle = activity.title || 'Flight';

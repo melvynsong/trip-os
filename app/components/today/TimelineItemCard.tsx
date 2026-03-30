@@ -8,17 +8,7 @@ import Card from '@/app/components/ui/Card'
 import { Typography } from '@/app/components/design-system/Typography'
 import FlightJourneyCard from '@/app/components/itinerary/FlightJourneyCard'
 import { getFlightDisplayModel } from '@/lib/flights/flightDisplayModel'
-// Use the same flight detection as itinerary
-function isFlightActivity(activity: any): boolean {
-  if (!activity) return false;
-  if (activity.type && [
-    'flight', 'flight_departure', 'flight_arrival', 'flight_card', 'unified_flight', 'transport'
-  ].includes(activity.type)) return true;
-  const meta = activity.metadata || activity._meta || {};
-  return !!(
-    meta.flightNumber || meta.airline || meta.departure || meta.arrival
-  );
-}
+import { isFlightActivity } from '@/lib/flights/isFlightActivity'
 
 export type TodayItem = Pick<
   ActivityType,

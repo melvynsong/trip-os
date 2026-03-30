@@ -1,5 +1,6 @@
 import { getEmoji } from '@/lib/utils/getEmoji'
 import { branding } from '@/lib/branding'
+import { formatDate, formatDateCompact, formatTime } from '@/lib/utils/formatDateTime'
 
 export type ShareLength = 'short' | 'detailed'
 export type ShareTone = 'default' | 'family'
@@ -67,34 +68,6 @@ function safeLines(lines: Array<string | null | undefined>): string {
   return lines.filter(Boolean).join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
-function formatDate(date: string) {
-  const d = new Date(`${date}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return date
-  return new Intl.DateTimeFormat('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  }).format(d)
-}
-
-function formatDateCompact(date: string) {
-  const d = new Date(`${date}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return date
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(d)
-}
-
-function formatTime(time: string | null | undefined) {
-  const value = clean(time)
-  if (!value) return null
-  const [h, m] = value.split(':').map(Number)
-  if (Number.isNaN(h) || Number.isNaN(m)) return value
-  const period = h >= 12 ? 'PM' : 'AM'
-  const displayH = h % 12 || 12
-  return `${displayH}:${String(m).padStart(2, '0')} ${period}`
-}
 
 function withTime(activity: ShareActivity) {
   const emoji = getEmoji(activity.type || 'other', {
