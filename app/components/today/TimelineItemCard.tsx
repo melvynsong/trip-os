@@ -6,6 +6,19 @@ import { Activity as ActivityType } from '@/types/trip'
 import { buttonClass } from '@/app/components/ui/Button'
 import Card from '@/app/components/ui/Card'
 import { Typography } from '@/app/components/design-system/Typography'
+import FlightJourneyCard from '@/app/components/itinerary/FlightJourneyCard'
+import { getFlightDisplayModel } from '@/lib/flights/flightDisplayModel'
+// Use the same flight detection as itinerary
+function isFlightActivity(activity: any): boolean {
+  if (!activity) return false;
+  if (activity.type && [
+    'flight', 'flight_departure', 'flight_arrival', 'flight_card', 'unified_flight', 'transport'
+  ].includes(activity.type)) return true;
+  const meta = activity.metadata || activity._meta || {};
+  return !!(
+    meta.flightNumber || meta.airline || meta.departure || meta.arrival
+  );
+}
 
 export type TodayItem = Pick<
   ActivityType,
@@ -42,8 +55,64 @@ export default function TimelineItemCard({
   onMoveUp,
   onMoveDown,
 }: TimelineItemCardProps) {
-  const isDone = item.status === 'done'
+  const isDone = item.status === 'done';
 
+  // If this is a flight, use the shared rich flight card
+  if (isFlightActivity(item)) {
+    // getFlightDisplayModel expects full Activity, but TodayItem is a subset; fallback to item if not enough data
+    const flightModel = getFlightDisplayModel(item as any) || item;
+    return (
+      <div className={isDone ? 'opacity-70' : ''}>
+        <FlightJourneyCard
+          activity={flightModel}
+          // Only show delete if not acting
+          onDelete={isActing ? undefined : () => onDelete(item)}
+        />
+        {/* Today-specific actions: done, move up/down, remove */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => onToggleDone(item)}
+            disabled={isActing}
+            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+              isDone
+                ? 'border-green-500 bg-green-500 text-white'
+                : 'border-slate-300 hover:border-emerald-400'
+            } disabled:cursor-not-allowed`}
+            title={isDone ? 'Mark incomplete' : 'Mark done'}
+          >
+            {isDone && (
+              <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={() => onMoveUp(item)}
+            disabled={!canMoveUp || isActing}
+            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-slate-50/70 px-2.5 text-xs text-slate-700 hover:bg-sky-50/70' })}
+          >
+            ↑
+          </button>
+          <button
+            onClick={() => onMoveDown(item)}
+            disabled={!canMoveDown || isActing}
+            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-slate-50/70 px-2.5 text-xs text-slate-700 hover:bg-sky-50/70' })}
+          >
+            ↓
+          </button>
+          <button
+            onClick={() => onDelete(item)}
+            disabled={isActing}
+            className={buttonClass({ size: 'sm', variant: 'ghost', className: 'ml-auto h-8 rounded-full px-2.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-600' })}
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Non-flight: use existing card
   return (
     <Card className={`flex gap-3 ${isDone ? 'opacity-70' : ''}`}>
       {/* Done toggle */}
@@ -113,5 +182,5 @@ export default function TimelineItemCard({
         </div>
       </div>
     </Card>
-  )
+  );
 }
