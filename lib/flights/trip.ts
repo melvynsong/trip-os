@@ -19,7 +19,7 @@ function buildFlightActivityPayload({
   const payload: any = {
     trip_id: input.tripId,
     day_id: chosenDayId,
-    type: 'flight',
+    type: 'transport',
     title: `${f.airline} ${f.flightNumber}`,
     notes: f.notes || null,
     created_at: f.created_at || new Date().toISOString(),
