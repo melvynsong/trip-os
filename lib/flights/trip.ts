@@ -1,3 +1,54 @@
+// Allowed top-level columns for activities
+const ACTIVITY_TOP_LEVEL_FIELDS = [
+  'id', 'trip_id', 'day_id', 'type', 'title', 'start_time', 'end_time', 'location', 'notes', 'created_at', 'updated_at', 'status', 'sort_order', 'place_id', 'activity_time', 'metadata',
+];
+
+/**
+ * Build a sanitized activity insert payload for Supabase.
+ * Flight-specific fields go into metadata JSONB.
+ */
+function buildFlightActivityPayload({
+  input,
+  chosenDayId,
+}: {
+  input: { flight: FlightActivity; tripId: string };
+  chosenDayId: string;
+}) {
+  const f = input.flight;
+  // Common fields
+  const payload: any = {
+    trip_id: input.tripId,
+    day_id: chosenDayId,
+    type: 'flight',
+    title: `${f.airline} ${f.flightNumber}`,
+    notes: f.notes || null,
+    created_at: f.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    metadata: {
+      airline: f.airline,
+      flightNumber: f.flightNumber,
+      carrierCode: f.carrierCode,
+      departure: f.departure,
+      arrival: f.arrival,
+      duration: f.duration,
+      aircraft: f.aircraft,
+      status: f.notes, // or f.status if available
+      rawMetadata: f.rawMetadata,
+    },
+  };
+  // Remove undefined/null metadata fields
+  Object.keys(payload.metadata).forEach((k) => {
+    if (payload.metadata[k] == null) delete payload.metadata[k];
+  });
+  // Remove undefined/null top-level fields
+  Object.keys(payload).forEach((k) => {
+    if (payload[k] == null) delete payload[k];
+  });
+  // Log for debugging
+  // eslint-disable-next-line no-console
+  console.log('[FlightSave][PAYLOAD]', JSON.stringify(payload, null, 2));
+  return payload;
+}
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { buildFlightTimelineTitle } from '@/lib/flights/activity'
 import type { FlightDirection, FlightLookupResult } from '@/src/lib/flights/types'
@@ -483,22 +534,18 @@ export async function saveUnifiedTripFlight(input: {
   // Log chosen save day
   // eslint-disable-next-line no-console
   console.log('[FlightSave][BACKEND_DIAGNOSTIC] chosenSaveDay', { chosenDayId });
-  const activity: FlightActivity = {
-    ...input.flight,
-    day_id: chosenDayId,
-    type: 'flight',
-    created_at: input.flight.created_at || new Date().toISOString(),
-  }
-  // Upsert by trip, day, and flight number
+  // Build sanitized payload
+  const payload = buildFlightActivityPayload({ input, chosenDayId });
+  // Upsert by trip, day, and title (flight number is in metadata)
   const { data, error } = await input.supabase
     .from('activities')
-    .upsert(activity, { onConflict: 'trip_id,day_id,flightNumber' })
+    .upsert(payload, { onConflict: 'trip_id,day_id,title' })
     .select('*')
-    .single()
+    .single();
   if (error || !data) {
-    throw new Error(error?.message || 'Failed to save flight activity')
+    throw new Error(error?.message || 'Failed to save flight activity');
   }
-  return data as FlightActivity
+  return data;
 }
 
 export async function deleteUnifiedTripFlight(input: {
