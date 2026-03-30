@@ -12,6 +12,7 @@ type Params = { params: Promise<{ tripId: string }> }
 
 type SaveFlightPayload = {
   flight?: unknown;
+  context?: 'departure' | 'arrival' | 'none';
 };
 
 
