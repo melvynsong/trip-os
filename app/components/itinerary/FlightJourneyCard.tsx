@@ -1,8 +1,10 @@
 "use client";
 import React from 'react';
+
 import styles from './FlightJourneyCard.module.css';
 import Card from '../../../app/components/ui/Card';
 import { PlaneChip } from './PlaneIcon';
+import { isFlightActivity } from '@/lib/flights/isFlightActivity';
 
 
 
@@ -12,13 +14,6 @@ interface FlightJourneyCardProps {
 }
 
 
-function isFlightActivity(activity: any): boolean {
-  if (!activity) return false;
-  const meta = activity.metadata || activity._meta || {};
-  return !!(
-    meta.flightNumber || meta.airline || meta.departure || meta.arrival
-  );
-}
 
 function canEditActivity(activity: any) {
   return !isFlightActivity(activity);
@@ -63,6 +58,7 @@ function getDirectionLabel(activity: any): string {
 
 
 const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelete }) => {
+
   const {
     airline,
     flightNumber,
@@ -74,12 +70,17 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
     _meta = {},
     status,
   } = activity;
+  const origin = departure.city || departure.airportCity || '';
+  const destination = arrival.city || arrival.airportCity || '';
+
 
   // Secondary details
   const secondary: string[] = [];
   if (_meta.checkInDesk) secondary.push(`Check-in: ${_meta.checkInDesk}`);
   if (_meta.gate) secondary.push(`Gate: ${_meta.gate}`);
-  import { isFlightActivity } from '@/lib/flights/isFlightActivity';
+
+  let headerTitle;
+  if (isFlightActivity(activity)) {
     headerTitle = `Flight · ${airline}`;
   } else {
     headerTitle = activity.title || 'Flight';
