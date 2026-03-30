@@ -4,6 +4,7 @@ import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import { buttonClass } from '@/app/components/ui/Button'
+import { ActionRow } from '@/app/components/shared/ActionRow'
 import Card from '@/app/components/ui/Card'
 import { Typography } from '@/app/components/design-system/Typography'
 
@@ -66,32 +67,16 @@ export default function ActivityCard({
           triggerLabel="Write Story"
           triggerClassName={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
         />
-        <form action={moveActivityAction}>
-          <input type="hidden" name="day_id" value={activity.day_id} />
-          <input type="hidden" name="activity_id" value={activity.id} />
-          <input type="hidden" name="direction" value="up" />
-          <button
-            type="submit"
-            disabled={!canMoveUp}
-            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
-          >
-            ↑ Up
-          </button>
-        </form>
-
-        <form action={moveActivityAction}>
-          <input type="hidden" name="day_id" value={activity.day_id} />
-          <input type="hidden" name="activity_id" value={activity.id} />
-          <input type="hidden" name="direction" value="down" />
-          <button
-            type="submit"
-            disabled={!canMoveDown}
-            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
-          >
-            ↓ Down
-          </button>
-        </form>
-
+        <ActionRow
+          isDone={false}
+          isActing={false}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
+          onToggleDone={() => {}}
+          onMoveUp={() => moveActivityAction(new FormData(Object.assign(document.createElement('form'), { day_id: activity.day_id, activity_id: activity.id, direction: 'up' })))}
+          onMoveDown={() => moveActivityAction(new FormData(Object.assign(document.createElement('form'), { day_id: activity.day_id, activity_id: activity.id, direction: 'down' })))}
+          onDelete={() => {}}
+        />
         <Link
           href={`/trips/${tripId}/itinerary/${activity.day_id}/activities/${activity.id}/edit`}
           className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 rounded-full text-xs text-slate-700 hover:bg-sky-50/70' })}
