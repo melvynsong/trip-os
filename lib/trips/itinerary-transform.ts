@@ -36,6 +36,11 @@ export type ItineraryTimelineItem =
       activity: any // FlightActivity
       originalIndex: number
       sortMinutes: number | null
+      role?: 'departure' | 'arrival' | 'summary'
+      meta?: {
+        flightNumber?: string
+        route?: string
+      }
     }
 
 export type TimeOfDayKey = 'morning' | 'afternoon' | 'evening' | 'flexible'
@@ -154,6 +159,8 @@ export function transformItineraryDayActivities(activities: any[]): {
     if (isLikelyFlight(activity)) {
       // Use detectFlightRole to split into departure/arrival if possible
       const role = detectFlightRole(activity);
+      const flightNumber = extractFlightNumber(`${activity.title} ${activity.notes || ''}`.toUpperCase()) || undefined;
+      const route = extractRoute(`${activity.title} ${activity.notes || ''}`.toUpperCase()) || undefined;
       flightTimelineItems.push({
         kind: 'flight_card',
         activity,
@@ -161,8 +168,8 @@ export function transformItineraryDayActivities(activities: any[]): {
         sortMinutes: parseActivityMinutes(activity.activity_time),
         role,
         meta: {
-          flightNumber: extractFlightNumber(`${activity.title} ${activity.notes || ''}`.toUpperCase()),
-          route: extractRoute(`${activity.title} ${activity.notes || ''}`.toUpperCase()),
+          flightNumber,
+          route,
         },
       });
     } else {
