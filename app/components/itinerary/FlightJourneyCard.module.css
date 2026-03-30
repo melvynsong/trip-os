@@ -1,0 +1,104 @@
+.flightCard {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #ececec;
+  padding: 20px 20px 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  width: 100%;
+}
+
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.directionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a90e2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: #f2f7fc;
+  border-radius: 6px;
+  padding: 2px 8px;
+  margin-right: 8px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  flex: 1;
+}
+
+.aircraft {
+  font-size: 13px;
+  color: #888;
+  margin-left: 8px;
+}
+
+.durationPill {
+  background: #eaf6ff;
+  color: #2176ae;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 12px;
+  margin-left: 8px;
+  align-self: flex-start;
+}
+
+.body {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+@media (max-width: 600px) {
+  .body {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.block {
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.airportCode {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2176ae;
+  line-height: 1.1;
+}
+
+.city {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+",

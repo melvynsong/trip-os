@@ -1,66 +1,89 @@
 import React from 'react';
-// Accepts normalized flight model (from getFlightDisplayModel)
-
+import styles from './FlightJourneyCard.module.css';
 
 interface FlightJourneyCardProps {
   activity: any;
 }
 
+function formatDateTime(iso: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function getDirectionLabel(activity: any): string {
+  // Try to infer OUTBOUND/INBOUND/FLIGHT from metadata or fallback
+  if (activity._meta?.direction) return activity._meta.direction.toUpperCase();
+  if (activity._meta?.isInbound) return activity._meta.isInbound ? 'INBOUND' : 'OUTBOUND';
+  return 'FLIGHT';
+}
 
 const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity }) => {
-  const { airline, flightNumber, carrierCode, departure, arrival, duration, aircraft, notes } = activity;
-  // Debug log
-  if (typeof window !== 'undefined') {
-    // eslint-disable-next-line no-console
-    console.log('[FlightJourneyCard][DEBUG] activity:', activity);
-  }
+  const {
+    airline,
+    flightNumber,
+    aircraft,
+    duration,
+    departure,
+    arrival,
+    notes,
+    _meta,
+    _raw,
+    type,
+    status,
+    // secondary details
+    rawMetadata,
+  } = activity;
 
-  // Helper to format date/time
-  const formatDateTime = (iso: string) => {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  };
-
-  // Check if arrival is next day
-  const isNextDay = () => {
-    if (!departure.datetime || !arrival.datetime) return false;
-    const dep = new Date(departure.datetime);
-    const arr = new Date(arrival.datetime);
-    return arr.getDate() !== dep.getDate() || arr.getTime() - dep.getTime() > 24 * 3600 * 1000;
-  };
+  // Secondary details
+  const secondary: string[] = [];
+  if (_meta?.checkInDesk) secondary.push(`Check-in: ${_meta.checkInDesk}`);
+  if (_meta?.gate) secondary.push(`Gate: ${_meta.gate}`);
+  if (_meta?.codeshare) secondary.push(`Codeshare: ${_meta.codeshare}`);
+  if (_meta?.status && !notes) secondary.push(_meta.status);
 
   return (
-    <div className="flight-journey-card">
-      <div className="flight-journey-card__top">
-        <span className="flight-journey-card__airline">{airline} {flightNumber}</span>
-        {duration && <span className="flight-journey-card__duration">{duration}</span>}
-        {aircraft && <span className="flight-journey-card__aircraft">{aircraft}</span>}
+    <div className={styles.flightCard}>
+      <div className={styles.topRow}>
+        <span className={styles.directionLabel}>{getDirectionLabel(activity)}</span>
+        <span className={styles.title}>
+          {flightNumber ? (
+            <>{airline ? `${flightNumber} · ${airline}` : flightNumber}</>
+          ) : (
+            airline
+          )}
+        </span>
+        {aircraft && <span className={styles.aircraft}>{aircraft}</span>}
+        {duration && <span className={styles.durationPill}>{duration}</span>}
       </div>
-      <div className="flight-journey-card__main">
-        <div className="flight-journey-card__side flight-journey-card__side--left">
-          <div className="flight-journey-card__label">Depart</div>
-          <div className="flight-journey-card__airport">{departure.airportCode}</div>
-          <div className="flight-journey-card__city">{departure.city || departure.airportName}</div>
-          <div className="flight-journey-card__datetime">{formatDateTime(departure.datetime)}</div>
-          {departure.terminal && <div className="flight-journey-card__terminal">Terminal {departure.terminal}</div>}
+      <div className={styles.body}>
+        <div className={styles.block}>
+          <div className={styles.label}>Departs</div>
+          <div className={styles.airportCode}>{departure.airportCode || '-'}</div>
+          <div className={styles.city}>{departure.city || departure.airportName || ''}</div>
+          <div>{formatDateTime(departure.datetime)}</div>
+          {departure.terminal && (
+            <div className={styles.terminal}>Terminal {departure.terminal}</div>
+          )}
         </div>
-        <div className="flight-journey-card__connector">
-          <span className="flight-journey-card__arrow">→</span>
-          {isNextDay() && <span className="flight-journey-card__nextday">+1 day</span>}
-        </div>
-        <div className="flight-journey-card__side flight-journey-card__side--right">
-          <div className="flight-journey-card__label">Arrive</div>
-          <div className="flight-journey-card__airport">{arrival.airportCode}</div>
-          <div className="flight-journey-card__city">{arrival.city || arrival.airportName}</div>
-          <div className="flight-journey-card__datetime">{formatDateTime(arrival.datetime)}</div>
-          {arrival.terminal && <div className="flight-journey-card__terminal">Terminal {arrival.terminal}</div>}
+        <div className={styles.block}>
+          <div className={styles.label}>Arrives</div>
+          <div className={styles.airportCode}>{arrival.airportCode || '-'}</div>
+          <div className={styles.city}>{arrival.city || arrival.airportName || ''}</div>
+          <div>{formatDateTime(arrival.datetime)}</div>
+          {arrival.terminal && (
+            <div className={styles.terminal}>Terminal {arrival.terminal}</div>
+          )}
         </div>
       </div>
-      {notes && <div className="flight-journey-card__notes">{notes}</div>}
-      <div className="flight-journey-card__actions">
-        {/* TODO: Add edit/replace/delete actions */}
-      </div>
+      {(notes || secondary.length > 0) && (
+        <div style={{ marginTop: 8, color: '#666', fontSize: 13 }}>
+          {notes && <div>{notes}</div>}
+          {secondary.length > 0 && (
+            <div style={{ opacity: 0.8, marginTop: 2 }}>{secondary.join(' · ')}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
