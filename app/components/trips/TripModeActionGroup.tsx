@@ -20,6 +20,14 @@ export default function TripModeActionGroup({
   const itineraryVariant = primaryMode === 'itinerary' ? 'primary' : 'secondary'
   const storyVariant = primaryMode === 'story' ? 'primary' : 'secondary'
 
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[TripModeActionGroup][DEBUG] tripId:', tripId, {
+      itineraryHref: `/trips/${tripId}/itinerary`,
+      storyHref: `/trips/${tripId}`,
+    });
+  }
+
   return (
     <div className={cn('flex flex-wrap gap-3', className)}>
       <Link

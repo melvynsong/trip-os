@@ -151,13 +151,19 @@ export function transformItineraryDayActivities(activities: any[]): {
   const standaloneItems: ItineraryTimelineItem[] = [];
 
   activities.forEach((activity, index) => {
-    if (activity.type === 'flight') {
-      // Always place flight as first item of the day
+    if (isLikelyFlight(activity)) {
+      // Use detectFlightRole to split into departure/arrival if possible
+      const role = detectFlightRole(activity);
       flightTimelineItems.push({
         kind: 'flight_card',
         activity,
         originalIndex: -1000 + index, // ensure flight is always first
-        sortMinutes: 0,
+        sortMinutes: parseActivityMinutes(activity.activity_time),
+        role,
+        meta: {
+          flightNumber: extractFlightNumber(`${activity.title} ${activity.notes || ''}`.toUpperCase()),
+          route: extractRoute(`${activity.title} ${activity.notes || ''}`.toUpperCase()),
+        },
       });
     } else {
       standaloneItems.push({
@@ -169,11 +175,8 @@ export function transformItineraryDayActivities(activities: any[]): {
     }
   });
 
-  // Flights always first
+  // Sort all items by time and original index, do not force flight_card to start
   const orderedItems = [...flightTimelineItems, ...standaloneItems].sort((a, b) => {
-    if (a.kind === 'flight_card' && b.kind !== 'flight_card') return -1;
-    if (a.kind !== 'flight_card' && b.kind === 'flight_card') return 1;
-    // fallback to time/order
     const aTime = getItemPrimaryTime(a);
     const bTime = getItemPrimaryTime(b);
     if (aTime !== null && bTime !== null) {

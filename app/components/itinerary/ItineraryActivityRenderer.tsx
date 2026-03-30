@@ -51,8 +51,30 @@ export default function ItineraryActivityRenderer({
       normalizedModel: flightModel,
     });
   }
+
+  // Handler for deleting a flight activity
+  const handleDeleteFlight = async (id: string) => {
+    if (!window.confirm('Delete this flight from your itinerary?')) return;
+    try {
+      // Optimistically remove from UI (parent should refetch or update state)
+      const resp = await fetch(`/api/trips/${tripId}/itinerary/${dayId}/activities/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      if (!resp.ok) {
+        const d = await resp.json();
+        alert(d.error || 'Failed to delete flight.');
+        return;
+      }
+      // Optionally: trigger a refetch or state update here if needed
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete flight.');
+    }
+  };
+
   if (isFlight) {
-    return <FlightJourneyCard activity={flightModel} />;
+    return <FlightJourneyCard activity={flightModel} onDelete={handleDeleteFlight} />;
   }
   return (
     <ActivityCard

@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './FlightJourneyCard.module.css';
-import Card from '@/app/components/ui/Card';
+import Card from '../../../app/components/ui/Card';
 import { PlaneChip } from './PlaneIcon';
 
 

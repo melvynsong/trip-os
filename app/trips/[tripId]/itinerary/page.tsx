@@ -33,6 +33,12 @@ type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
   const { tripId } = await params
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[ItineraryPage][DEBUG] tripId:', tripId, {
+      backHref: `/trips/${tripId}`
+    });
+  }
   const supabase = await createClient()
 
   async function moveActivity(formData: FormData) {
