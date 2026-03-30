@@ -1,4 +1,4 @@
-import { createClient } from '../lib/supabase/client.ts'
+import { createClient } from '../lib/supabase/client'
 
 /**
  * Migration script to merge paired flight activities (departure/arrival) into a single unified flight activity per journey.
