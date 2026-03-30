@@ -70,7 +70,7 @@ export default function DayTimeline({
                   item={{ kind: 'activity', activity: itineraryActivity, originalIndex: globalIdx, sortMinutes: null }}
                   canMoveUp={globalIdx > 0}
                   canMoveDown={globalIdx < allSorted.length - 1}
-                  moveActivityAction={() => {}}
+                  moveActivityAction={async () => {}}
                 />
               )
             })}
