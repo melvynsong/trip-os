@@ -1,3 +1,4 @@
+"use client";
 import ActivityCard from '@/app/components/itinerary/ActivityCard';
 import FlightJourneyCard from '@/app/components/itinerary/FlightJourneyCard';
 import { getFlightDisplayModel } from '@/lib/flights/flightDisplayModel';
