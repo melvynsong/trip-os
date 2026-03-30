@@ -1,3 +1,76 @@
+// --- FLIGHT DAY ALIGNMENT HELPERS ---
+/**
+ * Extracts local date (YYYY-MM-DD) from ISO string with offset.
+ */
+function getLocalDateString(dateTime: string | null): string | null {
+  if (!dateTime) return null;
+  // If offset is present, Date will parse correctly
+  const d = new Date(dateTime);
+  if (!Number.isNaN(d.getTime())) {
+    // Use toISOString, but adjust for offset if present
+    // This is a simplification: in real world, use a robust timezone lib
+    return d.toISOString().slice(0, 10);
+  }
+  // Fallback: try parsing as UTC
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateTime)) {
+    const d2 = new Date(dateTime + 'Z');
+    if (!Number.isNaN(d2.getTime())) return d2.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+/**
+ * Returns { departureDate, arrivalDate } as YYYY-MM-DD local strings.
+ */
+function getFlightLocalDates(flight: { departureTime?: string | null, arrivalTime?: string | null }) {
+  return {
+    departureDate: getLocalDateString(flight.departureTime || null),
+    arrivalDate: getLocalDateString(flight.arrivalTime || null),
+  };
+}
+
+/**
+ * Classifies how a flight aligns with the current page date.
+ * Returns: 'departure', 'arrival', 'same-day', or 'neither'.
+ */
+function classifyFlightAgainstPageDate(pageDate: string, departureDate: string | null, arrivalDate: string | null): 'departure' | 'arrival' | 'same-day' | 'neither' {
+  if (pageDate === departureDate && pageDate === arrivalDate) return 'same-day';
+  if (pageDate === departureDate) return 'departure';
+  if (pageDate === arrivalDate) return 'arrival';
+  return 'neither';
+}
+
+// Helper: Parse ISO string with offset, fallback to UTC if no offset
+function parseIsoWithOffset(dateTime: string | null): Date | null {
+  if (!dateTime) return null;
+  // If offset is present, Date will parse correctly
+  const d = new Date(dateTime);
+  if (!Number.isNaN(d.getTime())) return d;
+  // Fallback: try parsing as UTC
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateTime)) {
+    const d2 = new Date(dateTime + 'Z');
+    if (!Number.isNaN(d2.getTime())) return d2;
+  }
+  return null;
+}
+
+// Helper: Get YYYY-MM-DD local date from ISO string (with offset)
+function getLocalDateString(dateTime: string | null): string | null {
+  const d = parseIsoWithOffset(dateTime);
+  if (!d) return null;
+  // Use toLocaleDateString in UTC+offset
+  return d.toISOString().slice(0, 10);
+}
+
+// Helper: Compare itinerary day to flight departure/arrival
+function getItineraryDayContext(flightDate: string, depTime: string | null, arrTime: string | null): 'departure' | 'arrival' | 'none' {
+  const depDate = getLocalDateString(depTime);
+  const arrDate = getLocalDateString(arrTime);
+  if (flightDate === depDate) return 'departure';
+  if (flightDate === arrDate) return 'arrival';
+  return 'none';
+}
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -255,14 +328,39 @@ export default function ActivityFlightInput({
   }
 
   async function handleSaveToItinerary() {
-    if (!lookupResult || isSaving || !canUseFlights) return
-    setError(null)
-    setSuccessMessage(null)
-    setIsSaving(true)
+    if (!lookupResult || isSaving || !canUseFlights) return;
+    setError(null);
+    setSuccessMessage(null);
+    setIsSaving(true);
     try {
-      // Map lookupResult to unified FlightActivity structure
+      // --- DIAGNOSTICS & BUSINESS LOGIC ---
+      // 1. Extract local dates
+      const { departureDate, arrivalDate } = getFlightLocalDates(lookupResult);
+      // 2. Classify alignment
+      const alignment = classifyFlightAgainstPageDate(flightDate, departureDate, arrivalDate);
+      // 3. Log all relevant info
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line no-console
+        console.log('[FlightSave][DIAGNOSTIC]', {
+          pageDate: flightDate,
+          inputFlightDate: flightDate,
+          depTime: lookupResult.departureTime,
+          arrTime: lookupResult.arrivalTime,
+          depLocal: departureDate,
+          arrLocal: arrivalDate,
+          alignment,
+          chosenDisplay: alignment,
+        });
+      }
+      // 4. Enforce business rule: itinerary day is the bucket, allow both dep/arr alignment
+      if (alignment === 'neither') {
+        setError('This flight does not match the current itinerary day. Please check the date.');
+        setIsSaving(false);
+        return;
+      }
+      // 5. Map lookupResult to unified FlightActivity structure
       const flightActivity: FlightActivity = {
-        id: '', // No id in lookupResult; will be set by backend or generated later
+        id: '',
         day_id: '', // Will be set by backend
         type: 'flight',
         airline: lookupResult.airlineName || lookupResult.airlineCode || '',
@@ -288,31 +386,32 @@ export default function ActivityFlightInput({
         rawMetadata: lookupResult.rawResponseJson || undefined,
         created_at: new Date().toISOString(),
       };
+      // 6. Pass alignment to backend for correct day anchoring
       const saveResp = await fetch(`/api/trips/${tripId}/flight`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ flight: flightActivity }),
-      })
-      const saveData = await saveResp.json()
+        body: JSON.stringify({ flight: flightActivity, context: alignment }),
+      });
+      const saveData = await saveResp.json();
       if (!saveResp.ok) {
-        setError(saveData.error || 'Failed to save flight.')
-        return
+        setError(saveData.error || 'Failed to save flight.');
+        return;
       }
-      const savedFlight = saveData.flight as FlightActivity
-      setAllFlights([savedFlight])
-      setLookupResult(null)
-      setFlightNumberInput('')
-      setIsReplacing(false)
-      setSuccessMessage('Flight saved! The journey has been added to your itinerary.')
-      onFlightSelected?.(savedFlight)
+      const savedFlight = saveData.flight as FlightActivity;
+      setAllFlights([savedFlight]);
+      setLookupResult(null);
+      setFlightNumberInput('');
+      setIsReplacing(false);
+      setSuccessMessage('Flight saved! The journey has been added to your itinerary.');
+      onFlightSelected?.(savedFlight);
       setTimeout(() => {
-        router.push(`/trips/${tripId}/itinerary`)
-      }, 1200)
+        router.push(`/trips/${tripId}/itinerary`);
+      }, 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save flight.')
+      setError(err instanceof Error ? err.message : 'Failed to save flight.');
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 

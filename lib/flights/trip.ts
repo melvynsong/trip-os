@@ -422,9 +422,18 @@ export async function saveUnifiedTripFlight(input: {
   flight: FlightActivity
   context?: 'departure' | 'arrival' | 'none'
 }): Promise<FlightActivity> {
-  // Ensure both departure and arrival days exist
+  // --- DIAGNOSTICS ---
   const depDate = input.flight.departure.datetime.slice(0, 10)
   const arrDate = input.flight.arrival?.datetime?.slice(0, 10)
+  // eslint-disable-next-line no-console
+  console.log('[FlightSave][BACKEND_DIAGNOSTIC]', {
+    tripId: input.tripId,
+    depTime: input.flight.departure.datetime,
+    arrTime: input.flight.arrival?.datetime,
+    depDate,
+    arrDate,
+    context: input.context,
+  });
 
   // Helper to find or create a day, returns day id
   async function ensureDay(date: string): Promise<string> {
@@ -471,6 +480,9 @@ export async function saveUnifiedTripFlight(input: {
   ) {
     chosenDayId = arrDayId;
   }
+  // Log chosen save day
+  // eslint-disable-next-line no-console
+  console.log('[FlightSave][BACKEND_DIAGNOSTIC] chosenSaveDay', { chosenDayId });
   const activity: FlightActivity = {
     ...input.flight,
     day_id: chosenDayId,
