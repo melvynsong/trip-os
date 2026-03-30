@@ -31,6 +31,8 @@ function formatTime(t: string) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+export default function TimelineItemCard({
+  tripId,
   item,
   canMoveUp,
   canMoveDown,

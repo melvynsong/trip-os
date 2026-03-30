@@ -22,6 +22,7 @@ type ActivityCardProps = {
   moveActivityAction: (formData: FormData) => Promise<void>
 }
 
+export default function ActivityCard({
   tripId,
   activity,
   canMoveUp,

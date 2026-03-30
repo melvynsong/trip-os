@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { ReactNode } from 'react';
 import clsx from 'clsx';
 
 // Typography tokens/styles
@@ -13,13 +14,16 @@ export const typography = {
   helper: 'text-xs text-slate-400',
 };
 
-export function Typography({ as = 'div', variant = 'cardTitle', className = '', children, ...props }: {
-  as?: keyof JSX.IntrinsicElements;
+
+type TypographyProps = {
+  as?: keyof React.JSX.IntrinsicElements;
   variant?: keyof typeof typography;
   className?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   [key: string]: any;
-}) {
+};
+
+export function Typography({ as = 'div', variant = 'cardTitle', className = '', children, ...props }: TypographyProps) {
   const Comp = as as any;
   return (
     <Comp className={clsx(typography[variant], className)} {...props}>
