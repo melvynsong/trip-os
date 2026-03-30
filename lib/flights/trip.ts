@@ -63,6 +63,7 @@ export type SavedTripFlight = {
   rawResponseJson: unknown
   selectedAt: string
   updatedAt: string
+  duration?: string | null
 }
 
 function toSavedTripFlight(row: TripFlightRow): SavedTripFlight {
@@ -91,6 +92,7 @@ function toSavedTripFlight(row: TripFlightRow): SavedTripFlight {
     rawResponseJson: row.raw_response_json,
     selectedAt: row.selected_at,
     updatedAt: row.updated_at,
+    duration: row.duration ?? null,
   }
 }
 
