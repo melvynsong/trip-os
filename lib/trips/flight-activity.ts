@@ -99,7 +99,7 @@ export function mapFlightToUnifiedActivity(
     duration: flight.duration || undefined,
     aircraft: flight.aircraftModel || undefined,
     notes: flight.status || undefined,
-    rawMetadata: flight.raw_response_json || undefined,
+    rawMetadata: flight.rawResponseJson || undefined,
     created_at: new Date().toISOString(),
   };
 }
