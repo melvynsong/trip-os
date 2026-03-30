@@ -435,10 +435,23 @@ export async function saveUnifiedTripFlight(input: {
     if (dayRow) {
       dayId = dayRow.id
     } else {
-      // Create the day if missing
+      // Create the day if missing: must provide day_number
+      // 1. Get max day_number for this trip
+      const { data: maxDay, error: maxDayError } = await input.supabase
+        .from('days')
+        .select('day_number')
+        .eq('trip_id', input.tripId)
+        .order('day_number', { ascending: false })
+        .limit(1)
+        .single()
+      if (maxDayError) {
+        throw new Error(maxDayError?.message || 'Failed to get max day_number for trip')
+      }
+      const nextDayNumber = maxDay && typeof maxDay.day_number === 'number' ? maxDay.day_number + 1 : 1;
+      // 2. Insert new day with day_number
       const { data: newDay, error: newDayError } = await input.supabase
         .from('days')
-        .insert({ trip_id: input.tripId, date: depDate })
+        .insert({ trip_id: input.tripId, date: depDate, day_number: nextDayNumber })
         .select('id')
         .single()
       if (newDay) {
