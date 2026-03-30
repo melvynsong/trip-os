@@ -1,5 +1,5 @@
 
-'use client'
+
 
 // --- FLIGHT DAY ALIGNMENT HELPERS ---
 /**
@@ -49,7 +49,7 @@ function getItineraryDayContext(flightDate: string, depTime: string | null, arrT
   return 'none';
 }
 
-'use client'
+
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
