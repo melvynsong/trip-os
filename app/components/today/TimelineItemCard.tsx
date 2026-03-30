@@ -23,7 +23,9 @@ function isFlightActivity(activity: any): boolean {
 export type TodayItem = Pick<
   ActivityType,
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'status' | 'sort_order'
->
+> & {
+  metadata?: any;
+};
 
 type TimelineItemCardProps = {
   tripId: string
@@ -44,6 +46,7 @@ function formatTime(t: string) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+
 export default function TimelineItemCard({
   tripId,
   item,
@@ -59,8 +62,23 @@ export default function TimelineItemCard({
 
   // If this is a flight, use the shared rich flight card
   if (isFlightActivity(item)) {
+    // Debug logging for flight activities
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.log('[TodayDebug] activity:', {
+        id: item.id,
+        type: item.type,
+        hasMetadata: !!item.metadata,
+        metadataKeys: item.metadata ? Object.keys(item.metadata) : [],
+        metadata: item.metadata,
+      });
+    }
     // getFlightDisplayModel expects full Activity, but TodayItem is a subset; fallback to item if not enough data
     const flightModel = getFlightDisplayModel(item as any) || item;
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.log('[TodayDebug] extracted flightModel:', flightModel);
+    }
     return (
       <div className={isDone ? 'opacity-70' : ''}>
         <FlightJourneyCard

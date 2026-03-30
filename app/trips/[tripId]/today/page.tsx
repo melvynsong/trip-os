@@ -139,7 +139,7 @@ export default async function TodayPage({ params }: Props) {
   // Load activities for the active day
   const { data: activitiesData, error: activitiesError } = await supabase
     .from('activities')
-    .select('id, day_id, title, activity_time, type, notes, status, sort_order')
+    .select('id, day_id, title, activity_time, type, notes, status, sort_order, metadata')
     .eq('day_id', activeDay.id)
     .order('sort_order', { ascending: true })
     .order('activity_time', { ascending: true })
@@ -176,6 +176,7 @@ export default async function TodayPage({ params }: Props) {
     notes: a.notes,
     status: a.status,
     sort_order: a.sort_order,
+    metadata: a.metadata,
   }))
 
   return (
