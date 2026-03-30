@@ -421,49 +421,50 @@ export async function saveUnifiedTripFlight(input: {
   tripId: string
   flight: FlightActivity
 }): Promise<FlightActivity> {
-  // Ensure the activity is anchored to the departure day
+  // Ensure both departure and arrival days exist
   const depDate = input.flight.departure.datetime.slice(0, 10)
-  // Find or create the day for the departure
-  let dayId = input.flight.day_id
-  if (!dayId) {
-    const { data: dayRow, error: dayError } = await input.supabase
+  const arrDate = input.flight.arrival?.datetime?.slice(0, 10)
+
+  // Helper to find or create a day, returns day id
+  async function ensureDay(date: string): Promise<string> {
+    // Try to find existing day
+    const { data: dayRow } = await input.supabase
       .from('days')
       .select('id')
       .eq('trip_id', input.tripId)
-      .eq('date', depDate)
+      .eq('date', date)
       .single()
-    if (dayRow) {
-      dayId = dayRow.id
-    } else {
-      // Create the day if missing: must provide day_number
-      // 1. Get max day_number for this trip
-      const { data: maxDay, error: maxDayError } = await input.supabase
-        .from('days')
-        .select('day_number')
-        .eq('trip_id', input.tripId)
-        .order('day_number', { ascending: false })
-        .limit(1)
-        .single()
-      if (maxDayError) {
-        throw new Error(maxDayError?.message || 'Failed to get max day_number for trip')
-      }
-      const nextDayNumber = maxDay && typeof maxDay.day_number === 'number' ? maxDay.day_number + 1 : 1;
-      // 2. Insert new day with day_number
-      const { data: newDay, error: newDayError } = await input.supabase
-        .from('days')
-        .insert({ trip_id: input.tripId, date: depDate, day_number: nextDayNumber })
-        .select('id')
-        .single()
-      if (newDay) {
-        dayId = newDay.id
-      } else {
-        throw new Error(newDayError?.message || 'Failed to create day for flight')
-      }
-    }
+    if (dayRow) return dayRow.id
+    // Get max day_number
+    const { data: maxDay } = await input.supabase
+      .from('days')
+      .select('day_number')
+      .eq('trip_id', input.tripId)
+      .order('day_number', { ascending: false })
+      .limit(1)
+      .single()
+    const nextDayNumber = maxDay && typeof maxDay.day_number === 'number' ? maxDay.day_number + 1 : 1;
+    // Insert new day
+    const { data: newDay, error: newDayError } = await input.supabase
+      .from('days')
+      .insert({ trip_id: input.tripId, date, day_number: nextDayNumber })
+      .select('id')
+      .single()
+    if (newDay) return newDay.id
+    throw new Error(newDayError?.message || 'Failed to create day for flight')
   }
+
+  // Always ensure both days exist if arrival is present
+  const depDayId = await ensureDay(depDate)
+  let arrDayId: string | undefined = undefined
+  if (arrDate && arrDate !== depDate) {
+    arrDayId = await ensureDay(arrDate)
+  }
+
+  // Use the correct day_id for the activity (default to departure day)
   const activity: FlightActivity = {
     ...input.flight,
-    day_id: dayId,
+    day_id: depDayId,
     type: 'flight',
     created_at: input.flight.created_at || new Date().toISOString(),
   }
