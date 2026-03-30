@@ -55,12 +55,19 @@ export default function DayTimeline({
           <TimeOfDaySection key={section.key} label={section.label}>
             {section.items.map((item) => {
               const globalIdx = allSorted.findIndex((i) => i.id === item.id)
+              // Adapt TodayItem to ItineraryActivity shape
+              const itineraryActivity = {
+                ...item,
+                place_id: item.place_id ?? null,
+                created_at: item.created_at ?? '',
+                places: null,
+              };
               return (
                 <ItineraryActivityRenderer
                   key={item.id}
                   tripId={tripId}
                   dayId={item.day_id}
-                  item={{ kind: 'activity', activity: item }}
+                  item={{ kind: 'activity', activity: itineraryActivity, originalIndex: globalIdx, sortMinutes: null }}
                   canMoveUp={globalIdx > 0}
                   canMoveDown={globalIdx < allSorted.length - 1}
                   moveActivityAction={() => {}}
