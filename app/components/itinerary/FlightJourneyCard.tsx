@@ -1,6 +1,8 @@
 import React from 'react';
 import styles from './FlightJourneyCard.module.css';
-import { PlaneIcon } from './PlaneIcon';
+import Card from '@/app/components/ui/Card';
+import { PlaneIcon, PlaneTakeoffIcon, PlaneLandingIcon } from './PlaneIcon';
+
 
 
 interface FlightJourneyCardProps {
@@ -8,19 +10,44 @@ interface FlightJourneyCardProps {
   onDelete?: (id: string) => void;
 }
 
+
+function isFlightActivity(activity: any): boolean {
+  if (!activity) return false;
+  const meta = activity.metadata || activity._meta || {};
+  return !!(
+    meta.flightNumber || meta.airline || meta.departure || meta.arrival
+  );
+}
+
 function canEditActivity(activity: any) {
-  // Flights: cannot edit
-  return false;
+  return !isFlightActivity(activity);
 }
 function canDeleteActivity(activity: any) {
-  // Flights: can delete
   return true;
 }
+
 
 function formatFlightStatusForDisplay(status?: string) {
   if (!status) return '';
   if (status.trim().toLowerCase() === 'expected') return 'On Schedule';
   return status;
+}
+
+// Directional icon helpers
+function getFlightDirection(activity: any): 'departure' | 'arrival' | 'unknown' {
+  const meta = activity.metadata || activity._meta || {};
+  if (!meta.departure || !meta.arrival) return 'unknown';
+  // If current day matches departure day, it's a departure; if arrival, arrival
+  // Fallback: if we have both, prefer departure
+  if (meta.isDeparture) return 'departure';
+  if (meta.isArrival) return 'arrival';
+  return 'departure';
+}
+
+function getFlightDirectionIcon(direction: 'departure' | 'arrival' | 'unknown', size = 18, style = {}) {
+  if (direction === 'departure') return <PlaneTakeoffIcon size={size} style={style} />;
+  if (direction === 'arrival') return <PlaneLandingIcon size={size} style={style} />;
+  return <PlaneIcon size={size} style={style} />;
 }
 
 function formatDateTime(iso: string) {
@@ -36,37 +63,36 @@ function getDirectionLabel(activity: any): string {
   return 'FLIGHT';
 }
 
+
 const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelete }) => {
   const {
     airline,
     flightNumber,
     aircraft,
     duration,
-    departure,
-    arrival,
+    departure = {},
+    arrival = {},
     notes,
-    _meta,
-    _raw,
-    type,
+    _meta = {},
     status,
-    // secondary details
-    rawMetadata,
   } = activity;
 
+  // Directional icon logic
+  const direction = getFlightDirection(activity);
 
   // Secondary details
   const secondary: string[] = [];
-  if (_meta?.checkInDesk) secondary.push(`Check-in: ${_meta.checkInDesk}`);
-  if (_meta?.gate) secondary.push(`Gate: ${_meta.gate}`);
-  if (_meta?.codeshare) secondary.push(`Codeshare: ${_meta.codeshare}`);
-  if (_meta?.status && !notes) secondary.push(formatFlightStatusForDisplay(_meta.status));
+  if (_meta.checkInDesk) secondary.push(`Check-in: ${_meta.checkInDesk}`);
+  if (_meta.gate) secondary.push(`Gate: ${_meta.gate}`);
+  if (_meta.codeshare) secondary.push(`Codeshare: ${_meta.codeshare}`);
+  if (_meta.status && !notes) secondary.push(formatFlightStatusForDisplay(_meta.status));
 
   return (
-    <div className={styles.flightCard}>
+    <Card className={styles.flightCard}>
       <div className={styles.topRow}>
         <span className={styles.directionLabel}>
-          <PlaneIcon size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {getDirectionLabel(activity)}
+          {getFlightDirectionIcon(direction, 18, { marginRight: 6, verticalAlign: 'middle' })}
+          {direction === 'departure' ? 'DEPARTURE' : direction === 'arrival' ? 'ARRIVAL' : 'FLIGHT'}
         </span>
         <span className={styles.title}>
           {flightNumber ? (
@@ -118,7 +144,7 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
           </button>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

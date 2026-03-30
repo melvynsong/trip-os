@@ -4,6 +4,90 @@ import { render } from '@testing-library/react';
 import React from 'react';
 
 describe('FlightJourneyCard', () => {
+    it('does NOT show Edit action for flights', () => {
+      const activity = {
+        type: 'transport',
+        metadata: {
+          airline: 'Singapore Airlines',
+          flightNumber: 'SQ 852',
+          departure: { airportCode: 'SIN', datetime: '2026-03-30T08:00:00+08:00' },
+          arrival: { airportCode: 'CAN', datetime: '2026-03-30T12:25:00+08:00' },
+        },
+        id: '1',
+        day_id: 'd1',
+      };
+      const model = getFlightDisplayModel(activity);
+      const { queryByText } = render(<FlightJourneyCard activity={model} />);
+      expect(queryByText(/edit/i)).not.toBeInTheDocument();
+    });
+
+    it('shows Delete action for flights', () => {
+      const activity = {
+        type: 'transport',
+        metadata: {
+          airline: 'Singapore Airlines',
+          flightNumber: 'SQ 852',
+          departure: { airportCode: 'SIN', datetime: '2026-03-30T08:00:00+08:00' },
+          arrival: { airportCode: 'CAN', datetime: '2026-03-30T12:25:00+08:00' },
+        },
+        id: '1',
+        day_id: 'd1',
+      };
+      const model = getFlightDisplayModel(activity);
+      const { getByText } = render(<FlightJourneyCard activity={model} />);
+      expect(getByText(/delete/i)).toBeInTheDocument();
+    });
+
+    it('maps status "Expected" to "On Schedule"', () => {
+      const activity = {
+        type: 'transport',
+        metadata: {
+          status: 'Expected',
+          departure: { airportCode: 'SIN', datetime: '2026-03-30T08:00:00+08:00' },
+          arrival: { airportCode: 'CAN', datetime: '2026-03-30T12:25:00+08:00' },
+        },
+        id: '1',
+        day_id: 'd1',
+      };
+      const model = getFlightDisplayModel(activity);
+      const { getByText, queryByText } = render(<FlightJourneyCard activity={model} />);
+      expect(getByText('On Schedule')).toBeInTheDocument();
+      expect(queryByText('Expected')).not.toBeInTheDocument();
+    });
+
+    it('renders correct directional icon for departure', () => {
+      const activity = {
+        type: 'transport',
+        metadata: {
+          flightNumber: 'SQ 852',
+          departure: { airportCode: 'SIN', datetime: '2026-03-30T08:00:00+08:00' },
+          arrival: { airportCode: 'CAN', datetime: '2026-03-30T12:25:00+08:00' },
+          isDeparture: true,
+        },
+        id: '1',
+        day_id: 'd1',
+      };
+      const model = getFlightDisplayModel(activity);
+      const { container } = render(<FlightJourneyCard activity={model} />);
+      expect(container.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('renders correct directional icon for arrival', () => {
+      const activity = {
+        type: 'transport',
+        metadata: {
+          flightNumber: 'SQ 853',
+          departure: { airportCode: 'CAN', datetime: '2026-03-31T08:00:00+08:00' },
+          arrival: { airportCode: 'SIN', datetime: '2026-03-31T12:25:00+08:00' },
+          isArrival: true,
+        },
+        id: '2',
+        day_id: 'd2',
+      };
+      const model = getFlightDisplayModel(activity);
+      const { container } = render(<FlightJourneyCard activity={model} />);
+      expect(container.querySelector('svg')).toBeInTheDocument();
+    });
   it('renders full rich flight card with complete metadata', () => {
     const activity = {
       type: 'transport',
