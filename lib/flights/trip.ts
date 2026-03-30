@@ -28,6 +28,7 @@ type TripFlightRow = {
   raw_response_json: unknown
   selected_at: string
   updated_at: string
+  duration?: string | null
 }
 
 type DayRow = {
