@@ -58,8 +58,8 @@ export default function DayTimeline({
               // Adapt TodayItem to ItineraryActivity shape
               const itineraryActivity = {
                 ...item,
-                place_id: item.place_id ?? null,
-                created_at: item.created_at ?? '',
+                place_id: null,
+                created_at: '',
                 places: null,
               };
               return (
