@@ -1,3 +1,53 @@
+// --- FLIGHT DAY VALIDATION ---
+/**
+ * Validates a flight result against the intended page date and mode.
+ * mode: 'departure-day' | 'arrival-day' | 'either'
+ */
+function validateFlightAgainstPageDate({
+  pageDate,
+  departureLocalDate,
+  arrivalLocalDate,
+  mode,
+}: {
+  pageDate: string;
+  departureLocalDate: string | null;
+  arrivalLocalDate: string | null;
+  mode: 'departure-day' | 'arrival-day' | 'either';
+}): {
+  accepted: boolean;
+  matchesDepartureDate: boolean;
+  matchesArrivalDate: boolean;
+  rejectionReason?: string;
+} {
+  const matchesDepartureDate = pageDate === departureLocalDate;
+  const matchesArrivalDate = pageDate === arrivalLocalDate;
+  if (mode === 'departure-day') {
+    if (matchesDepartureDate) return { accepted: true, matchesDepartureDate, matchesArrivalDate };
+    return {
+      accepted: false,
+      matchesDepartureDate,
+      matchesArrivalDate,
+      rejectionReason: 'Flight does not depart on the selected day.'
+    };
+  }
+  if (mode === 'arrival-day') {
+    if (matchesArrivalDate) return { accepted: true, matchesDepartureDate, matchesArrivalDate };
+    return {
+      accepted: false,
+      matchesDepartureDate,
+      matchesArrivalDate,
+      rejectionReason: 'Flight does not arrive on the selected day.'
+    };
+  }
+  // 'either' mode
+  if (matchesDepartureDate || matchesArrivalDate) return { accepted: true, matchesDepartureDate, matchesArrivalDate };
+  return {
+    accepted: false,
+    matchesDepartureDate,
+    matchesArrivalDate,
+    rejectionReason: 'Flight does not depart or arrive on the selected day.'
+  };
+}
 
 
 
@@ -280,28 +330,55 @@ export default function ActivityFlightInput({
   }, [tripId, canUseFlights])
 
   async function handleLookup() {
-    if (!hasFlightNumber || isLookingUp || !canUseFlights) return
-    setError(null)
-    setSuccessMessage(null)
-    setLookupResult(null)
-    setIsLookingUp(true)
+    if (!hasFlightNumber || isLookingUp || !canUseFlights) return;
+    setError(null);
+    setSuccessMessage(null);
+    setLookupResult(null);
+    setIsLookingUp(true);
     try {
       const resp = await fetch('/api/flights/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ tripId, flightNumber: flightNumberInput.trim(), flightDate }),
-      })
-      const data = await resp.json()
+      });
+      const data = await resp.json();
       if (!resp.ok) {
-        setError(data.error || 'Flight lookup failed.')
-        return
+        setError(data.error || 'Flight lookup failed.');
+        return;
       }
-      setLookupResult(data.flight)
+      // --- STRICT VALIDATION: DEPARTURE-DAY MODE ---
+      const mode: 'departure-day' = 'departure-day';
+      const { departureDate, arrivalDate } = getFlightLocalDates(data.flight);
+      const validation = validateFlightAgainstPageDate({
+        pageDate: flightDate,
+        departureLocalDate: departureDate,
+        arrivalLocalDate: arrivalDate,
+        mode,
+      });
+      // Debug log
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line no-console
+        console.log('[FlightLookup][VALIDATION]', {
+          pageDate: flightDate,
+          mode,
+          departureLocalDate: departureDate,
+          arrivalLocalDate: arrivalDate,
+          ...validation,
+        });
+      }
+      if (!validation.accepted) {
+        setError(
+          `No matching flight found for this day. ${validation.rejectionReason}\n(Departs: ${departureDate}, Arrives: ${arrivalDate})`
+        );
+        setLookupResult(null);
+        return;
+      }
+      setLookupResult(data.flight);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lookup failed.')
+      setError(err instanceof Error ? err.message : 'Lookup failed.');
     } finally {
-      setIsLookingUp(false)
+      setIsLookingUp(false);
     }
   }
 
@@ -311,32 +388,34 @@ export default function ActivityFlightInput({
     setSuccessMessage(null);
     setIsSaving(true);
     try {
-      // --- DIAGNOSTICS & BUSINESS LOGIC ---
-      // 1. Extract local dates
+      // --- STRICT VALIDATION: DEPARTURE-DAY MODE ---
+      const mode: 'departure-day' = 'departure-day';
       const { departureDate, arrivalDate } = getFlightLocalDates(lookupResult);
-      // 2. Classify alignment
-      const alignment = classifyFlightAgainstPageDate(flightDate, departureDate, arrivalDate);
-      // 3. Log all relevant info
-      if (typeof window !== 'undefined') {
-        // eslint-disable-next-line no-console
-        console.log('[FlightSave][DIAGNOSTIC]', {
-          pageDate: flightDate,
-          inputFlightDate: flightDate,
-          depTime: lookupResult.departureTime,
-          arrTime: lookupResult.arrivalTime,
-          depLocal: departureDate,
-          arrLocal: arrivalDate,
-          alignment,
-          chosenDisplay: alignment,
-        });
-      }
-      // 4. Enforce business rule: itinerary day is the bucket, allow both dep/arr alignment
-      if (alignment === 'neither') {
-        setError('This flight does not match the current itinerary day. Please check the date.');
+      const validation = validateFlightAgainstPageDate({
+        pageDate: flightDate,
+        departureLocalDate: departureDate,
+        arrivalLocalDate: arrivalDate,
+        mode,
+      });
+      if (!validation.accepted) {
+        setError(
+          `Cannot save: flight does not depart on this day. (Departs: ${departureDate}, Arrives: ${arrivalDate})`
+        );
         setIsSaving(false);
         return;
       }
-      // 5. Map lookupResult to unified FlightActivity structure
+      // --- DIAGNOSTICS ---
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line no-console
+        console.log('[FlightSave][VALIDATION]', {
+          pageDate: flightDate,
+          mode,
+          departureLocalDate: departureDate,
+          arrivalLocalDate: arrivalDate,
+          ...validation,
+        });
+      }
+      // Map lookupResult to unified FlightActivity structure
       const flightActivity: FlightActivity = {
         id: '',
         day_id: '', // Will be set by backend
@@ -364,12 +443,12 @@ export default function ActivityFlightInput({
         rawMetadata: lookupResult.rawResponseJson || undefined,
         created_at: new Date().toISOString(),
       };
-      // 6. Pass alignment to backend for correct day anchoring
+      // Save to backend (day_id will be set to departure day)
       const saveResp = await fetch(`/api/trips/${tripId}/flight`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ flight: flightActivity, context: alignment }),
+        body: JSON.stringify({ flight: flightActivity, context: 'departure' }),
       });
       const saveData = await saveResp.json();
       if (!saveResp.ok) {
