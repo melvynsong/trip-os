@@ -1,20 +1,19 @@
+
+'use client'
+
 // --- FLIGHT DAY ALIGNMENT HELPERS ---
 /**
  * Extracts local date (YYYY-MM-DD) from ISO string with offset.
+ * Robust: extracts the date part before 'T', which is always the local date for offset datetimes.
  */
 function getLocalDateString(dateTime: string | null): string | null {
   if (!dateTime) return null;
-  // If offset is present, Date will parse correctly
+  const match = dateTime.match(/^(\d{4}-\d{2}-\d{2})T/);
+  if (match) return match[1];
+  // Fallback: try parsing as Date (may be UTC)
   const d = new Date(dateTime);
   if (!Number.isNaN(d.getTime())) {
-    // Use toISOString, but adjust for offset if present
-    // This is a simplification: in real world, use a robust timezone lib
     return d.toISOString().slice(0, 10);
-  }
-  // Fallback: try parsing as UTC
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateTime)) {
-    const d2 = new Date(dateTime + 'Z');
-    if (!Number.isNaN(d2.getTime())) return d2.toISOString().slice(0, 10);
   }
   return null;
 }
@@ -40,27 +39,6 @@ function classifyFlightAgainstPageDate(pageDate: string, departureDate: string |
   return 'neither';
 }
 
-// Helper: Parse ISO string with offset, fallback to UTC if no offset
-function parseIsoWithOffset(dateTime: string | null): Date | null {
-  if (!dateTime) return null;
-  // If offset is present, Date will parse correctly
-  const d = new Date(dateTime);
-  if (!Number.isNaN(d.getTime())) return d;
-  // Fallback: try parsing as UTC
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateTime)) {
-    const d2 = new Date(dateTime + 'Z');
-    if (!Number.isNaN(d2.getTime())) return d2;
-  }
-  return null;
-}
-
-// Helper: Get YYYY-MM-DD local date from ISO string (with offset)
-function getLocalDateString(dateTime: string | null): string | null {
-  const d = parseIsoWithOffset(dateTime);
-  if (!d) return null;
-  // Use toLocaleDateString in UTC+offset
-  return d.toISOString().slice(0, 10);
-}
 
 // Helper: Compare itinerary day to flight departure/arrival
 function getItineraryDayContext(flightDate: string, depTime: string | null, arrTime: string | null): 'departure' | 'arrival' | 'none' {
