@@ -25,6 +25,7 @@ type Activity = Pick<
   ActivityType,
   'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id' | 'created_at'
 > & {
+  metadata?: any;
   places: { id: string; name: string } | null
 }
 
@@ -172,7 +173,7 @@ export default async function ItineraryPage({ params }: Props) {
 
   const { data: activitiesData, error: activitiesError } = await supabase
     .from('activities')
-    .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, places(id, name)')
+    .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
     .in('day_id', dayIds)
     .order('day_id', { ascending: true })
     .order('sort_order', { ascending: true })
