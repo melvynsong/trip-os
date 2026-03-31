@@ -45,7 +45,7 @@ export async function POST(request: Request, context: RouteContext) {
       )
     }
 
-    const draft = normalizeGeneratedItinerary(body.draft, days.length)
+    const draft = normalizeGeneratedItinerary(body.draft, days)
     const dayIds = days.map((day) => day.id)
 
     const { data: existingActivities, error: activitiesError } = await supabase
