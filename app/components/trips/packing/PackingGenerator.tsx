@@ -30,14 +30,6 @@ const STYLE_DESCRIPTION: Record<PackingStyle, string> = {
   heavy: 'Full luggage. Comfort and options.',
 }
 
-const SECTION_LABELS: Record<keyof PackingList['sections'], string> = {
-  clothing: 'Clothing', // Refactored to categories
-  outerwear: 'Outerwear', // Refactored to categories
-  footwear: 'Footwear', // Refactored to categories
-  weather_specific: 'Weather-specific', // Refactored to categories
-  essentials: 'Essentials', // Refactored to categories
-  optional: 'Optional', // Refactored to categories
-}
 
 const CATEGORY_ORDER = [
   'Clothing',
