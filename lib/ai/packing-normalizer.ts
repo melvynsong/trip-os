@@ -14,7 +14,7 @@ export function normalizePackingList(data: any, days_count: number): PackingList
             quantity: Math.max(1, Math.min(Number(item.quantity), days_count * 2)),
             notes: item.notes ? String(item.notes) : null,
           }))
-          .filter(item => {
+          .filter((item: any) => {
             if (seen.has(item.name.toLowerCase())) return false
             seen.add(item.name.toLowerCase())
             return true
