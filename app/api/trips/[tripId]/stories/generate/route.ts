@@ -5,7 +5,7 @@ import { normalizeStoryAIResult } from '@/lib/ai/story-normalizer'
 
 export const runtime = 'nodejs'
 
-export async function POST(request: Request, { params }: { params: { tripId: string } }) {
+export async function POST(request: Request, context: { params: { tripId: string } }) {
   try {
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -14,7 +14,7 @@ export async function POST(request: Request, { params }: { params: { tripId: str
       )
     }
 
-    const { tripId } = params
+    const { tripId } = context.params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
