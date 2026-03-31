@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: Request, { params }: { params: { tripId: string } }) {
+export async function GET(request: NextRequest, context: { params: { tripId: string } }) {
   try {
-    const { tripId } = params
+    const { tripId } = context.params
     const supabase = await createClient()
     const {
       data: { user },
@@ -30,9 +30,9 @@ export async function GET(request: Request, { params }: { params: { tripId: stri
   }
 }
 
-export async function POST(request: Request, { params }: { params: { tripId: string } }) {
+export async function POST(request: NextRequest, context: { params: { tripId: string } }) {
   try {
-    const { tripId } = params
+    const { tripId } = context.params
     const supabase = await createClient()
     const {
       data: { user },
