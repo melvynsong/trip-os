@@ -165,7 +165,7 @@ export default function AiItineraryGenerator({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className={buttonClass({ variant: 'success', className: 'rounded-xl' })}
+              className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
             >
               {isSaving ? 'Saving...' : 'Save to Itinerary'}
             </button>
