@@ -192,5 +192,6 @@ export default async function PackingPage({ params }: Props) {
       ) : (
         <div className="rounded-[2rem] border border-[var(--border-soft)] bg-white p-8 text-center space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-            // This page is now redundant. You can safely remove it.
+
+            // This page is now redundant and intentionally left empty for safe removal.
           </p>
