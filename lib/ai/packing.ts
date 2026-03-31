@@ -1,3 +1,52 @@
+import { PackingList } from "@/types/packing-list";
+
+export function buildPackingListPrompt({
+  destination,
+  start_date,
+  end_date,
+  number_of_days,
+  weather,
+  packing_style,
+}: {
+  destination: string;
+  start_date: string;
+  end_date: string;
+  number_of_days: number;
+  weather: string;
+  packing_style?: "light" | "standard" | "heavy";
+}) {
+  return `
+You are a travel assistant. Generate a JSON packing list for a trip.
+
+Input:
+- Destination: ${destination}
+- Start date: ${start_date}
+- End date: ${end_date}
+- Number of days: ${number_of_days}
+- Weather: ${weather}
+- Packing style: ${packing_style ?? "standard"}
+
+Output format (strict JSON, no extra text):
+
+{
+  "categories": [
+    {
+      "category": "Clothing",
+      "items": [
+        { "name": "T-shirt", "quantity": 3, "notes": "For warm days" }
+      ]
+    }
+    // ... more categories
+  ]
+}
+
+Rules:
+- Quantities must be realistic for the number of days.
+- Consider weather and packing style.
+- Only include relevant items.
+- No extra text, only valid JSON.
+`;
+}
 import { branding } from '@/lib/branding'
 import type { WeatherMode } from '@/lib/weather/types'
 
