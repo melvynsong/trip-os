@@ -1,3 +1,4 @@
+export { normalizeGeneratedItinerary } from './itinerary-normalizer';
 import type { ActivityType } from '@/types/trip'
 
 export const AI_ACTIVITY_TYPES: ActivityType[] = [
