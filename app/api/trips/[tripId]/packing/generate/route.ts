@@ -27,7 +27,9 @@ function asNumberOrNull(v: unknown): number | null {
 
 export async function POST(request: Request, { params }: Params) {
   try {
+    console.log('[Packing API] Request received', { time: new Date().toISOString() });
     if (!process.env.OPENAI_API_KEY) {
+      console.error('[Packing API] Missing OPENAI_API_KEY');
       return NextResponse.json(
         { error: 'OPENAI_API_KEY is not configured.' },
         { status: 500 }
@@ -36,12 +38,14 @@ export async function POST(request: Request, { params }: Params) {
 
     const { tripId } = await params
     const supabase = await createClient()
+    console.log('[Packing API] tripId:', tripId)
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     if (!user) {
+      console.warn('[Packing API] No user found in session');
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
     }
 
@@ -49,7 +53,8 @@ export async function POST(request: Request, { params }: Params) {
     let membership
     try {
       membership = await getCurrentUserMembership()
-    } catch {
+    } catch (err) {
+      console.error('[Packing API] Failed to verify access', err)
       return NextResponse.json({ error: 'Failed to verify access.' }, { status: 403 })
     }
 
@@ -59,7 +64,7 @@ export async function POST(request: Request, { params }: Params) {
       const message = !packingAccess.hasRequiredTier
         ? 'Packing is available for Friend and Owner members.'
         : 'Packing (Beta) is currently disabled by admin.'
-
+      console.warn('[Packing API] Access denied', { userId: user.id, tier: membership?.tier, message });
       return NextResponse.json(
         { error: message },
         { status: 403 }
@@ -74,13 +79,16 @@ export async function POST(request: Request, { params }: Params) {
       .single<{ id: string; destination: string; start_date: string; end_date: string }>()
 
     if (tripError || !trip) {
+      console.warn('[Packing API] Trip not found or access denied', { tripId, userId: user.id, tripError });
       return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
     }
 
     const body = (await request.json()) as Record<string, unknown>
+    console.log('[Packing API] Request body', body)
 
     const packingStyleRaw = asString(body.packingStyle) as PackingStyle
     if (!VALID_PACKING_STYLES.has(packingStyleRaw)) {
+      console.warn('[Packing API] Invalid packing style', packingStyleRaw)
       return NextResponse.json(
         { error: 'Invalid packing style. Use light, moderate, or heavy.' },
         { status: 400 }
@@ -116,6 +124,7 @@ export async function POST(request: Request, { params }: Params) {
       .eq('trip_id', tripId)
       .order('day_number', { ascending: true })
     if (daysError) {
+      console.error('[Packing API] Failed to load itinerary days', daysError)
       return NextResponse.json({ error: 'Failed to load itinerary days.' }, { status: 500 })
     }
     const dayIds = (days || []).map((d: { id: string }) => d.id)
@@ -132,6 +141,7 @@ export async function POST(request: Request, { params }: Params) {
         .order('created_at', { ascending: true })
         .order('id', { ascending: true })
       if (activitiesError) {
+        console.error('[Packing API] Failed to load activities', activitiesError)
         return NextResponse.json({ error: 'Failed to load activities.' }, { status: 500 })
       }
       activities = activitiesData || []
@@ -146,7 +156,7 @@ export async function POST(request: Request, { params }: Params) {
       weather: weatherContext,
       activities: activities,
     }
-
+    console.log('[Packing API] Prompt context', ctx)
     const userPrompt = buildPackingPrompt(ctx)
 
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -176,15 +186,18 @@ export async function POST(request: Request, { params }: Params) {
       choices?: Array<{ message?: { content?: string } }>
       error?: { message?: string }
     }
+    console.log('[Packing API] AI response', { ok: aiResponse.ok, aiPayload })
 
     if (!aiResponse.ok) {
       const message = aiPayload?.error?.message || 'AI packing generation failed.'
+      console.error('[Packing API] AI error', message)
       return NextResponse.json({ error: message }, { status: 500 })
     }
 
     const content = aiPayload?.choices?.[0]?.message?.content
 
     if (typeof content !== 'string') {
+      console.error('[Packing API] AI response was empty or malformed', aiPayload)
       return NextResponse.json(
         { error: 'AI response was empty or malformed.' },
         { status: 500 }
@@ -194,7 +207,8 @@ export async function POST(request: Request, { params }: Params) {
     let data
     try {
       data = JSON.parse(content)
-    } catch {
+    } catch (err) {
+      console.error('[Packing API] AI returned invalid JSON', { content, err })
       return NextResponse.json(
         { error: 'AI returned invalid JSON. Please try again.' },
         { status: 500 }
@@ -204,7 +218,8 @@ export async function POST(request: Request, { params }: Params) {
     let packingList
     try {
       packingList = normalizePackingList(data, durationDays)
-    } catch {
+    } catch (err) {
+      console.error('[Packing API] AI returned an unreadable packing list', { data, err })
       return NextResponse.json(
         { error: 'AI returned an unreadable packing list. Please try again.' },
         { status: 500 }

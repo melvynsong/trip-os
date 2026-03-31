@@ -239,14 +239,7 @@ export default async function ItineraryPage({ params }: Props) {
   // Main page render
   return (
     <TripPageShell className="space-y-8">
-      <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
-        <strong>Debug Info:</strong>
-        <ul className="mt-1 space-y-1">
-          <li><b>tripId:</b> {String(tripId)}</li>
-          <li><b>params:</b> {JSON.stringify(params)}</li>
-          <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
-        </ul>
-      </div>
+      {/* Debug Info removed for production. If troubleshooting is needed, check server logs. */}
       <TripHeader
         dateRange={`${trip.start_date} → ${trip.end_date}`}
         title={trip.title}
