@@ -286,14 +286,6 @@ export default async function ItineraryPage({ params }: Props) {
               🧳 Packing List
             </Link>
             <WhatsAppShareSheet
-              tripId={tripId}
-              tripTitle={trip.title}
-              startDate={trip.start_date}
-              endDate={trip.end_date}
-              destination={trip.destination}
-              days={days}
-              activities={activities}
-              places={places}
               title={`Share ${trip.title} itinerary`}
               shortText={shortTripShareText}
               detailedText={detailedTripShareText}
