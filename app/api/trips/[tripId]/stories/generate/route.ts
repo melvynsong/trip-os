@@ -1,64 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import {
-  buildDayStoryPrompt,
-  buildPlaceStoryPrompt,
-  parseStoryDraft,
-  STORY_JSON_SCHEMA,
-  type DayStoryContext,
-  type PlaceStoryContext,
-} from '@/lib/ai/story'
-import {
-  DAY_STORY_FOCUS_OPTIONS,
-  PLACE_STORY_TYPE_OPTIONS,
-  STORY_LENGTH_OPTIONS,
-  STORY_TONE_OPTIONS,
-  type DayStoryFocus,
-  type PlaceStoryTypeOption,
-  type StoryLength,
-  type StoryScope,
-  type StoryTone,
-} from '@/lib/story/types'
-import { resolvePlaceType } from '@/lib/places'
+import { buildStoryPrompt, type StoryTone } from '@/lib/ai/story'
+import { normalizeStoryAIResult } from '@/lib/ai/story-normalizer'
 
 export const runtime = 'nodejs'
 
-type Params = { params: Promise<{ tripId: string }> }
-
-const VALID_TONES = new Set(STORY_TONE_OPTIONS.map((item) => item.value))
-const VALID_LENGTHS = new Set(STORY_LENGTH_OPTIONS.map((item) => item.value))
-const VALID_DAY_FOCUS = new Set(DAY_STORY_FOCUS_OPTIONS.map((item) => item.value))
-const VALID_PLACE_TYPE = new Set(PLACE_STORY_TYPE_OPTIONS.map((item) => item.value))
-
-function asString(value: unknown) {
-  return typeof value === 'string' ? value.trim() : ''
-}
-
-function parseScope(value: unknown): StoryScope | null {
-  const v = asString(value)
-  return v === 'day' || v === 'place' ? v : null
-}
-
-function parseTone(value: unknown): StoryTone | null {
-  const v = asString(value) as StoryTone
-  return VALID_TONES.has(v) ? v : null
-}
-
-function parseLength(value: unknown): StoryLength | null {
-  const v = asString(value) as StoryLength
-  return VALID_LENGTHS.has(v) ? v : null
-}
-
-function extractJsonObjectString(value: string) {
-  const start = value.indexOf('{')
-  const end = value.lastIndexOf('}')
-  if (start === -1 || end === -1 || end <= start) {
-    return null
-  }
-  return value.slice(start, end + 1)
-}
-
-export async function POST(request: Request, { params }: Params) {
+export async function POST(request: Request, { params }: { params: { tripId: string } }) {
   try {
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -67,276 +14,101 @@ export async function POST(request: Request, { params }: Params) {
       )
     }
 
-    const { tripId } = await params
+    const { tripId } = params
     const supabase = await createClient()
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
     }
 
-    const { data: trip, error: tripError } = await supabase
-      .from('trips')
-      .select('id, title, destination')
-      .eq('id', tripId)
-      .eq('user_id', user.id)
-      .single()
-
-    if (tripError || !trip) {
-      return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
+    let body: { scope?: unknown; dayId?: unknown; tone?: unknown } = {}
+    try {
+      body = await request.json()
+    } catch {
+      body = {}
     }
-
-    const body = (await request.json()) as Record<string, unknown>
-    const scope = parseScope(body.scope)
-    const tone = parseTone(body.tone)
-    const length = parseLength(body.length)
-
-    if (!scope || !tone || !length) {
-      return NextResponse.json(
-        { error: 'Invalid or missing scope/tone/length.' },
-        { status: 400 }
-      )
-    }
-
-    let prompt = ''
-    let inferredStoryType = 'day_summary'
+    const scope = 'day'
+    const tone = typeof body.tone === 'string' && [
+      'warm_personal',
+      'fun_casual',
+      'reflective',
+      'journal',
+      'family_memory',
+    ].includes(body.tone) ? body.tone as StoryTone : 'warm_personal'
     let relatedDate: string | null = null
     let relatedPlaceId: string | null = null
     let relatedActivityId: string | null = null
 
-    if (scope === 'day') {
-      const dayId = asString(body.dayId)
-      const focus = asString(body.focus) as DayStoryFocus
-
-      if (!dayId || !VALID_DAY_FOCUS.has(focus)) {
-        return NextResponse.json(
-          { error: 'Invalid or missing dayId/focus for day story.' },
-          { status: 400 }
-        )
-      }
-
-      const { data: day, error: dayError } = await supabase
-        .from('days')
-        .select('id, date, title')
-        .eq('id', dayId)
-        .eq('trip_id', tripId)
-        .single()
-
-      if (dayError || !day) {
-        return NextResponse.json({ error: 'Day not found.' }, { status: 404 })
-      }
-
-      relatedDate = day.date
-
-      const { data: activities } = await supabase
-        .from('activities')
-        .select('title, activity_time, type, notes, place_id')
-        .eq('day_id', dayId)
-        .order('sort_order', { ascending: true })
-        .order('activity_time', { ascending: true })
-
-      const { data: places } = await supabase
-        .from('places')
-        .select('id, name, category, place_type, notes, visited')
-        .eq('trip_id', tripId)
-        .order('name', { ascending: true })
-
-      if ((activities || []).length === 0 && (places || []).length === 0) {
-        return NextResponse.json(
-          {
-            error:
-              'Add at least one activity or place to this day before generating a story.',
-          },
-          { status: 400 }
-        )
-      }
-
-      const hotel = (places || []).find((place) => resolvePlaceType(place) === 'hotel')
-
-      const context: DayStoryContext = {
-        tripTitle: trip.title,
-        destination: trip.destination,
-        tripNotes: null,
-        date: day.date,
-        dayTitle: day.title,
-        city: trip.destination,
-        hotel: hotel?.name ?? null,
-        activities: (activities || []).map((activity) => {
-          const placeMatch = (places || []).find((item) => item.id === activity.place_id)
-          return {
-            title: activity.title,
-            time: activity.activity_time,
-            type: activity.type,
-            notes: activity.notes,
-            placeName: placeMatch?.name ?? null,
-          }
-        }),
-        visitedPlaces: (places || [])
-          .filter((place) => Boolean(place.visited))
-          .map((place) => ({
-            name: place.name,
-            type: resolvePlaceType(place),
-            notes: place.notes,
-          }))
-          .slice(0, 12),
-      }
-
-      const built = buildDayStoryPrompt({
-        context,
-        tone,
-        length,
-        focus,
-      })
-
-      prompt = built.prompt
-      inferredStoryType = built.storyType
+    // Only support 'day' stories for now
+    const dayId = typeof body.dayId === 'string' ? body.dayId : null
+    if (!dayId) {
+      return NextResponse.json(
+        { error: 'Missing dayId for day story.' },
+        { status: 400 }
+      )
     }
 
-    if (scope === 'place') {
-      const storyOption = asString(body.placeStoryType) as PlaceStoryTypeOption
-      if (!VALID_PLACE_TYPE.has(storyOption)) {
-        return NextResponse.json(
-          { error: 'Invalid or missing placeStoryType.' },
-          { status: 400 }
-        )
-      }
+    const { data: day, error: dayError } = await supabase
+      .from('days')
+      .select('id, date, title, day_number')
+      .eq('id', dayId)
+      .eq('trip_id', tripId)
+      .single()
+    if (dayError || !day) {
+      return NextResponse.json({ error: 'Day not found.' }, { status: 404 })
+    }
+    relatedDate = day.date
 
-      const placeId = asString(body.placeId) || null
-      const activityId = asString(body.activityId) || null
+    const { data: activities, error: activitiesError } = await supabase
+      .from('activities')
+      .select('title, activity_time, type, notes')
+      .eq('day_id', dayId)
+      .order('activity_time', { ascending: true })
+    if (activitiesError) {
+      return NextResponse.json({ error: 'Failed to load activities.' }, { status: 500 })
+    }
+    if (!activities || activities.length === 0) {
+      return NextResponse.json(
+        { error: 'Add at least one activity to this day before generating a story.' },
+        { status: 400 }
+      )
+    }
 
-      if (!placeId && !activityId) {
-        return NextResponse.json(
-          { error: 'Provide placeId or activityId for place story generation.' },
-          { status: 400 }
-        )
-      }
+    const mappedActivities = activities.map((a) => ({
+      title: a.title,
+      time: a.activity_time,
+      type: a.type,
+      notes: a.notes,
+    }))
 
-      relatedPlaceId = placeId
-      relatedActivityId = activityId
+    const prompt = buildStoryPrompt(
+      { title: trip.title, destination: trip.destination },
+      { day_number: day.day_number, date: day.date, title: day.title },
+      mappedActivities,
+      tone
+    )
 
-      let context: PlaceStoryContext
-
-      if (placeId) {
-        const { data: place, error: placeError } = await supabase
-          .from('places')
-          .select('id, name, category, place_type, address, notes, visited')
-          .eq('id', placeId)
-          .eq('trip_id', tripId)
-          .single()
-
-        if (placeError || !place) {
-          return NextResponse.json({ error: 'Place not found.' }, { status: 404 })
-        }
-
-        const { data: relatedActivities } = await supabase
-          .from('activities')
-          .select('title, activity_time, type, day_id')
-          .eq('place_id', placeId)
-          .limit(6)
-
-        const relatedDayIds = Array.from(new Set((relatedActivities || []).map((item) => item.day_id)))
-
-        let relatedDateFromActivity: string | null = null
-        if (relatedDayIds.length > 0) {
-          const { data: relatedDays } = await supabase
-            .from('days')
-            .select('id, date')
-            .in('id', relatedDayIds)
-            .limit(1)
-          relatedDateFromActivity = relatedDays?.[0]?.date ?? null
-        }
-
-        relatedDate = relatedDateFromActivity
-
-        const placeType = resolvePlaceType(place)
-        const entityKind: PlaceStoryContext['entityKind'] =
-          placeType === 'restaurant' ? 'restaurant' : 'place'
-
-        context = {
-          tripTitle: trip.title,
-          destination: trip.destination,
-          relatedDate,
-          entityName: place.name,
-          entityKind,
-          category: placeType,
-          address: place.address,
-          notes: place.notes,
-          visited: place.visited,
-          surroundingContext: (relatedActivities || []).map((item) => ({
-            title: item.title,
-            time: item.activity_time,
-            type: item.type,
-          })),
-        }
-      } else {
-        const { data: activity, error: activityError } = await supabase
-          .from('activities')
-          .select('id, title, type, notes, activity_time, day_id, place_id')
-          .eq('id', activityId)
-          .single()
-
-        if (activityError || !activity) {
-          return NextResponse.json({ error: 'Activity not found.' }, { status: 404 })
-        }
-
-        const { data: day } = await supabase
-          .from('days')
-          .select('id, date, trip_id')
-          .eq('id', activity.day_id)
-          .eq('trip_id', tripId)
-          .single()
-
-        if (!day) {
-          return NextResponse.json({ error: 'Activity does not belong to this trip.' }, { status: 404 })
-        }
-
-        relatedDate = day.date
-        relatedPlaceId = activity.place_id ?? null
-
-        const { data: linkedPlace } = activity.place_id
-          ? await supabase
-              .from('places')
-              .select('id, name, address, category, place_type, visited')
-              .eq('id', activity.place_id)
-              .eq('trip_id', tripId)
-              .single()
-          : { data: null }
-
-        const placeType = linkedPlace ? resolvePlaceType(linkedPlace) : activity.type
-        const entityKind: PlaceStoryContext['entityKind'] =
-          activity.type === 'food' ? 'restaurant' : 'activity'
-
-        context = {
-          tripTitle: trip.title,
-          destination: trip.destination,
-          relatedDate,
-          entityName: activity.title,
-          entityKind,
-          category: placeType,
-          address: linkedPlace?.address ?? null,
-          notes: activity.notes,
-          visited: linkedPlace?.visited ?? null,
-          surroundingContext: [
-            {
-              title: activity.title,
-              time: activity.activity_time,
-              type: activity.type,
-            },
-          ],
-        }
-      }
-
-      const built = buildPlaceStoryPrompt({
-        context,
-        tone,
-        length,
-        storyOption,
-      })
-      prompt = built.prompt
-      inferredStoryType = built.storyType
+    const STORY_JSON_SCHEMA = {
+      name: 'story_draft',
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          title: { type: 'string' },
+          content: { type: 'string' },
+          tone: {
+            type: 'string',
+            enum: [
+              'warm_personal',
+              'fun_casual',
+              'reflective',
+              'journal',
+              'family_memory',
+            ],
+          },
+        },
+        required: ['title', 'content', 'tone'],
+      },
     }
 
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -346,8 +118,8 @@ export async function POST(request: Request, { params }: Params) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
-        temperature: 0.8,
+        model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
+        temperature: 0.7,
         response_format: {
           type: 'json_schema',
           json_schema: STORY_JSON_SCHEMA,
@@ -355,10 +127,12 @@ export async function POST(request: Request, { params }: Params) {
         messages: [
           {
             role: 'system',
-            content:
-              'You are a factual travel storytelling assistant. Keep writing grounded in provided data only.',
+            content: 'You are a careful travel storyteller. Return only valid JSON that matches the schema exactly.',
           },
-          { role: 'user', content: prompt },
+          {
+            role: 'user',
+            content: prompt,
+          },
         ],
       }),
     })
@@ -377,17 +151,9 @@ export async function POST(request: Request, { params }: Params) {
       )
     }
 
-    const jsonString = extractJsonObjectString(content)
-    if (!jsonString) {
-      return NextResponse.json(
-        { error: 'The story response format was invalid. Please try generating again.' },
-        { status: 502 }
-      )
-    }
-
     let parsedContent: unknown
     try {
-      parsedContent = JSON.parse(jsonString) as unknown
+      parsedContent = JSON.parse(content)
     } catch {
       return NextResponse.json(
         { error: 'The story response could not be read. Please try again.' },
@@ -395,9 +161,13 @@ export async function POST(request: Request, { params }: Params) {
       )
     }
 
-    let parsed
+    let draft
     try {
-      parsed = parseStoryDraft(parsedContent)
+      draft = normalizeStoryAIResult(parsedContent, {
+        tripDestination: trip.destination,
+        dayNumber: day.day_number,
+        activities: mappedActivities,
+      })
     } catch {
       return NextResponse.json(
         { error: 'Generated story was incomplete. Please try again.' },
@@ -407,14 +177,14 @@ export async function POST(request: Request, { params }: Params) {
 
     return NextResponse.json({
       draft: {
-        ...parsed,
-        storyType: parsed.storyType || inferredStoryType,
+        ...draft,
+        storyType: 'day_summary',
       },
       meta: {
-        scope,
-        relatedDate,
-        relatedPlaceId,
-        relatedActivityId,
+        scope: 'day',
+        relatedDate: day.date,
+        relatedPlaceId: null,
+        relatedActivityId: null,
       },
     })
   } catch (err) {
