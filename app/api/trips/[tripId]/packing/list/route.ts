@@ -3,7 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest, { params }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { tripId: string } }
+) {
   try {
     const { tripId } = params
     const supabase = await createClient()
@@ -30,7 +33,10 @@ export async function GET(request: NextRequest, { params }) {
   }
 }
 
-export async function POST(request: NextRequest, { params }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { tripId: string } }
+) {
   try {
     const { tripId } = params
     const supabase = await createClient()
