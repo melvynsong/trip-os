@@ -158,35 +158,29 @@ export default function AiItineraryGenerator({
             <div>
               <h2 className="text-xl font-semibold">Draft Preview</h2>
               <p className="text-sm text-gray-500">
-                {totalGeneratedActivities} activities across {draft.days.length} days
+                {totalGeneratedActivities} activities generated across {draft.days.length} days.
               </p>
             </div>
-
             <button
               type="button"
               onClick={handleSave}
-              disabled={isSaving || totalGeneratedActivities === 0}
-              className={buttonClass({ variant: 'primary', className: 'rounded-xl' })}
+              disabled={isSaving}
+              className={buttonClass({ variant: 'success', className: 'rounded-xl' })}
             >
-              {isSaving ? 'Saving...' : 'Save Draft to Itinerary'}
+              {isSaving ? 'Saving...' : 'Save to Itinerary'}
             </button>
           </div>
-
-          <div className="space-y-4">
+          <div className="space-y-3">
             {draft.days.map((draftDay, index) => {
               const actualDay = days[index]
-
               return (
                 <div key={draftDay.day_number} className="rounded-2xl border p-5">
                   <div className="mb-3">
                     <div className="font-semibold text-lg">
                       Day {draftDay.day_number} — {draftDay.title}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {actualDay?.date || 'No date'}
-                    </div>
+                    <div className="text-sm text-gray-500">{actualDay?.date || 'No date'}</div>
                   </div>
-
                   {draftDay.activities.length > 0 ? (
                     <div className="space-y-3">
                       {draftDay.activities.map((activity, activityIndex) => (
@@ -195,28 +189,21 @@ export default function AiItineraryGenerator({
                           className="border-l-4 border-blue-500 pl-4 py-2"
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <div className="font-medium">{activity.title}</div>
-                            <div className="text-sm text-gray-500">
-                              {activity.activity_time || 'Flexible'}
+                            <div>
+                              <div className="font-medium">{activity.title}</div>
+                              <div className="text-xs text-gray-500">
+                                {activity.activity_time ? `Time: ${activity.activity_time}` : 'No time'} | Type: {activity.type}
+                              </div>
+                              {activity.notes && (
+                                <div className="text-xs text-gray-600 mt-1">{activity.notes}</div>
+                              )}
                             </div>
                           </div>
-
-                          <div className="mt-1 text-sm text-gray-500 capitalize">
-                            {activity.type}
-                          </div>
-
-                          {activity.notes ? (
-                            <div className="mt-2 text-sm text-gray-700">
-                              {activity.notes}
-                            </div>
-                          ) : null}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-400">
-                      No generated activities for this day.
-                    </div>
+                    <div className="text-gray-400 italic">No activities for this day.</div>
                   )}
                 </div>
               )

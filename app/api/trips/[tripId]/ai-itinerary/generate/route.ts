@@ -2,54 +2,13 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildItineraryPrompt,
-  parseGeneratedItinerary,
   type AiTripContext,
   type AiTripDayContext,
+  type AiGeneratedItinerary,
 } from '@/lib/ai/itinerary'
+import { normalizeGeneratedItinerary } from '@/lib/ai/itinerary-normalizer'
 
 export const runtime = 'nodejs'
-
-const ITINERARY_JSON_SCHEMA = {
-  name: 'trip_itinerary_draft',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      days: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            day_number: { type: 'integer' },
-            title: { type: 'string' },
-            activities: {
-              type: 'array',
-              items: {
-                type: 'object',
-                additionalProperties: false,
-                properties: {
-                  title: { type: 'string' },
-                  activity_time: {
-                    anyOf: [{ type: 'string' }, { type: 'null' }],
-                  },
-                  type: { type: 'string' },
-                  notes: {
-                    anyOf: [{ type: 'string' }, { type: 'null' }],
-                  },
-                },
-                required: ['title', 'activity_time', 'type', 'notes'],
-              },
-            },
-          },
-          required: ['day_number', 'title', 'activities'],
-        },
-      },
-    },
-    required: ['days'],
-  },
-} as const
 
 export async function POST(
   request: Request,
@@ -126,7 +85,46 @@ export async function POST(
         temperature: 0.7,
         response_format: {
           type: 'json_schema',
-          json_schema: ITINERARY_JSON_SCHEMA,
+          json_schema: {
+            name: 'itinerary_draft',
+            schema: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                days: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                      day_number: { type: 'integer' },
+                      title: { type: 'string' },
+                      activities: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          additionalProperties: false,
+                          properties: {
+                            title: { type: 'string' },
+                            activity_time: {
+                              anyOf: [{ type: 'string' }, { type: 'null' }],
+                            },
+                            type: { type: 'string' },
+                            notes: {
+                              anyOf: [{ type: 'string' }, { type: 'null' }],
+                            },
+                          },
+                          required: ['title', 'activity_time', 'type', 'notes'],
+                        },
+                      },
+                    },
+                    required: ['day_number', 'title', 'activities'],
+                  },
+                },
+              },
+              required: ['days'],
+            },
+          },
         },
         messages: [
           {
@@ -145,9 +143,7 @@ export async function POST(
     const aiPayload = await aiResponse.json()
 
     if (!aiResponse.ok) {
-      const message =
-        aiPayload?.error?.message || 'AI itinerary generation failed.'
-
+      const message = aiPayload?.error?.message || 'AI itinerary generation failed.'
       return NextResponse.json({ error: message }, { status: 500 })
     }
 
@@ -160,13 +156,31 @@ export async function POST(
       )
     }
 
-    const draft = parseGeneratedItinerary(content, days.length)
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(content)
+    } catch {
+      return NextResponse.json(
+        { error: 'AI response was not valid JSON.' },
+        { status: 500 }
+      )
+    }
+
+    let draft: AiGeneratedItinerary
+    try {
+      const { draft: normalizedDraft } = normalizeGeneratedItinerary(parsed, days)
+      draft = normalizedDraft
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : 'Failed to normalize AI output.' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({ draft })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Unexpected error generating itinerary.'
-
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
