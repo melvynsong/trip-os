@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
+import { fetchTripWeather } from '@/lib/weather/fetchTripWeather'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import TripHeader from '@/app/components/trips/TripHeader'
 import TripPageShell from '@/app/components/trips/TripPageShell'
@@ -40,6 +41,8 @@ export default async function ItineraryPage({ params }: Props) {
     });
   }
   const supabase = await createClient()
+
+  // --- Fetch trip, days, activities, places as before ---
 
   async function moveActivity(formData: FormData) {
     'use server'
@@ -153,6 +156,17 @@ export default async function ItineraryPage({ params }: Props) {
         </div>
       </TripPageShell>
     )
+  }
+
+  // --- Fetch weather for the trip date range (non-blocking) ---
+  let weatherByDate: Record<string, any> = {}
+  if (trip && days && days.length > 0) {
+    try {
+      weatherByDate = await fetchTripWeather(trip.destination, trip.start_date, trip.end_date)
+    } catch (err) {
+      // Already logged in helper, but log here for clarity
+      console.error('[Itinerary] Weather fetch failed:', err)
+    }
   }
 
   if (!days || days.length === 0) {
@@ -291,7 +305,11 @@ export default async function ItineraryPage({ params }: Props) {
       <div className="space-y-6">
         {days.map((day) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id)
-
+          // Normalize date to YYYY-MM-DD (avoid timezone bugs)
+          const dateKey = day.date instanceof Date
+            ? day.date.toISOString().slice(0, 10)
+            : String(day.date).slice(0, 10)
+          const weather = weatherByDate[dateKey] || null
           return (
             <DayCard
               key={day.id}
@@ -302,6 +320,7 @@ export default async function ItineraryPage({ params }: Props) {
               day={day}
               activities={dayActivities}
               moveActivityAction={moveActivity}
+              weather={weather}
             />
           )
         })}

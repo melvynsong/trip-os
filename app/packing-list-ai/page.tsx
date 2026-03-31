@@ -9,7 +9,7 @@ const defaultForm = {
   end_date: "",
   number_of_days: 1,
   weather: "",
-  packing_style: "standard",
+  packing_style: "moderate",
 };
 
 export default function PackingListAIPage() {
@@ -55,7 +55,7 @@ export default function PackingListAIPage() {
         <input name="weather" value={form.weather} onChange={handleChange} required placeholder="Weather (summary or daily)" className="w-full border p-2" />
         <select name="packing_style" value={form.packing_style} onChange={handleChange} className="w-full border p-2">
           <option value="light">Light</option>
-          <option value="standard">Standard</option>
+          <option value="moderate">Moderate</option>
           <option value="heavy">Heavy</option>
         </select>
         <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white p-2 rounded">
