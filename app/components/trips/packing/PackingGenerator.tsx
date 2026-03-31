@@ -6,6 +6,7 @@ import Button from '@/app/components/ui/Button'
 import SegmentedControl from '@/app/components/ui/SegmentedControl'
 import { LoadingSkeleton } from '@/app/components/ui/LoadingSkeleton'
 import type { PackingList, PackingListItem, PackingListCategory } from '@/types/packing-list'
+import type { PackingWeatherContext } from '@/lib/ai/packing'
 import { buildPackingWhatsAppShareUrl } from '@/lib/share/packing'
 
 type PackingGeneratorProps = {
