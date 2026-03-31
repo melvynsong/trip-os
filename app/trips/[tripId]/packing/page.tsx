@@ -154,12 +154,17 @@ export default async function PackingPage({ params }: Props) {
       />
 
       {canUsePacking ? (
-        <PackingGenerator
-          tripId={tripId}
-          tripTitle={trip.title}
-          destination={trip.destination}
-          weatherContext={weatherContext}
-        />
+        <>
+          <PackingGenerator
+            tripId={tripId}
+            tripTitle={trip.title}
+            destination={trip.destination}
+            weatherContext={weatherContext}
+          />
+          <div className="mt-6">
+            <GeneratePackingListButton tripId={tripId} />
+          </div>
+        </>
       ) : (
         <div className="rounded-[2rem] border border-[var(--border-soft)] bg-white p-8 text-center space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">

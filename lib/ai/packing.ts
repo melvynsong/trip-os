@@ -54,6 +54,10 @@ import type { WeatherMode } from '@/lib/weather/types'
 // Packing types
 // ---------------------------------------------------------------------------
 
+export type Activity = {
+  name: string
+}
+
 export type PackingStyle = 'light' | 'moderate' | 'heavy'
 
 export type PackingItem = {

@@ -11,6 +11,8 @@ import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
 import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
 import { Day as DayType, Activity, ActivityType } from '@/types/trip'
 import { format, parseISO } from 'date-fns'
+import { WeatherDisplay } from '@/components/itinerary/WeatherDisplay'
+import type { WeatherDay } from '@/lib/weather/weather-service'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
@@ -21,7 +23,6 @@ type DayCardActivity = Pick<
   places: { id: string; name: string } | null
 }
 
-type DayCardProps = {
   tripId: string
   tripTitle: string
   destination: string
@@ -30,9 +31,9 @@ type DayCardProps = {
   activities: DayCardActivity[]
   flights?: any[]
   moveActivityAction: (formData: FormData) => Promise<void>
+  weather?: WeatherDay | null
 }
 
-export default function DayCard({
 
   tripId,
   tripTitle,
@@ -42,6 +43,7 @@ export default function DayCard({
   activities,
   flights = [],
   moveActivityAction,
+  weather = null,
 }: DayCardProps) {
 
   const normalizedDayTitle =
@@ -118,6 +120,7 @@ export default function DayCard({
 
 
 
+
   return (
     <Card key={day.id} className="rounded-[2rem] border-slate-200 bg-white p-5 sm:p-6">
       <div className="mb-5 flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
@@ -126,7 +129,10 @@ export default function DayCard({
             Day {day.day_number}
             {normalizedDayTitle ? ` — ${normalizedDayTitle}` : ''}
           </div>
-          <div className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">{day.date}</div>
+          <div className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500 flex items-center gap-2">
+            {day.date}
+            {weather && <WeatherDisplay weather={weather} />}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
