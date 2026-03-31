@@ -179,6 +179,17 @@ export default async function PackingPage({ params }: Props) {
               ? 'Packing (Beta) is currently disabled by the admin toggle. Please try again later.'
               : 'AI-powered packing lists are available for Friend and Owner members. Upgrade to get access.'}
           </p>
+          {/* Debug message for troubleshooting access issues */}
+          <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
+            <strong>Debug Info:</strong>
+            <ul className="mt-1 space-y-1">
+              <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
+              <li><b>Trip:</b> {trip?.id || 'none (not found or not owner)'}</li>
+              <li><b>Membership tier:</b> {membership?.tier || 'unknown'}</li>
+              <li><b>packingAccess.canAccess:</b> {String(packingAccess.canAccess)}</li>
+              <li><b>packingAccess.hasRequiredTier:</b> {String(packingAccess.hasRequiredTier)}</li>
+            </ul>
+          </div>
           <Link
             href="/trips"
             className={buttonClass({

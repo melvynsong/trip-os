@@ -287,6 +287,16 @@ export default async function ItineraryPage({ params }: Props) {
             >
               AI Generate Itinerary
             </Link>
+            <Link
+              href={`/trips/${tripId}/packing`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'secondary',
+                className: 'rounded-full',
+              })}
+            >
+              🧳 Packing List
+            </Link>
             <WhatsAppShareSheet
               title={`Share ${trip.title} itinerary`}
               shortText={shortTripShareText}
