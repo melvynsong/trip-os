@@ -1,6 +1,7 @@
 
+import type { PackingList } from './packing'
 
-  export function normalizePackingList(data: any, days_count: number): PackingListOutput {
+export function normalizePackingList(data: any, days_count: number): PackingList {
     if (!data || !Array.isArray(data.categories)) throw new Error('Invalid format')
     const categories = data.categories
       .map((cat: any) => {
