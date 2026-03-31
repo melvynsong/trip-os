@@ -156,6 +156,17 @@ export function buildPackingPrompt(ctx: PackingTripContext): string {
     ].join('\n')
   }
 
+  // If weather is not available, instruct the AI to use typical seasonal expectations for the destination and month
+  let weatherSection = ''
+  if (weather && weather.mode !== 'none') {
+    weatherSection = formatWeatherSection(weather)
+  } else {
+    weatherSection = [
+      'Weather data: Not available.',
+      'Instruction: Use typical seasonal expectations for the destination and month. Do NOT make up specific temperatures or rainfall figures. Use hedged language: "likely to be warm at this time of year" rather than stating facts.'
+    ].join('\n')
+  }
+
   return [
     `You are a smart travel assistant helping a traveller pack efficiently for their trip.`,
     `Your job is to produce a realistic, practical, and personalised packing list.`,
@@ -172,7 +183,7 @@ export function buildPackingPrompt(ctx: PackingTripContext): string {
     STYLE_QUANTITY_GUIDANCE[packingStyle],
     '',
     '== WEATHER CONTEXT ==',
-    formatWeatherSection(weather),
+    weatherSection,
     activitiesSection,
     '',
     '== OUTPUT RULES ==',
