@@ -10,8 +10,16 @@ import { getPackingAccessState } from '@/lib/feature-toggles'
 import PackingGenerator from '@/app/components/trips/packing/PackingGenerator'
 
 // Lightweight placeholder state for incomplete logic
-export default async function PackingListPage({ params }: { params: { tripId: string } }) {
-  const { tripId } = params || {}
+export default async function PackingListPage({ params }: { params: { tripId: string } } | { params: Promise<{ tripId: string }> }) {
+  // Support both direct object and Promise for params
+  let tripId: string | undefined
+  if (typeof params === 'object' && 'then' in params && typeof params.then === 'function') {
+    // It's a Promise
+    const resolved = await params
+    tripId = resolved?.tripId
+  } else {
+    tripId = (params as { tripId?: string })?.tripId
+  }
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   // Debug info for troubleshooting
@@ -64,7 +72,9 @@ export default async function PackingListPage({ params }: { params: { tripId: st
         Packing list generation is being prepared.
       </div>
       <div className="mt-6">
-        <GeneratePackingListButton tripId={tripId} />
+        {tripId ? (
+          <GeneratePackingListButton tripId={tripId} />
+        ) : null}
       </div>
     </TripPageShell>
   )
