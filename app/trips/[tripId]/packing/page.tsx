@@ -192,27 +192,5 @@ export default async function PackingPage({ params }: Props) {
       ) : (
         <div className="rounded-[2rem] border border-[var(--border-soft)] bg-white p-8 text-center space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-            Packing <span className="rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--brand-accent)]">Beta</span>
+            // This page is now redundant. You can safely remove it.
           </p>
-          <h1 className="text-2xl font-serif text-[var(--text-strong)]">
-            {packingAccess.hasRequiredTier ? 'Temporarily unavailable' : 'Available for Friends'}
-          </h1>
-          <p className="text-sm leading-7 text-[var(--text-subtle)] max-w-md mx-auto">
-            {packingAccess.hasRequiredTier
-              ? 'Packing (Beta) is currently disabled by the admin toggle. Please try again later.'
-              : 'AI-powered packing lists are available for Friend and Owner members. Upgrade to get access.'}
-          </p>
-          <Link
-            href="/trips"
-            className={buttonClass({
-              variant: 'secondary',
-              className: 'rounded-full',
-            })}
-          >
-            Back to trips
-          </Link>
-        </div>
-      )}
-    </TripPageShell>
-  )
-}

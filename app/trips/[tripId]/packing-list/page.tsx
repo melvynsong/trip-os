@@ -1,8 +1,5 @@
-import { GeneratePackingListButton } from '@/components/itinerary/GeneratePackingListButton'
-import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { buttonClass } from '@/app/components/ui/Button'
 import TripHeader from '@/app/components/trips/TripHeader'
 import TripPageShell from '@/app/components/trips/TripPageShell'
 import { getCurrentUserMembership } from '@/lib/membership/server'
@@ -22,8 +19,6 @@ export default async function PackingListPage({ params }: { params: { tripId: st
   }
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  // Debug info for troubleshooting
-  const debugInfo = { tripId, userId: user?.id }
   if (!user) redirect('/')
   let trip = null, tripError = null
   if (tripId) {
@@ -31,9 +26,30 @@ export default async function PackingListPage({ params }: { params: { tripId: st
       .from('trips')
       .select('id, title, destination, start_date, end_date')
       .eq('id', tripId)
+      .eq('user_id', user.id)
       .single()
     trip = result.data
     tripError = result.error
+  }
+  // Membership and access check (copied from /packing)
+  let membership
+  try {
+    membership = await getCurrentUserMembership()
+  } catch {
+    redirect('/')
+  }
+  const packingAccess = await getPackingAccessState(membership.tier)
+  const canUsePacking = packingAccess.canAccess
+  // Weather context (copied from /packing)
+  let weatherContext = null
+  if (canUsePacking && trip) {
+    // Import resolveWeatherContext from /packing/page.tsx
+    const { resolveWeatherContext } = await import('../packing/page')
+    try {
+      weatherContext = await resolveWeatherContext(trip.destination, trip.start_date, trip.end_date)
+    } catch {
+      weatherContext = null
+    }
   }
   if (tripError || !trip) {
     return (
@@ -54,13 +70,7 @@ export default async function PackingListPage({ params }: { params: { tripId: st
   }
   return (
     <TripPageShell className="max-w-3xl space-y-6">
-      <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
-        <strong>Debug Info:</strong>
-        <ul className="mt-1 space-y-1">
-          <li><b>tripId:</b> {String(tripId)}</li>
-          <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
-        </ul>
-      </div>
+      {/* Debug Info removed for production */}
       <TripHeader
         dateRange={`${trip.start_date} → ${trip.end_date}`}
         title="Packing List"
@@ -68,14 +78,28 @@ export default async function PackingListPage({ params }: { params: { tripId: st
         backHref={`/trips/${tripId}`}
         backLabel="Back to Trip"
       />
-      <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-6 text-slate-500 text-center">
-        Packing list generation is being prepared.
-      </div>
-      <div className="mt-6">
-        {tripId ? (
-          <GeneratePackingListButton tripId={tripId} />
-        ) : null}
-      </div>
+      {canUsePacking ? (
+        <PackingGenerator
+          tripId={tripId}
+          tripTitle={trip.title}
+          destination={trip.destination}
+          weatherContext={weatherContext}
+        />
+      ) : (
+        <div className="rounded-[2rem] border border-[var(--border-soft)] bg-white p-8 text-center space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
+            Packing <span className="rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--brand-accent)]">Beta</span>
+          </p>
+          <h1 className="text-2xl font-serif text-[var(--text-strong)]">
+            {packingAccess.hasRequiredTier ? 'Temporarily unavailable' : 'Available for Friends'}
+          </h1>
+          <p className="text-sm leading-7 text-[var(--text-subtle)] max-w-md mx-auto">
+            {packingAccess.hasRequiredTier
+              ? 'Packing is temporarily unavailable for your tier.'
+              : 'Packing is available for Friend and Owner members.'}
+          </p>
+        </div>
+      )}
     </TripPageShell>
   )
 }
