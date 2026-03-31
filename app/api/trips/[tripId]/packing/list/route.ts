@@ -3,9 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest, context: { params: { tripId: string } }) {
+export async function GET(request: NextRequest, { params }) {
   try {
-    const { tripId } = context.params
+    const { tripId } = params
     const supabase = await createClient()
     const {
       data: { user },
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest, context: { params: { tripId: str
   }
 }
 
-export async function POST(request: NextRequest, context: { params: { tripId: string } }) {
+export async function POST(request: NextRequest, { params }) {
   try {
-    const { tripId } = context.params
+    const { tripId } = params
     const supabase = await createClient()
     const {
       data: { user },
