@@ -5,10 +5,10 @@ export const runtime = 'nodejs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
   try {
-    const { tripId } = params
+    const { tripId } = await params
     const supabase = await createClient()
     const {
       data: { user },
@@ -35,10 +35,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
   try {
-    const { tripId } = params
+    const { tripId } = await params
     const supabase = await createClient()
     const {
       data: { user },
