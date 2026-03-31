@@ -1,71 +1,94 @@
 export const dynamic = 'force-dynamic';
 import Link from 'next/link'
+import { redirect, notFound } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import DayCard from '@/app/components/itinerary/DayCard'
+import { fetchTripWeather } from '@/lib/weather/fetchTripWeather'
+import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
+import TripHeader from '@/app/components/trips/TripHeader'
+import TripPageShell from '@/app/components/trips/TripPageShell'
+import { buttonClass } from '@/app/components/ui/Button'
+import { resolvePlaceType } from '@/lib/places'
+import { formatTripForWhatsApp } from '@/lib/share/whatsapp'
+import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as PlaceType } from '@/types/trip'
+import { listTripFlights } from '@/lib/flights/trip'
+
+type Props = {
+  params: { tripId: string } | Promise<{ tripId: string }>
+}
+
+type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
+type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
+type Activity = Pick<
+  ActivityType,
+  'id' | 'day_id' | 'title' | 'activity_time' | 'type' | 'notes' | 'sort_order' | 'place_id' | 'created_at'
+> & {
+  metadata?: any;
+  places: { id: string; name: string } | null
+}
+type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
+
+export default async function ItineraryPage({ params }: Props) {
+  // Support both direct object and Promise for params
+  let tripId: string | undefined
+  if (typeof params === 'object' && 'then' in params && typeof params.then === 'function') {
+    // It's a Promise
+    const resolved = await params
+    tripId = resolved?.tripId
+  } else {
+    tripId = (params as { tripId?: string })?.tripId
+  }
+  const supabase = await createClient()
+
   async function moveActivity(formData: FormData) {
     'use server'
-
     const supabase = await createClient()
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       redirect('/')
     }
-
     const dayId = String(formData.get('day_id') || '').trim()
     const activityId = String(formData.get('activity_id') || '').trim()
     const direction = String(formData.get('direction') || '').trim()
-
     if (!dayId || !activityId || (direction !== 'up' && direction !== 'down')) {
       return
     }
-
     const { data: day } = await supabase
       .from('days')
       .select('id')
       .eq('id', dayId)
       .eq('trip_id', tripId)
       .single()
-
     if (!day) {
       return
     }
-
     const { data: dayActivities, error: dayActivitiesError } = await supabase
       .from('activities')
       .select('id, sort_order')
       .eq('day_id', dayId)
       .order('sort_order', { ascending: true })
       .order('id', { ascending: true })
-
     if (dayActivitiesError || !dayActivities || dayActivities.length < 2) {
       return
     }
-
     const normalized = dayActivities.map((activity, index) => ({
       id: activity.id,
       sort_order: index + 1,
     }))
-
     const currentIndex = normalized.findIndex((activity) => activity.id === activityId)
-
     if (currentIndex === -1) {
       return
     }
-
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-
     if (targetIndex < 0 || targetIndex >= normalized.length) {
       return
     }
-
     const reordered = [...normalized]
     ;[reordered[currentIndex], reordered[targetIndex]] = [
       reordered[targetIndex],
       reordered[currentIndex],
     ]
-
     await Promise.all(
       reordered.map((activity, index) =>
         supabase
@@ -75,16 +98,21 @@ import Link from 'next/link'
           .eq('day_id', dayId)
       )
     )
-
     revalidatePath(`/trips/${tripId}/itinerary`)
   }
 
+  // Fetch user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/')
+  }
+
+  // Fetch trip
   const { data: trip, error: tripError } = await supabase
     .from('trips')
     .select('id, title, destination, start_date, end_date')
     .eq('id', tripId)
     .single<Trip>()
-
   if (tripError || !trip) {
     return (
       <TripPageShell>
@@ -103,13 +131,13 @@ import Link from 'next/link'
     )
   }
 
+  // Fetch days
   const { data: days, error: daysError } = await supabase
     .from('days')
     .select('id, trip_id, day_number, date, title')
     .eq('trip_id', tripId)
     .order('day_number', { ascending: true })
     .returns<Day[]>()
-
   if (daysError) {
     return (
       <TripPageShell>
@@ -141,7 +169,6 @@ import Link from 'next/link'
           backHref={`/trips/${tripId}`}
           backLabel="Back to Trip"
         />
-
         <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50/70 p-6 text-slate-500">
           No itinerary days found for this trip.
         </div>
@@ -152,7 +179,6 @@ import Link from 'next/link'
   const dayIds = days.map((day) => day.id)
 
   let activities: Activity[] = []
-
   const { data: activitiesData, error: activitiesError } = await supabase
     .from('activities')
     .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
@@ -162,7 +188,6 @@ import Link from 'next/link'
     .order('created_at', { ascending: true })
     .order('id', { ascending: true })
     .returns<Activity[]>()
-
   if (activitiesError) {
     return (
       <TripPageShell className="max-w-5xl">
@@ -172,7 +197,6 @@ import Link from 'next/link'
       </TripPageShell>
     )
   }
-
   activities = activitiesData || []
 
   const { data: places } = await supabase
@@ -180,74 +204,68 @@ import Link from 'next/link'
     .select('id, name, category, place_type')
     .eq('trip_id', tripId)
     .returns<Place[]>()
-
   const hotel =
     places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
 
+  // WhatsApp share text
   const shareDays = days.map((day) => {
-    const dayActivities = activities
-      .filter((activity) => activity.day_id === day.id)
-      return (
-        <TripPageShell className="space-y-8">
-          <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
-            <strong>Debug Info:</strong>
-            <ul className="mt-1 space-y-1">
-              <li><b>tripId:</b> {String(tripId)}</li>
-              <li><b>params:</b> {JSON.stringify(params)}</li>
-              <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
-            </ul>
-          </div>
-          <TripHeader
-            dateRange={`${trip.start_date} → ${trip.end_date}`}
-            title={trip.title}
-            subtitle={trip.destination}
-            backHref={`/trips/${tripId}`}
-            backLabel="Back to Trip"
-            actions={
-              <>
-                <Link
-                  href={`/trips/${tripId}/today`}
-                  className={buttonClass({
-                    size: 'sm',
-                    variant: 'primary',
-                    className: 'rounded-full',
-                  })}
-                >
-                  📍 Today
-                </Link>
-                <Link
-                  href={`/trips/${tripId}/ai-itinerary`}
-                  className={buttonClass({
-                    size: 'sm',
-                    variant: 'secondary',
-                    className: 'rounded-full',
-                  })}
-                >
-                  AI Generate Itinerary
-                </Link>
-                <Link
-                  href={`/trips/${tripId}/packing-list`}
-                  className={buttonClass({
-                    size: 'sm',
-                    variant: 'secondary',
-                    className: 'rounded-full',
-                  })}
-                >
-                  🧳 Packing List
-                </Link>
-                <WhatsAppShareSheet
-                  tripId={tripId}
-                  tripTitle={trip.title}
-                  startDate={trip.start_date}
-                  endDate={trip.end_date}
-                  destination={trip.destination}
-                  days={days}
-                  activities={activities}
-                  places={places}
-                />
-              </>
-            }
-          />
+    const dayActivities = activities.filter((activity) => activity.day_id === day.id)
+    return {
+      dayNumber: day.day_number,
+      date: day.date,
+      city: trip.destination,
+      title: day.title,
+      hotel,
+      activities: dayActivities.map((activity) => ({
+        title: activity.title,
+        activity_time: activity.activity_time,
+        type: activity.type,
+        notes: activity.notes,
+        placeName: activity.places?.name ?? null,
+      })),
+    }
+  })
+  const tripShareInput = {
+    tripTitle: trip.title,
+    startDate: trip.start_date,
+    endDate: trip.end_date,
+    destinations: [trip.destination],
+    hotel,
+    days: shareDays,
+  }
+  const shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' })
+  const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
+
+  // Main page render
+  return (
+    <TripPageShell className="space-y-8">
+      <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
+        <strong>Debug Info:</strong>
+        <ul className="mt-1 space-y-1">
+          <li><b>tripId:</b> {String(tripId)}</li>
+          <li><b>params:</b> {JSON.stringify(params)}</li>
+          <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
+        </ul>
+      </div>
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
+        title={trip.title}
+        subtitle={trip.destination}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
+        actions={
+          <>
+            <Link
+              href={`/trips/${tripId}/today`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'primary',
+                className: 'rounded-full',
+              })}
+            >
+              📍 Today
+            </Link>
+            <Link
               href={`/trips/${tripId}/ai-itinerary`}
               className={buttonClass({
                 size: 'sm',
@@ -268,6 +286,14 @@ import Link from 'next/link'
               🧳 Packing List
             </Link>
             <WhatsAppShareSheet
+              tripId={tripId}
+              tripTitle={trip.title}
+              startDate={trip.start_date}
+              endDate={trip.end_date}
+              destination={trip.destination}
+              days={days}
+              activities={activities}
+              places={places}
               title={`Share ${trip.title} itinerary`}
               shortText={shortTripShareText}
               detailedText={detailedTripShareText}
@@ -281,7 +307,6 @@ import Link from 'next/link'
           </>
         }
       />
-
       <div className="space-y-6">
         {days.map((day) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id)
@@ -291,7 +316,7 @@ import Link from 'next/link'
           return (
             <DayCard
               key={day.id}
-              tripId={tripId}
+              tripId={tripId!}
               tripTitle={trip.title}
               destination={trip.destination}
               hotel={hotel}
