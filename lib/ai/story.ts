@@ -1,191 +1,86 @@
-import {
-  DAY_FOCUS_LABEL,
-  LENGTH_LABEL,
-  PLACE_TYPE_LABEL,
-  TONE_LABEL,
-  type DayStoryFocus,
-  type PlaceStoryTypeOption,
-  type SavedStoryType,
-  type StoryLength,
-  type StoryTone,
-} from '@/lib/story/types'
-import { branding } from '@/lib/branding'
+// lib/ai/story.ts
 
-export type StoryDraft = {
-  title: string | null
+export type StoryTone =
+  | 'warm_personal'
+  | 'fun_casual'
+  | 'reflective'
+  | 'journal'
+  | 'family_memory'
+
+export type StoryAIResult = {
+  title: string
   content: string
-  storyType: SavedStoryType
+  tone: StoryTone
 }
 
-export type DayStoryContext = {
-  tripTitle: string
-  destination: string
-  tripNotes: string | null
-  date: string
-  dayTitle: string | null
-  city: string | null
-  hotel: string | null
-  activities: Array<{
-    title: string
-    time: string | null
-    type: string
-    notes: string | null
-    placeName: string | null
-  }>
-  visitedPlaces: Array<{
-    name: string
-    type: string
-    notes: string | null
-  }>
+export type StoryTripContext = {
+  title: string | null
+  destination: string | null
 }
 
-export type PlaceStoryContext = {
-  tripTitle: string
-  destination: string
-  relatedDate: string | null
-  entityName: string
-  entityKind: 'place' | 'restaurant' | 'activity'
-  category: string | null
-  address: string | null
+export type StoryDayContext = {
+  day_number: number
+  date: string | null
+  title: string | null
+}
+
+export type StoryActivity = {
+  title: string
+  time: string | null
+  type: string | null
   notes: string | null
-  visited: boolean | null
-  surroundingContext: Array<{
-    title: string
-    time: string | null
-    type: string
-  }>
 }
 
-export const STORY_JSON_SCHEMA = {
-  name: 'story_draft',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      title: { anyOf: [{ type: 'string' }, { type: 'null' }] },
-      content: { type: 'string' },
-      storyType: { type: 'string' },
-    },
-    required: ['title', 'content', 'storyType'],
-  },
-} as const
+export function buildStoryPrompt(
+  trip: StoryTripContext,
+  day: StoryDayContext,
+  activities: StoryActivity[],
+  tone: StoryTone = 'warm_personal'
+): string {
+  const tripTitle = trip.title?.trim() || 'Untitled Trip'
+  const destination = trip.destination?.trim() || 'Unknown Destination'
+  const dayDate = day.date?.trim() || 'Unknown Date'
+  const dayTitle = day.title?.trim()
 
-const LENGTH_GUIDANCE: Record<StoryLength, string> = {
-  short: '60-110 words, compact and punchy.',
-  medium: '130-220 words, clear and warm.',
-  long: '240-380 words, richer detail while still grounded.',
-}
+  const activityLines =
+    activities.length > 0
+      ? activities
+          .map((activity) => {
+            const time = activity.time?.trim()
+            const title = activity.title?.trim() || 'Untitled Activity'
+            const type = activity.type?.trim() || 'activity'
+            const notes = activity.notes?.trim()
 
-function safeJson(data: unknown) {
-  return JSON.stringify(data, null, 2)
-}
+            return `- ${time ? `[${time}] ` : ''}${title} (${type})${notes ? ` — ${notes}` : ''}`
+          })
+          .join('\n')
+      : '- No activities provided.'
 
-function dayStoryTypeFromFocus(focus: DayStoryFocus): SavedStoryType {
-  if (focus === 'food_highlights') return 'food_note'
-  return 'day_summary'
-}
-
-function placeStoryTypeFromOption(option: PlaceStoryTypeOption, entityKind: PlaceStoryContext['entityKind']): SavedStoryType {
-  if (option === 'caption') return 'caption'
-  if (option === 'food_note') return 'food_note'
-  if (entityKind === 'restaurant') return 'restaurant_story'
-  if (entityKind === 'activity') return 'activity_story'
-  return 'place_story'
-}
-
-export function buildDayStoryPrompt(input: {
-  context: DayStoryContext
-  tone: StoryTone
-  length: StoryLength
-  focus: DayStoryFocus
-}) {
-  const targetStoryType = dayStoryTypeFromFocus(input.focus)
-
-  const prompt = [
-    `You are ${branding.appName} story writer. Turn structured travel data into a human story draft.`,
+  return [
+    'You are writing a grounded travel day story based strictly on structured activity data.',
+    'Write in a natural, human, warm style.',
+    'Keep it cohesive and readable, but not dramatic, poetic, or repetitive.',
+    'Use only the information explicitly provided.',
+    'Do not invent weather, scenery, meals, emotions, conversations, or experiences unless they are explicitly included in the input.',
+    'Light transitions are allowed only to improve flow.',
     '',
-    'Task: Write ONE day-level story draft from the JSON context below.',
-    `Tone: ${TONE_LABEL[input.tone]}`,
-    `Length: ${LENGTH_LABEL[input.length]} (${LENGTH_GUIDANCE[input.length]})`,
-    `Focus: ${DAY_FOCUS_LABEL[input.focus]}`,
+    `Trip: ${tripTitle} (${destination})`,
+    `Day: ${day.day_number} (${dayDate})${dayTitle ? ` - ${dayTitle}` : ''}`,
     '',
-    'Rules:',
-    '- Use ONLY facts from the context JSON. Do not invent places, times, dishes, weather, transport, people, or events.',
-    '- Mention real activities/places when present.',
-    '- If details are missing, keep wording general and honest.',
-    '- Keep it natural, warm, and readable.',
-    '- Return JSON matching the schema.',
-    `- storyType must be exactly: ${targetStoryType}`,
-    '- Title can be null for short form if no strong title emerges.',
+    'Activities:',
+    activityLines,
     '',
-    'Context JSON:',
-    safeJson(input.context),
+    `Requested tone: ${tone}`,
+    '',
+    'STRICT OUTPUT RULES:',
+    '- Return exactly one valid JSON object.',
+    '- Do not include markdown, code fences, commentary, or extra text.',
+    '- Do not include extra keys.',
+    '- "title" must be a string.',
+    '- "content" must be a string.',
+    '- "tone" must be exactly one of: "warm_personal", "fun_casual", "reflective", "journal", "family_memory".',
+    '',
+    'Return exactly this shape:',
+    '{ "title": string, "content": string, "tone": "warm_personal" | "fun_casual" | "reflective" | "journal" | "family_memory" }',
   ].join('\n')
-
-  return { prompt, storyType: targetStoryType }
-}
-
-export function buildPlaceStoryPrompt(input: {
-  context: PlaceStoryContext
-  tone: StoryTone
-  length: StoryLength
-  storyOption: PlaceStoryTypeOption
-}) {
-  const targetStoryType = placeStoryTypeFromOption(input.storyOption, input.context.entityKind)
-
-  const prompt = [
-    `You are ${branding.appName} story writer. Turn structured travel data into a grounded memory note.`,
-    '',
-    'Task: Write ONE place/activity-level story draft from the JSON context below.',
-    `Tone: ${TONE_LABEL[input.tone]}`,
-    `Length: ${LENGTH_LABEL[input.length]} (${LENGTH_GUIDANCE[input.length]})`,
-    `Requested type: ${PLACE_TYPE_LABEL[input.storyOption]}`,
-    '',
-    'Rules:',
-    '- Use ONLY facts from the context JSON. Do not invent unsupported details.',
-    '- Keep it vivid but truthful.',
-    '- Mention concrete names and available notes when provided.',
-    '- Return JSON matching the schema.',
-    `- storyType must be exactly: ${targetStoryType}`,
-    '',
-    'Context JSON:',
-    safeJson(input.context),
-  ].join('\n')
-
-  return { prompt, storyType: targetStoryType }
-}
-
-export function parseStoryDraft(raw: unknown): StoryDraft {
-  if (!raw || typeof raw !== 'object') {
-    throw new Error('AI response is not a valid JSON object.')
-  }
-
-  const data = raw as Record<string, unknown>
-  const rawStoryType = typeof data.storyType === 'string' ? data.storyType : 'day_summary'
-  const allowed: SavedStoryType[] = [
-    'day_summary',
-    'place_story',
-    'restaurant_story',
-    'activity_story',
-    'caption',
-    'food_note',
-  ]
-
-  const storyType = allowed.includes(rawStoryType as SavedStoryType)
-    ? (rawStoryType as SavedStoryType)
-    : 'day_summary'
-
-  const title = typeof data.title === 'string' ? data.title.trim() : null
-  const content = typeof data.content === 'string' ? data.content.trim() : ''
-
-  if (!content) {
-    throw new Error('Generated story content was empty.')
-  }
-
-  return {
-    title: title || null,
-    content,
-    storyType,
-  }
 }
