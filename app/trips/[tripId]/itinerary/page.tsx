@@ -15,7 +15,7 @@ import { Trip as TripType, Day as DayType, Activity as ActivityType, Place as Pl
 import { listTripFlights } from '@/lib/flights/trip'
 
 type Props = {
-  params: Promise<{ tripId: string }>
+  params: { tripId: string } | Promise<{ tripId: string }>
 }
 
 type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
@@ -33,13 +33,25 @@ type Activity = Pick<
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
-  const { tripId } = await params
+  // Support both direct object and Promise for params
+  let tripId: string | undefined
+  if (typeof params === 'object' && 'then' in params && typeof params.then === 'function') {
+    // It's a Promise
+    const resolved = await params
+    tripId = resolved?.tripId
+  } else {
+    tripId = (params as { tripId?: string })?.tripId
+  }
+  // Debug info for troubleshooting
   if (typeof window !== 'undefined') {
     // eslint-disable-next-line no-console
     console.log('[ItineraryPage][DEBUG] tripId:', tripId, {
+      params,
       backHref: `/trips/${tripId}`
     });
   }
+  // Show debug info at the top of the page
+  const debugInfo = { tripId, params }
   const supabase = await createClient()
 
   // --- Fetch trip, days, activities, places as before ---
@@ -130,6 +142,23 @@ export default async function ItineraryPage({ params }: Props) {
   if (!user) {
     redirect('/')
   }
+  if (!tripId) {
+    return (
+      <TripPageShell>
+        <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
+          <strong>Debug Info:</strong>
+          <ul className="mt-1 space-y-1">
+            <li><b>tripId:</b> {String(tripId)}</li>
+            <li><b>params:</b> {JSON.stringify(params)}</li>
+            <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+          Trip ID is missing or invalid.
+        </div>
+      </TripPageShell>
+    )
+  }
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
@@ -138,7 +167,21 @@ export default async function ItineraryPage({ params }: Props) {
     .single<Trip>()
 
   if (tripError || !trip) {
-    notFound()
+    return (
+      <TripPageShell>
+        <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
+          <strong>Debug Info:</strong>
+          <ul className="mt-1 space-y-1">
+            <li><b>tripId:</b> {String(tripId)}</li>
+            <li><b>params:</b> {JSON.stringify(params)}</li>
+            <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+          Trip not found or you do not have access.
+        </div>
+      </TripPageShell>
+    )
   }
 
   const { data: days, error: daysError } = await supabase
@@ -225,59 +268,67 @@ export default async function ItineraryPage({ params }: Props) {
   const shareDays = days.map((day) => {
     const dayActivities = activities
       .filter((activity) => activity.day_id === day.id)
-      .map((activity) => ({
-        title: activity.title,
-        activity_time: activity.activity_time,
-        type: activity.type,
-        notes: activity.notes,
-        placeName: activity.places?.name ?? null,
-      }))
-
-    return {
-      dayNumber: day.day_number,
-      date: day.date,
-      city: trip.destination,
-      title: day.title,
-      hotel,
-      activities: dayActivities,
-    }
-  })
-
-  const tripShareInput = {
-    tripTitle: trip.title,
-    startDate: trip.start_date,
-    endDate: trip.end_date,
-    destinations: [trip.destination],
-    hotel,
-    days: shareDays,
-  }
-
-  const shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' })
-  const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
-
-
-
-  return (
-    <TripPageShell className="space-y-8">
-      <TripHeader
-        dateRange={`${trip.start_date} → ${trip.end_date}`}
-        title={trip.title}
-        subtitle={trip.destination}
-        backHref={`/trips/${tripId}`}
-        backLabel="Back to Trip"
-        actions={
-          <>
-            <Link
-              href={`/trips/${tripId}/today`}
-              className={buttonClass({
-                size: 'sm',
-                variant: 'primary',
-                className: 'rounded-full',
-              })}
-            >
-              📍 Today
-            </Link>
-            <Link
+      return (
+        <TripPageShell className="space-y-8">
+          <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
+            <strong>Debug Info:</strong>
+            <ul className="mt-1 space-y-1">
+              <li><b>tripId:</b> {String(tripId)}</li>
+              <li><b>params:</b> {JSON.stringify(params)}</li>
+              <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
+            </ul>
+          </div>
+          <TripHeader
+            dateRange={`${trip.start_date} → ${trip.end_date}`}
+            title={trip.title}
+            subtitle={trip.destination}
+            backHref={`/trips/${tripId}`}
+            backLabel="Back to Trip"
+            actions={
+              <>
+                <Link
+                  href={`/trips/${tripId}/today`}
+                  className={buttonClass({
+                    size: 'sm',
+                    variant: 'primary',
+                    className: 'rounded-full',
+                  })}
+                >
+                  📍 Today
+                </Link>
+                <Link
+                  href={`/trips/${tripId}/ai-itinerary`}
+                  className={buttonClass({
+                    size: 'sm',
+                    variant: 'secondary',
+                    className: 'rounded-full',
+                  })}
+                >
+                  AI Generate Itinerary
+                </Link>
+                <Link
+                  href={`/trips/${tripId}/packing-list`}
+                  className={buttonClass({
+                    size: 'sm',
+                    variant: 'secondary',
+                    className: 'rounded-full',
+                  })}
+                >
+                  🧳 Packing List
+                </Link>
+                <WhatsAppShareSheet
+                  tripId={tripId}
+                  tripTitle={trip.title}
+                  startDate={trip.start_date}
+                  endDate={trip.end_date}
+                  destination={trip.destination}
+                  days={days}
+                  activities={activities}
+                  places={places}
+                />
+              </>
+            }
+          />
               href={`/trips/${tripId}/ai-itinerary`}
               className={buttonClass({
                 size: 'sm',
