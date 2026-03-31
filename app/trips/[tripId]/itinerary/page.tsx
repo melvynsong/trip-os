@@ -306,9 +306,7 @@ export default async function ItineraryPage({ params }: Props) {
         {days.map((day) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id)
           // Normalize date to YYYY-MM-DD (avoid timezone bugs)
-          const dateKey = day.date instanceof Date
-            ? day.date.toISOString().slice(0, 10)
-            : String(day.date).slice(0, 10)
+          const dateKey = String(day.date).slice(0, 10)
           const weather = weatherByDate[dateKey] || null
           return (
             <DayCard
