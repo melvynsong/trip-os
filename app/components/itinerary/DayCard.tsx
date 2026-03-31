@@ -23,15 +23,16 @@ type DayCardActivity = Pick<
   places: { id: string; name: string } | null
 }
 
-  tripId: string
-  tripTitle: string
-  destination: string
-  hotel: string | null
-  day: DayCardDay
-  activities: DayCardActivity[]
-  flights?: any[]
-  moveActivityAction: (formData: FormData) => Promise<void>
-  weather?: WeatherDay | null
+type DayCardProps = {
+  tripId: string,
+  tripTitle: string,
+  destination: string,
+  hotel: string | null,
+  day: DayCardDay,
+  activities: DayCardActivity[],
+  flights?: any[],
+  moveActivityAction: (formData: FormData) => Promise<void>,
+  weather?: WeatherDay | null,
 }
 
 
