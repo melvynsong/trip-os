@@ -288,7 +288,7 @@ export default async function ItineraryPage({ params }: Props) {
               AI Generate Itinerary
             </Link>
             <Link
-              href={`/trips/${tripId}/packing`}
+              href={`/trips/${tripId}/packing-list`}
               className={buttonClass({
                 size: 'sm',
                 variant: 'secondary',
