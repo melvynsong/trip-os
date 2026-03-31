@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import { buildPackingListPrompt } from "@/lib/ai/packing";
 import { normalizePackingList } from "@/lib/ai/packing-normalizer";
+import type { PackingList } from "@/types/packing-list";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -52,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("AI response was not valid JSON");
     }
 
-    const packingList = normalizePackingList(data);
+    const packingList: PackingList = normalizePackingList(data);
     res.status(200).json(packingList);
   } catch (error: any) {
     res.status(400).json({ error: error.message || "Packing list generation failed" });

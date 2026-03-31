@@ -26,6 +26,7 @@ Input:
 - Weather: ${weather}
 - Packing style: ${packing_style ?? "standard"}
 
+
 Output format (strict JSON, no extra text):
 
 {
@@ -49,6 +50,7 @@ Rules:
 }
 import { branding } from '@/lib/branding'
 import type { WeatherMode } from '@/lib/weather/types'
+import type { PackingList, PackingListCategory, PackingListItem } from '@/types/packing-list'
 
 // ---------------------------------------------------------------------------
 // Packing types
@@ -60,27 +62,7 @@ export type Activity = {
 
 export type PackingStyle = 'light' | 'moderate' | 'heavy'
 
-export type PackingItem = {
-  item: string
-  quantity: string
-  note: string
-}
-
-export type PackingSections = {
-  clothing: PackingItem[]
-  outerwear: PackingItem[]
-  footwear: PackingItem[]
-  weather_specific: PackingItem[]
-  essentials: PackingItem[]
-  optional: PackingItem[]
-}
-
-export type PackingList = {
-  summary: string
-  packing_style: PackingStyle
-  weather_basis: WeatherMode | 'none'
-  sections: PackingSections
-}
+// PackingList, PackingListCategory, PackingListItem now imported from types/packing-list.ts
 
 export type PackingWeatherContext = {
   mode: WeatherMode | 'none'

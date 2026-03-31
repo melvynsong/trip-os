@@ -1,5 +1,5 @@
 
-import type { PackingList } from './packing'
+import type { PackingList } from '@/types/packing-list'
 
 export function normalizePackingList(data: any, days_count: number): PackingList {
     if (!data || !Array.isArray(data.categories)) throw new Error('Invalid format')

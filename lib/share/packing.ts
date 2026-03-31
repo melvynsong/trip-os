@@ -1,38 +1,29 @@
-import type { PackingItem, PackingList, PackingStyle } from '@/lib/ai/packing'
+import type { PackingList, PackingListCategory, PackingListItem } from '@/types/packing-list'
 import { branding } from '@/lib/branding'
 import { buildWhatsAppShareUrl } from '@/lib/share/whatsapp'
 
 type PackingShareInput = {
   tripTitle: string
   destination: string
-  style: PackingStyle
+  style: string
   list: PackingList
 }
 
-const SECTION_ORDER: Array<keyof PackingList['sections']> = [
-  'clothing',
-  'outerwear',
-  'footwear',
-  'weather_specific',
-  'essentials',
-  'optional',
+const CATEGORY_ORDER = [
+  'Clothing',
+  'Outerwear',
+  'Footwear',
+  'Weather-specific',
+  'Essentials',
+  'Optional',
 ]
-
-const SECTION_TITLES: Record<keyof PackingList['sections'], string> = {
-  clothing: 'Clothing',
-  outerwear: 'Outerwear',
-  footwear: 'Footwear',
-  weather_specific: 'Weather-specific',
-  essentials: 'Essentials',
-  optional: 'Optional',
-}
 
 function titleCaseStyle(style: PackingStyle): string {
   return style.charAt(0).toUpperCase() + style.slice(1)
 }
 
-function renderSectionItems(items: PackingItem[]): string[] {
-  return items.slice(0, 5).map((item) => `- ${item.quantity} ${item.item}`)
+function renderCategoryItems(items: PackingListItem[]): string[] {
+  return items.slice(0, 5).map((item) => `- ${item.quantity} ${item.name}`)
 }
 
 function compactLines(lines: Array<string | null | undefined>): string {
@@ -44,27 +35,22 @@ function compactLines(lines: Array<string | null | undefined>): string {
 }
 
 export function formatPackingForWhatsApp(input: PackingShareInput): string {
-  const renderedSections = SECTION_ORDER.map((sectionKey) => {
-    const items = input.list.sections[sectionKey]
-    if (!items.length) return null
-
-    const sectionLines = renderSectionItems(items)
-    if (!sectionLines.length) return null
-
+  const renderedCategories = CATEGORY_ORDER.map((categoryName) => {
+    const cat = input.list.categories.find((c) => c.category === categoryName)
+    if (!cat || !cat.items.length) return null
+    const categoryLines = renderCategoryItems(cat.items)
+    if (!categoryLines.length) return null
     return compactLines([
-      SECTION_TITLES[sectionKey],
-      ...sectionLines,
+      categoryName,
+      ...categoryLines,
     ])
   }).filter((section): section is string => section !== null)
 
   return compactLines([
     `Trip packing list for ${input.destination || input.tripTitle}`,
-    `Style: ${titleCaseStyle(input.style)}`,
+    `Style: ${input.style}`,
     '',
-    'Summary:',
-    input.list.summary,
-    '',
-    renderedSections.join('\n\n'),
+    renderedCategories.join('\n\n'),
     '',
     `Generated from ${branding.appName} (Beta)`,
   ])

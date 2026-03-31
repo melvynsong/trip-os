@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { buildPackingListPrompt } from '@/lib/ai/packing'
 import { normalizePackingList } from '@/lib/ai/packing-normalizer'
+import type { PackingList } from '@/types/packing-list'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = await params;
@@ -30,6 +31,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tri
   } catch {
     return NextResponse.json({ error: 'AI response invalid' }, { status: 400 });
   }
-  const packingList = normalizePackingList(data, body.days_count);
+  const packingList: PackingList = normalizePackingList(data, body.days_count);
   return NextResponse.json(packingList);
 }
