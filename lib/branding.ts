@@ -39,7 +39,8 @@ function resolveSiteUrl() {
     return window.location.origin
   }
 
-  return 'http://localhost:3000'
+  // In production, do not fallback to localhost. Return empty string or throw.
+  return ''
 }
 
 function resolveAppName() {

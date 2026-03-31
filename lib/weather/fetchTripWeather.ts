@@ -1,4 +1,7 @@
+
 import { WeatherDay } from './types'
+import { geocodeDestination, fetchOpenMeteoDailyForecast } from './openMeteo'
+import { transformOpenMeteoDailyForecast, filterForecastByDateRange } from './transform'
 
 /**
  * Fetches daily weather for a trip using the internal API. Returns a map keyed by YYYY-MM-DD.
@@ -11,18 +14,31 @@ export async function fetchTripWeather(
 ): Promise<Record<string, WeatherDay>> {
   if (!destination || !startDate || !endDate) return {}
   try {
-    const url = `${process.env.INTERNAL_WEATHER_API_URL || 'http://localhost:3000/api/weather'}?destination=${encodeURIComponent(destination)}&startDate=${startDate}&endDate=${endDate}`
-    const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } })
-    if (!res.ok) throw new Error(`Weather API error: ${res.status}`)
-    const data = await res.json()
-    if (!Array.isArray(data.days)) return {}
+    // Geocode destination to lat/lon
+    const geo = await geocodeDestination(destination)
+    if (!geo || !geo.latitude || !geo.longitude) {
+      // Graceful fallback: skip weather if geocode fails
+      return {}
+    }
+    // Fetch forecast from Open-Meteo
+    const forecast = await fetchOpenMeteoDailyForecast(geo.latitude, geo.longitude, startDate, endDate)
+    const days = transformOpenMeteoDailyForecast(forecast)
+    const filtered = filterForecastByDateRange(days, startDate, endDate)
+    // Map by date
     const map: Record<string, WeatherDay> = {}
-    for (const day of data.days) {
+    for (const day of filtered) {
       if (day.date) map[day.date] = day
+    }
+    // Concise log for debugging
+    if (Object.keys(map).length === 0) {
+      console.info('[Weather] No weather data available for range')
+    } else {
+      console.info('[Weather] Open-Meteo fetch OK')
     }
     return map
   } catch (err) {
-    console.error('[Itinerary] Failed to fetch weather:', err)
+    // Graceful fallback: log and return empty
+    console.error('[Itinerary] Weather fetch failed (Open-Meteo direct):', err)
     return {}
   }
 }
