@@ -51,6 +51,17 @@ export type PackingTripContext = {
   durationDays: number
   packingStyle: PackingStyle
   weather: PackingWeatherContext
+  activities?: Array<{
+    id: string
+    day_id: string
+    title: string
+    activity_time: string | null
+    type: string
+    notes: string | null
+    sort_order: number
+    place_id: string | null
+    created_at: string
+  }>
 }
 
 // ---------------------------------------------------------------------------
@@ -124,9 +135,26 @@ function pluralise(n: number, singular: string, plural: string) {
 }
 
 export function buildPackingPrompt(ctx: PackingTripContext): string {
-  const { destination, startDate, endDate, durationDays, packingStyle, weather } = ctx
+  const { destination, startDate, endDate, durationDays, packingStyle, weather, activities } = ctx
 
   const durationLabel = `${durationDays} ${pluralise(durationDays, 'day', 'days')}`
+
+  let activitiesSection = ''
+  if (activities && activities.length > 0) {
+    const activitySummaries = activities.map(a => {
+      const time = a.activity_time ? ` at ${a.activity_time}` : ''
+      const type = a.type ? ` (${a.type})` : ''
+      return `- ${a.title}${type}${time}${a.notes ? ` — ${a.notes}` : ''}`
+    })
+    activitiesSection = [
+      '',
+      '== ITINERARY ACTIVITIES ==',
+      'The following activities are planned for this trip:',
+      ...activitySummaries,
+      '',
+      'Use these activities to infer special packing needs (e.g. hiking, swimming, formal dinner, etc).',
+    ].join('\n')
+  }
 
   return [
     `You are a smart travel assistant helping a traveller pack efficiently for their trip.`,
@@ -145,6 +173,7 @@ export function buildPackingPrompt(ctx: PackingTripContext): string {
     '',
     '== WEATHER CONTEXT ==',
     formatWeatherSection(weather),
+    activitiesSection,
     '',
     '== OUTPUT RULES ==',
     '- Output a single top-level "categories" array. Each category must have a "name" and an "items" array.',

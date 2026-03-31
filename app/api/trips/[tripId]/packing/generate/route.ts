@@ -108,6 +108,35 @@ export async function POST(request: Request, { params }: Params) {
       Math.round((endMs - startMs) / (1000 * 60 * 60 * 24)) + 1
     )
 
+    // --- Fetch itinerary activities for the trip ---
+    // Fetch days for the trip
+    const { data: days, error: daysError } = await supabase
+      .from('days')
+      .select('id')
+      .eq('trip_id', tripId)
+      .order('day_number', { ascending: true })
+    if (daysError) {
+      return NextResponse.json({ error: 'Failed to load itinerary days.' }, { status: 500 })
+    }
+    const dayIds = (days || []).map((d: { id: string }) => d.id)
+
+    // Fetch activities for all days
+    let activities: any[] = []
+    if (dayIds.length > 0) {
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from('activities')
+        .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at')
+        .in('day_id', dayIds)
+        .order('day_id', { ascending: true })
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+      if (activitiesError) {
+        return NextResponse.json({ error: 'Failed to load activities.' }, { status: 500 })
+      }
+      activities = activitiesData || []
+    }
+
     const ctx: PackingTripContext = {
       destination: trip.destination,
       startDate: trip.start_date,
@@ -115,6 +144,7 @@ export async function POST(request: Request, { params }: Params) {
       durationDays,
       packingStyle: packingStyleRaw,
       weather: weatherContext,
+      activities: activities,
     }
 
     const userPrompt = buildPackingPrompt(ctx)
