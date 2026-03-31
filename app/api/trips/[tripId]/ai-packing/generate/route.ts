@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { buildPackingListPrompt } from '@/lib/ai/packing'
 import { normalizePackingList } from '@/lib/ai/packing-normalizer'
 
-export async function POST(req: NextRequest, { params }: { params: { tripId: string } }) {
-  const body = await req.json()
-  const prompt = buildPackingListPrompt(body)
+export async function POST(req: NextRequest, { params }: { params: Promise<{ tripId: string }> }) {
+  const { tripId } = await params;
+  const body = await req.json();
+  const prompt = buildPackingListPrompt(body);
   const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -20,15 +21,15 @@ export async function POST(req: NextRequest, { params }: { params: { tripId: str
       temperature: 0.2,
       max_tokens: 800,
     }),
-  })
-  const aiJson = await aiResponse.json()
-  const aiText = aiJson.choices?.[0]?.message?.content || ''
-  let data
+  });
+  const aiJson = await aiResponse.json();
+  const aiText = aiJson.choices?.[0]?.message?.content || '';
+  let data;
   try {
-    data = JSON.parse(aiText)
+    data = JSON.parse(aiText);
   } catch {
-    return NextResponse.json({ error: 'AI response invalid' }, { status: 400 })
+    return NextResponse.json({ error: 'AI response invalid' }, { status: 400 });
   }
-  const packingList = normalizePackingList(data, body.days_count)
-  return NextResponse.json(packingList)
+  const packingList = normalizePackingList(data, body.days_count);
+  return NextResponse.json(packingList);
 }
