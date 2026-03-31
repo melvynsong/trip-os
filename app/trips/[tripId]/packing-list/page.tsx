@@ -40,11 +40,48 @@ export default async function PackingListPage({ params }: { params: { tripId: st
   }
   const packingAccess = await getPackingAccessState(membership.tier)
   const canUsePacking = packingAccess.canAccess
-  // Weather context (copied from /packing)
+  // Weather context (migrated from deleted /packing/page.tsx)
   let weatherContext = null
   if (canUsePacking && trip) {
-    // Import resolveWeatherContext from /packing/page.tsx
-    const { resolveWeatherContext } = await import('../packing/page')
+    async function resolveWeatherContext(destination: string, startDate: string, endDate: string) {
+      // Import weather helpers
+      const { geocodeDestination, fetchOpenMeteoDailyForecast } = await import('@/lib/weather/openMeteo')
+      const { transformOpenMeteoDailyForecast, filterForecastByDateRange, buildTripWeatherSummary } = await import('@/lib/weather/transform')
+      try {
+        const geo = await geocodeDestination(destination)
+        const forecast = await fetchOpenMeteoDailyForecast(geo.latitude, geo.longitude, startDate, endDate)
+        const days = transformOpenMeteoDailyForecast(forecast)
+        const filtered = filterForecastByDateRange(days, startDate, endDate)
+        const summary = buildTripWeatherSummary(filtered)
+        // Compute min/max/rainyDaysPercent for PackingWeatherContext
+        let avgMinTempC = null, avgMaxTempC = null, rainyDaysPercent = null
+        if (filtered.length > 0) {
+          avgMinTempC = Math.round(filtered.reduce((sum, d) => sum + d.minTempC, 0) / filtered.length)
+          avgMaxTempC = Math.round(filtered.reduce((sum, d) => sum + d.maxTempC, 0) / filtered.length)
+          const rainyDays = filtered.filter(
+            (d) => (d.rainProbability ?? 0) >= 40 || ['Rain', 'Showers', 'Thunderstorm'].includes(d.conditionLabel)
+          ).length
+          rainyDaysPercent = Math.round((rainyDays / filtered.length) * 100)
+        }
+        return {
+          mode: 'forecast' as import('@/lib/weather/types').WeatherMode,
+          headline: summary.headline,
+          note: summary.note,
+          avgMinTempC,
+          avgMaxTempC,
+          rainyDaysPercent,
+        }
+      } catch (err: any) {
+        return {
+          mode: 'none' as const,
+          headline: 'Not available',
+          note: null,
+          avgMinTempC: null,
+          avgMaxTempC: null,
+          rainyDaysPercent: null,
+        }
+      }
+    }
     try {
       weatherContext = await resolveWeatherContext(trip.destination, trip.start_date, trip.end_date)
     } catch {
@@ -75,12 +112,12 @@ export default async function PackingListPage({ params }: { params: { tripId: st
         dateRange={`${trip.start_date} → ${trip.end_date}`}
         title="Packing List"
         subtitle={`${trip.title} · ${trip.destination}`}
-        backHref={`/trips/${tripId}`}
+          backHref={`/trips/${tripId || ''}`}
         backLabel="Back to Trip"
       />
       {canUsePacking ? (
         <PackingGenerator
-          tripId={tripId}
+          tripId={tripId || ''}
           tripTitle={trip.title}
           destination={trip.destination}
           weatherContext={weatherContext}
