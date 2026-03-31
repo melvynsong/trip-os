@@ -29,5 +29,5 @@
       }
     })
 
-    return { categories }
+    return { categories } as PackingList
   }
