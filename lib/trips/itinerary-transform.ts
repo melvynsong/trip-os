@@ -60,7 +60,11 @@ const SECTION_LABELS: Record<TimeOfDayKey, string> = {
 
 function parseActivityMinutes(value: string | null): number | null {
   if (!value) return null
-  const match = /^(\d{2}):(\d{2})$/.exec(value)
+  // Support both HH:mm and HH:mm:ss
+  let match = /^(\d{2}):(\d{2})$/.exec(value)
+  if (!match) {
+    match = /^(\d{2}):(\d{2}):(\d{2})$/.exec(value)
+  }
   if (!match) return null
   const hours = Number(match[1])
   const minutes = Number(match[2])
