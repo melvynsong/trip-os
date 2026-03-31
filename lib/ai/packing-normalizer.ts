@@ -49,4 +49,3 @@ export function normalizePackingList(data: any): PackingList {
 
     return { categories }
   }
-}
