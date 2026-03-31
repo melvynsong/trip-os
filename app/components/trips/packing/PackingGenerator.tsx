@@ -5,7 +5,7 @@ import Card from '@/app/components/ui/Card'
 import Button from '@/app/components/ui/Button'
 import SegmentedControl from '@/app/components/ui/SegmentedControl'
 import { LoadingSkeleton } from '@/app/components/ui/LoadingSkeleton'
-import type { PackingItem, PackingList, PackingWeatherContext, PackingStyle } from '@/lib/ai/packing'
+import type { PackingList, PackingListItem, PackingListCategory } from '@/types/packing-list'
 import { buildPackingWhatsAppShareUrl } from '@/lib/share/packing'
 
 type PackingGeneratorProps = {
@@ -29,21 +29,21 @@ const STYLE_DESCRIPTION: Record<PackingStyle, string> = {
 }
 
 const SECTION_LABELS: Record<keyof PackingList['sections'], string> = {
-  clothing: 'Clothing',
-  outerwear: 'Outerwear',
-  footwear: 'Footwear',
-  weather_specific: 'Weather essentials',
-  essentials: 'Essentials',
-  optional: 'Optional',
+  clothing: 'Clothing', // Refactored to categories
+  outerwear: 'Outerwear', // Refactored to categories
+  footwear: 'Footwear', // Refactored to categories
+  weather_specific: 'Weather-specific', // Refactored to categories
+  essentials: 'Essentials', // Refactored to categories
+  optional: 'Optional', // Refactored to categories
 }
 
-const SECTION_ORDER = [
-  'clothing',
-  'outerwear',
-  'footwear',
-  'weather_specific',
-  'essentials',
-  'optional',
+const CATEGORY_ORDER = [
+  'Clothing',
+  'Outerwear',
+  'Footwear',
+  'Weather-specific',
+  'Essentials',
+  'Optional',
 ] as const
 
 function storageKey(tripId: string) {
