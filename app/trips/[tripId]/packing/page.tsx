@@ -1,4 +1,4 @@
-// This page is now intentionally left empty for safe removal.
+
 import { GeneratePackingListButton } from '@/components/itinerary/GeneratePackingListButton'
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
