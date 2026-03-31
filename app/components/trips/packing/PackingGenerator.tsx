@@ -109,19 +109,18 @@ function ItemRow({ item }: { item: PackingListItem }) {
   )
 }
 
-function SectionCard({ sectionKey, items }: { sectionKey: keyof PackingList['sections']; items: PackingItem[] }) {
+function CategoryCard({ category, items }: { category: string; items: PackingListItem[] }) {
   if (items.length === 0) return null
-
   return (
     <div className="rounded-xl border border-[var(--border-soft)] bg-white">
       <div className="border-b border-[var(--border-soft)] px-4 py-3">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
-          {SECTION_LABELS[sectionKey]}
+          {category}
         </p>
       </div>
       <div className="px-4">
         {items.map((item, i) => (
-          <ItemRow key={`${item.item}-${i}`} item={item} />
+          <ItemRow key={`${item.name}-${i}`} item={item} />
         ))}
       </div>
     </div>
@@ -156,7 +155,6 @@ export default function PackingGenerator({
     const saved = loadFromStorage(tripId)
     if (saved) {
       setPackingList(saved)
-      setStyle(saved.packing_style)
     }
   }, [tripId])
 
@@ -279,20 +277,19 @@ export default function PackingGenerator({
         <PackingListSkeleton />
       ) : hasMounted && hasResult ? (
         <div className="space-y-4">
-          {/* Summary banner */}
-          <div className="rounded-xl border border-[var(--brand-primary)]/20 bg-[var(--brand-primary-soft)] px-4 py-3.5">
-            <p className="text-sm font-semibold text-[var(--text-strong)]">{packingList.summary}</p>
-          </div>
+          {/* Summary banner removed: packingList.summary does not exist */}
 
-          {/* Sections */}
-          {SECTION_ORDER.map((key) => (
-            <SectionCard key={key} sectionKey={key} items={packingList.sections[key]} />
-          ))}
+          {/* Categories */}
+          {CATEGORY_ORDER.map((cat) => {
+            const found = packingList.categories.find((c) => c.category === cat)
+            if (!found) return null
+            return <CategoryCard key={cat} category={cat} items={found.items} />
+          })}
 
           {/* Footer actions */}
           <div className="flex items-center justify-between pt-1">
             <p className="text-xs text-[var(--text-subtle)]">
-              {packingList.packing_style} packing · weather: {packingList.weather_basis}
+              {style} packing{weatherContext && weatherContext.mode ? ` · weather: ${weatherContext.mode}` : ''}
             </p>
             <div className="flex items-center gap-3">
               <Button

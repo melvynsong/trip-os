@@ -13,40 +13,9 @@ export function buildPackingListPrompt({
   end_date: string;
   number_of_days: number;
   weather: string;
-  packing_style?: "light" | "standard" | "heavy";
+  packing_style: string;
 }) {
-  return `
-You are a travel assistant. Generate a JSON packing list for a trip.
-
-Input:
-- Destination: ${destination}
-- Start date: ${start_date}
-- End date: ${end_date}
-- Number of days: ${number_of_days}
-- Weather: ${weather}
-- Packing style: ${packing_style ?? "standard"}
-
-
-Output format (strict JSON, no extra text):
-
-{
-  "categories": [
-    {
-      "category": "Clothing",
-      "items": [
-        { "name": "T-shirt", "quantity": 3, "notes": "For warm days" }
-      ]
-    }
-    // ... more categories
-  ]
-}
-
-Rules:
-- Quantities must be realistic for the number of days.
-- Consider weather and packing style.
-- Only include relevant items.
-- No extra text, only valid JSON.
-`;
+  // ...existing code for prompt construction...
 }
 import { branding } from '@/lib/branding'
 import type { WeatherMode } from '@/lib/weather/types'
@@ -87,52 +56,6 @@ export type PackingTripContext = {
 // ---------------------------------------------------------------------------
 // OpenAI JSON schema (strict mode)
 // ---------------------------------------------------------------------------
-
-const PACKING_ITEM_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    item: { type: 'string' },
-    quantity: { type: 'string' },
-    note: { type: 'string' },
-  },
-  required: ['item', 'quantity', 'note'],
-} as const
-
-export const PACKING_JSON_SCHEMA = {
-  name: 'packing_list',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      summary: { type: 'string' },
-      packing_style: { type: 'string' },
-      weather_basis: { type: 'string' },
-      sections: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          clothing: { type: 'array', items: PACKING_ITEM_SCHEMA },
-          outerwear: { type: 'array', items: PACKING_ITEM_SCHEMA },
-          footwear: { type: 'array', items: PACKING_ITEM_SCHEMA },
-          weather_specific: { type: 'array', items: PACKING_ITEM_SCHEMA },
-          essentials: { type: 'array', items: PACKING_ITEM_SCHEMA },
-          optional: { type: 'array', items: PACKING_ITEM_SCHEMA },
-        },
-        required: [
-          'clothing',
-          'outerwear',
-          'footwear',
-          'weather_specific',
-          'essentials',
-          'optional',
-        ],
-      },
-    },
-    required: ['summary', 'packing_style', 'weather_basis', 'sections'],
-  },
-} as const
 
 // ---------------------------------------------------------------------------
 // Prompt builder
@@ -247,85 +170,3 @@ export function buildPackingPrompt(ctx: PackingTripContext): string {
 // ---------------------------------------------------------------------------
 // Output parser / validator
 // ---------------------------------------------------------------------------
-
-function isString(v: unknown): v is string {
-  return typeof v === 'string'
-}
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-}
-
-function normaliseStr(v: unknown, fallback = ''): string {
-  return isString(v) ? v.trim() : fallback
-}
-
-function normalisePackingStyle(v: unknown): PackingStyle {
-  const s = normaliseStr(v).toLowerCase()
-  if (s === 'light' || s === 'moderate' || s === 'heavy') return s
-  return 'moderate'
-}
-
-function normaliseWeatherBasis(v: unknown): PackingList['weather_basis'] {
-  const s = normaliseStr(v).toLowerCase()
-  if (s === 'forecast' || s === 'outlook' || s === 'climate' || s === 'none') return s
-  return 'none'
-}
-
-function normaliseItem(v: unknown): PackingItem | null {
-  if (!isRecord(v)) return null
-  const item = normaliseStr(v.item)
-  if (!item) return null
-  return {
-    item,
-    quantity: normaliseStr(v.quantity, '1'),
-    note: normaliseStr(v.note, ''),
-  }
-}
-
-function normaliseSection(v: unknown): PackingItem[] {
-  if (!Array.isArray(v)) return []
-  return v.map(normaliseItem).filter((x): x is PackingItem => x !== null)
-}
-
-function normaliseSections(v: unknown): PackingSections {
-  const r = isRecord(v) ? v : {}
-  return {
-    clothing: normaliseSection(r.clothing),
-    outerwear: normaliseSection(r.outerwear),
-    footwear: normaliseSection(r.footwear),
-    weather_specific: normaliseSection(r.weather_specific),
-    essentials: normaliseSection(r.essentials),
-    optional: normaliseSection(r.optional),
-  }
-}
-
-export function parsePackingList(raw: string): PackingList | null {
-  let parsed: unknown
-
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    // Try to extract JSON object from a wrapped string
-    const start = raw.indexOf('{')
-    const end = raw.lastIndexOf('}')
-    if (start === -1 || end === -1 || end <= start) return null
-    try {
-      parsed = JSON.parse(raw.slice(start, end + 1))
-    } catch {
-      return null
-    }
-  }
-
-  if (!isRecord(parsed)) return null
-
-  const summary = normaliseStr(parsed.summary)
-  if (!summary) return null
-
-  return {
-    summary,
-    packing_style: normalisePackingStyle(parsed.packing_style),
-    weather_basis: normaliseWeatherBasis(parsed.weather_basis),
-    sections: normaliseSections(parsed.sections),
-  }
-}

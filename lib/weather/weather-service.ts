@@ -1,4 +1,4 @@
-import { getWeatherForTrip } from './existing-weather-api'
+
 
 export type WeatherDay = {
   date: string
@@ -18,13 +18,5 @@ export function classifyWeatherReliability(date: string, today: string): "high" 
 }
 
 export async function getNormalizedWeather(trip: { destination: string, start_date: string, end_date: string }) : Promise<WeatherDay[]> {
-  const raw = await getWeatherForTrip(trip)
-  const today = new Date().toISOString().slice(0,10)
-  return raw.map((d: any) => ({
-    date: d.date,
-    condition: d.condition,
-    temperature_min: d.temperature_min ?? null,
-    temperature_max: d.temperature_max ?? null,
-    reliability: classifyWeatherReliability(d.date, today),
-  }))
+  throw new Error('getNormalizedWeather is not implemented: missing weather API backend.')
 }

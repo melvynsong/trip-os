@@ -1,4 +1,5 @@
 import type { PackingList, PackingListCategory, PackingListItem } from '@/types/packing-list'
+import type { PackingStyle } from '@/lib/ai/packing'
 import { branding } from '@/lib/branding'
 import { buildWhatsAppShareUrl } from '@/lib/share/whatsapp'
 

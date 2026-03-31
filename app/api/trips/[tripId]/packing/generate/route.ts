@@ -2,12 +2,11 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildPackingPrompt,
-  parsePackingList,
-  PACKING_JSON_SCHEMA,
   type PackingTripContext,
   type PackingWeatherContext,
   type PackingStyle,
 } from '@/lib/ai/packing'
+import { normalizePackingList } from '@/lib/ai/packing-normalizer'
 import { getCurrentUserMembership } from '@/lib/membership/server'
 import { getPackingAccessState } from '@/lib/feature-toggles'
 
@@ -129,15 +128,11 @@ export async function POST(request: Request, { params }: Params) {
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
         temperature: 0.5,
-        response_format: {
-          type: 'json_schema',
-          json_schema: PACKING_JSON_SCHEMA,
-        },
         messages: [
           {
             role: 'system',
             content:
-              'You are a practical travel assistant. Return only valid JSON matching the schema. Be concise and realistic. No markdown.',
+              'You are a practical travel assistant. Return only valid JSON. Be concise and realistic. No markdown.',
           },
           {
             role: 'user',
@@ -166,9 +161,20 @@ export async function POST(request: Request, { params }: Params) {
       )
     }
 
-    const packingList = parsePackingList(content)
+    let data
+    try {
+      data = JSON.parse(content)
+    } catch {
+      return NextResponse.json(
+        { error: 'AI returned invalid JSON. Please try again.' },
+        { status: 500 }
+      )
+    }
 
-    if (!packingList) {
+    let packingList
+    try {
+      packingList = normalizePackingList(data, durationDays)
+    } catch {
       return NextResponse.json(
         { error: 'AI returned an unreadable packing list. Please try again.' },
         { status: 500 }

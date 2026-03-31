@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("AI response was not valid JSON");
     }
 
-    const packingList: PackingList = normalizePackingList(data);
+    const packingList: PackingList = normalizePackingList(data, req.body.number_of_days || 1);
     res.status(200).json(packingList);
   } catch (error: any) {
     res.status(400).json({ error: error.message || "Packing list generation failed" });
