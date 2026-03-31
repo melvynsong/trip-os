@@ -90,19 +90,19 @@ function WeatherBadge({ context }: { context: PackingWeatherContext }) {
   )
 }
 
-function ItemRow({ item }: { item: PackingItem }) {
+function ItemRow({ item }: { item: PackingListItem }) {
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-[var(--border-soft)] last:border-0">
       <div className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--brand-primary)]/40" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="text-sm font-medium text-[var(--text-strong)]">{item.item}</span>
+          <span className="text-sm font-medium text-[var(--text-strong)]">{item.name}</span>
           <span className="rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-xs font-medium text-[var(--text-subtle)]">
             {item.quantity}
           </span>
         </div>
-        {item.note ? (
-          <p className="mt-0.5 text-xs leading-5 text-[var(--text-subtle)]">{item.note}</p>
+        {item.notes ? (
+          <p className="mt-0.5 text-xs leading-5 text-[var(--text-subtle)]">{item.notes}</p>
         ) : null}
       </div>
     </div>
