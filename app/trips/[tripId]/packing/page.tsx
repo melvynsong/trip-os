@@ -20,7 +20,7 @@ import { selectWeatherMode, shiftDateRangeByYears } from '@/lib/weather/modeSele
 import { WeatherProviderError } from '@/lib/weather/types'
 import type { PackingWeatherContext } from '@/lib/ai/packing'
 
-type Props = { params: Promise<{ tripId: string }> }
+type Props = { params: { tripId: string } }
 
 /**
  * Resolve weather context for packing purposes.
@@ -105,7 +105,7 @@ async function resolveWeatherContext(
 }
 
 export default async function PackingPage({ params }: Props) {
-  const { tripId } = await params
+  const { tripId } = params
   const supabase = await createClient()
 
   const {
