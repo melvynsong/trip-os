@@ -1,4 +1,4 @@
-import { PackingList } from "@/types/packing-list";
+
 
 export function buildPackingListPrompt({
   destination,
