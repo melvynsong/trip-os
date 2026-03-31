@@ -279,7 +279,7 @@ export default function PackingGenerator({
         <div className="space-y-4">
           {/* Categories: Render all categories returned by the API */}
           {packingList.categories.map((cat) => (
-            <CategoryCard key={cat.name} category={cat.name} items={cat.items} />
+            <CategoryCard key={cat.category} category={cat.category} items={cat.items} />
           ))}
 
           {/* Footer actions */}
