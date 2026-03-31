@@ -16,7 +16,7 @@ export default function LoginButton({
   const searchParams = useSearchParams()
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
-  const authErrorFromUrl = searchParams.get('authError')
+  const authErrorFromUrl = searchParams ? searchParams.get('authError') : null
   const visibleError = authError || authErrorFromUrl
 
   const handleLogin = async () => {
