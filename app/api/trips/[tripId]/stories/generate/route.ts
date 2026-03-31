@@ -51,6 +51,17 @@ export async function POST(
       )
     }
 
+
+    // Fetch trip data
+    const { data: trip, error: tripError } = await supabase
+      .from('trips')
+      .select('id, title, destination')
+      .eq('id', tripId)
+      .single()
+    if (tripError || !trip) {
+      return NextResponse.json({ error: 'Trip not found.' }, { status: 404 })
+    }
+
     const { data: day, error: dayError } = await supabase
       .from('days')
       .select('id, date, title, day_number')
