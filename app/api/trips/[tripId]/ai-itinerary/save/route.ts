@@ -45,7 +45,7 @@ export async function POST(request: Request, context: RouteContext) {
       )
     }
 
-    const draft = normalizeGeneratedItinerary(body.draft, days)
+    const normalized = normalizeGeneratedItinerary(body.draft, days)
     const dayIds = days.map((day) => day.id)
 
     const { data: existingActivities, error: activitiesError } = await supabase
@@ -70,7 +70,7 @@ export async function POST(request: Request, context: RouteContext) {
       nextSortOrderByDay.set(day.id, maxSortOrder + 1)
     }
 
-    const rows = draft.days.flatMap((generatedDay) => {
+    const rows = normalized.draft.days.flatMap((generatedDay) => {
       const day = days.find((item) => item.day_number === generatedDay.day_number)
 
       if (!day) {
