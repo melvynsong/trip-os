@@ -277,14 +277,10 @@ export default function PackingGenerator({
         <PackingListSkeleton />
       ) : hasMounted && hasResult ? (
         <div className="space-y-4">
-          {/* Summary banner removed: packingList.summary does not exist */}
-
-          {/* Categories */}
-          {CATEGORY_ORDER.map((cat) => {
-            const found = packingList.categories.find((c) => c.category === cat)
-            if (!found) return null
-            return <CategoryCard key={cat} category={cat} items={found.items} />
-          })}
+          {/* Categories: Render all categories returned by the API */}
+          {packingList.categories.map((cat) => (
+            <CategoryCard key={cat.name} category={cat.name} items={cat.items} />
+          ))}
 
           {/* Footer actions */}
           <div className="flex items-center justify-between pt-1">
