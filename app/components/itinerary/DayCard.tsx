@@ -36,6 +36,7 @@ type DayCardProps = {
 }
 
 
+export default function DayCard({
   tripId,
   tripTitle,
   destination,
