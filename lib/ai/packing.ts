@@ -147,24 +147,22 @@ export function buildPackingPrompt(ctx: PackingTripContext): string {
     formatWeatherSection(weather),
     '',
     '== OUTPUT RULES ==',
-    '- summary: 1–2 sentences of high-level actionable guidance. Example: "Warm and slightly rainy — pack light clothing with a rain layer." Be concise.',
-    '- packing_style: echo back the packing_style value exactly as given.',
-    '- weather_basis: echo back the weather mode exactly as given.',
-    '- sections.clothing: tops, bottoms, base layers, sleepwear as appropriate.',
-    '- sections.outerwear: jacket, rain jacket, hoodie as appropriate. Leave empty array if truly unnecessary.',
-    '- sections.footwear: walking shoes, sandals, dress shoes as appropriate. Usually 1–2 pairs max.',
-    '- sections.weather_specific: rain gear, sun protection, thermal layers, etc. Only include items genuinely warranted by weather. Leave empty if no specific weather gear needed.',
-    '- sections.essentials: toiletries, chargers, travel documents, medicine. Always include. Keep list tight.',
-    '- sections.optional: nice-to-have items the traveller might appreciate but are not essential.',
-    '- item: name of the item, concise (2–4 words).',
-    '- quantity: approximate amount, e.g. "3–4", "1", "1 pair", "1–2".',
-    '- note: 3–10 words of context. Can be empty string if no note is needed.',
-    '- Do NOT duplicate items across sections.',
+    '- Output a single top-level "categories" array. Each category must have a "name" and an "items" array.',
+    '- Do NOT use a "sections" object or any other structure.',
+    '- Each item must have: name (string), quantity (number), and optional notes (string).',
+    '- Do NOT duplicate items across categories.',
     '- Do NOT use markdown, bullets, or symbols in any field.',
-    '- Every section must be present in the JSON (use an empty array if not applicable).',
+    '- Every category must be present in the JSON (use an empty array if not applicable).',
     `- Keep the total list practical. This is ${branding.appName} — calm, useful, not overwhelming.`,
-  ]
-    .join('\n')
+    '',
+    '== SAMPLE OUTPUT ==',
+    '{',
+    '  "categories": [',
+    '    { "name": "Clothing", "items": [ { "name": "T-shirt", "quantity": 3, "notes": "Lightweight" } ] },',
+    '    { "name": "Essentials", "items": [ { "name": "Toothbrush", "quantity": 1 } ] }',
+    '  ]',
+    '}',
+  ].join('\n')
 }
 
 // ---------------------------------------------------------------------------
