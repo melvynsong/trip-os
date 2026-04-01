@@ -319,7 +319,6 @@ export default async function ItineraryPage({ params }: Props) {
               hotel={hotel}
               day={day}
               activities={dayActivities}
-              moveActivityAction={moveActivity}
               weather={weather}
             />
           )
