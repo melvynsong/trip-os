@@ -1,4 +1,5 @@
 'use client'
+import React from 'react';
 
 import TimelineItemCard, { type TodayItem } from '@/app/components/today/TimelineItemCard'
 import TimeOfDaySection from '@/app/components/itinerary/TimeOfDaySection'
