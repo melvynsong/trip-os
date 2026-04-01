@@ -131,30 +131,6 @@ function WeatherCardShell({ payload, children }: { payload: WeatherApiResponse; 
     </Card>
   )
 }
-      </div>
-    </div>
-  )
-}
-
-/** Loading skeleton — generic across all modes. */
-function WeatherLoadingSkeleton() {
-  return (
-    <Card className="space-y-5 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <LoadingSkeleton className="h-5 w-24 rounded-full" />
-          <LoadingSkeleton className="h-7 w-48" />
-        </div>
-      </div>
-      <LoadingSkeleton className="h-12 w-full rounded-xl" />
-      <div className="space-y-2.5">
-        <LoadingSkeleton className="h-12 w-full rounded-lg" />
-        <LoadingSkeleton className="h-12 w-full rounded-lg" />
-        <LoadingSkeleton className="h-12 w-full rounded-lg" />
-      </div>
-    </Card>
-  )
-}
 
 function WeatherCardShell({
   payload,
