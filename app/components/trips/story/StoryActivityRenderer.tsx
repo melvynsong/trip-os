@@ -10,15 +10,13 @@ export function renderStoryTimelineItem({
   dayId: string
   item: ItineraryTimelineItem
 }) {
-  // For now, we assume canMoveUp/Down and moveActivityAction are not needed in story view
+  // Render story timeline item without move controls or actions
   return (
     <ItineraryActivityRenderer
       tripId={tripId}
       dayId={dayId}
       item={item}
-      canMoveUp={false}
-      canMoveDown={false}
-      moveActivityAction={async () => {}}
+      onDelete={() => {}}
     />
   )
 }

@@ -13,10 +13,7 @@ type DayTimelineProps = {
   tripId: string
   items: TodayItem[]
   actingIds: Set<string>
-  onToggleDone: (item: TodayItem) => void
   onDelete: (item: TodayItem) => void
-  onMoveUp: (item: TodayItem) => void
-  onMoveDown: (item: TodayItem) => void
 }
 
 export default function DayTimeline({ tripId, items, actingIds, onDelete }: { tripId: string, items: TodayItem[], actingIds: Set<string>, onDelete: (item: TodayItem) => void }) {

@@ -32,7 +32,6 @@ type DayCardProps = {
   day: DayCardDay,
   activities: DayCardActivity[],
   flights?: any[],
-  moveActivityAction: (formData: FormData) => Promise<void>,
   weather?: WeatherDay | null,
 }
 
