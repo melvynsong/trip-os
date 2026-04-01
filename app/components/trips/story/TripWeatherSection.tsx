@@ -1,3 +1,89 @@
+import type { WeatherApiResponse, WeatherMode, WeatherPeriodConditions } from '@/lib/weather/types'
+import Card from '@/app/components/ui/Card'
+import EmptyState from '@/app/components/ui/EmptyState'
+import { LoadingSkeleton } from '@/app/components/ui/LoadingSkeleton'
+import { useWeather } from '@/lib/weather/useWeather'
+
+function ConfidenceBadge({ mode }: { mode: WeatherMode }) {
+  const styles: Record<WeatherMode, string> = {
+    forecast: 'bg-emerald-100 text-emerald-700 ring-emerald-200',
+    outlook: 'bg-amber-100 text-amber-700 ring-amber-200',
+    climate: 'bg-slate-100 text-slate-600 ring-slate-200',
+  }
+  const labels: Record<WeatherMode, string> = {
+    forecast: 'Daily forecast',
+    outlook: 'Early outlook',
+    climate: 'Typical conditions',
+  }
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${styles[mode]}`}
+    >
+      {labels[mode]}
+    </span>
+  )
+}
+
+function WeatherLoadingSkeleton() {
+  return (
+    <Card className="space-y-5 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <LoadingSkeleton className="h-5 w-24 rounded-full" />
+          <LoadingSkeleton className="h-7 w-48" />
+        </div>
+      </div>
+      <LoadingSkeleton className="h-12 w-full rounded-xl" />
+      <div className="space-y-2.5">
+        <LoadingSkeleton className="h-12 w-full rounded-lg" />
+        <LoadingSkeleton className="h-12 w-full rounded-lg" />
+        <LoadingSkeleton className="h-12 w-full rounded-lg" />
+      </div>
+    </Card>
+  )
+}
+
+function formatDisplayDate(date: string) {
+  const parsed = new Date(`${date}T00:00:00Z`)
+  if (Number.isNaN(parsed.getTime())) return date
+
+  return parsed.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function PeriodConditionsBlock({ conditions }: { conditions: WeatherPeriodConditions }) {
+  return (
+    <div className="grid grid-cols-3 divide-x divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] overflow-hidden">
+      <div className="flex flex-col items-center gap-0.5 px-3 py-3">
+        <p className="text-lg font-semibold text-[var(--text-strong)]">{conditions.avgMaxTempC}°</p>
+        <p className="text-xs text-[var(--text-subtle)]">High</p>
+      </div>
+      <div className="flex flex-col items-center gap-0.5 px-3 py-3">
+        <p className="text-lg font-semibold text-[var(--text-strong)]">{conditions.avgMinTempC}°</p>
+        <p className="text-xs text-[var(--text-subtle)]">Low</p>
+      </div>
+      <div className="flex flex-col items-center gap-0.5 px-3 py-3">
+        <p className="text-lg font-semibold text-[var(--text-strong)]">{conditions.rainyDaysPercent}%</p>
+        <p className="text-xs text-[var(--text-subtle)]">Rainy days</p>
+      </div>
+      <div className="col-span-3 border-t border-[var(--border-soft)] px-4 py-2.5">
+        <p className="text-sm font-medium text-[var(--text-strong)]">{conditions.typicalCondition}</p>
+      </div>
+    </div>
+  )
+}
+
+type TripWeatherSectionProps = {
+  destination: string
+  startDate: string
+  endDate: string
+  tripId?: string
+}
+
 'use client'
 
 export default function TripWeatherSection({ destination, startDate, endDate, tripId }: TripWeatherSectionProps) {
@@ -54,7 +140,7 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
     return (
       <WeatherCardShell payload={payload}>
         <div className="space-y-2">
-          {payload.days.map((day) => (
+          {payload.days.map((day: any) => (
             <div
               key={day.date}
               className="flex items-center justify-between rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3.5 py-3 transition-colors hover:bg-[var(--surface-muted)]/70"
