@@ -1,4 +1,3 @@
-
 "use client";
 import type { WeatherApiResponse, WeatherMode, WeatherPeriodConditions } from '@/lib/weather/types';
 import Card from '@/app/components/ui/Card';
