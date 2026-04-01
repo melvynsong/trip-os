@@ -36,22 +36,22 @@ export default function DestinationCoverArt({
 
   const initials = getInitials(destination || title || 'ToGoStory')
 
-  return (
-    <div aria-hidden className="absolute inset-0 overflow-hidden bg-stone-100">
-      {showLabel ? (
-        <div className={`absolute ${compact ? 'bottom-3 left-4 right-4' : 'bottom-6 left-6 right-6'} flex items-end justify-between gap-4`}>
   // Render nothing but the label and initials, no background, no blobs, no watermark
   return (
     <div aria-hidden className="absolute inset-0 overflow-hidden">
+      {showLabel ? (
+        <div className={`absolute ${compact ? 'bottom-3 left-4 right-4' : 'bottom-6 left-6 right-6'} flex items-end justify-between gap-4`}>
+          <div className="min-w-0">
+            <p className={`font-medium uppercase tracking-[0.2em] ${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-subtle)]`}>
               {destination || 'Travel story'}
             </p>
             {title ? (
-              <p className={`mt-1 max-w-[14rem] truncate font-serif text-[var(--text-strong)]/75 ${compact ? 'text-base' : 'text-2xl'}`}>
+              <p className={`mt-1 max-w-[14rem] truncate font-serif ${compact ? 'text-base' : 'text-2xl'} text-[var(--text-strong)]`}>
                 {title}
               </p>
             ) : null}
           </div>
-          <div className={`flex shrink-0 items-center justify-center rounded-full border border-white/70 bg-white/60 font-serif text-[var(--text-strong)] shadow-sm backdrop-blur ${compact ? 'h-12 w-12 text-sm' : 'h-20 w-20 text-2xl'}`}>
+          <div className={`flex shrink-0 items-center justify-center rounded-full border font-serif ${compact ? 'h-12 w-12 text-sm' : 'h-20 w-20 text-2xl'} text-[var(--text-strong)] bg-white`}>
             {initials}
           </div>
         </div>
