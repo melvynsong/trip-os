@@ -40,8 +40,9 @@ export default function DestinationCoverArt({
     <div aria-hidden className="absolute inset-0 overflow-hidden bg-stone-100">
       {showLabel ? (
         <div className={`absolute ${compact ? 'bottom-3 left-4 right-4' : 'bottom-6 left-6 right-6'} flex items-end justify-between gap-4`}>
-          <div className="min-w-0">
-            <p className={`font-medium uppercase tracking-[0.2em] text-[var(--text-subtle)]/75 ${compact ? 'text-[10px]' : 'text-xs'}`}>
+  // Render nothing but the label and initials, no background, no blobs, no watermark
+  return (
+    <div aria-hidden className="absolute inset-0 overflow-hidden">
               {destination || 'Travel story'}
             </p>
             {title ? (
