@@ -110,7 +110,7 @@ export default async function ItineraryPage({ params }: Props) {
   // Fetch trip
   const { data: trip, error: tripError } = await supabase
     .from('trips')
-    .select('id, title, destination, start_date, end_date')
+    .select('id, title, destination, start_date, end_date, latitude, longitude')
     .eq('id', tripId)
     .single<Trip>()
   if (tripError || !trip) {
@@ -156,8 +156,8 @@ export default async function ItineraryPage({ params }: Props) {
         trip.destination,
         trip.start_date,
         trip.end_date,
-        (trip as any).latitude,
-        (trip as any).longitude
+        trip.latitude,
+        trip.longitude
       )
     } catch (err) {
       // Already logged in helper, but log here for clarity

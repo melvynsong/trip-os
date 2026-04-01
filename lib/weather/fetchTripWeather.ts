@@ -20,9 +20,19 @@ export async function fetchTripWeather(
     let lat = latitude, lng = longitude;
     if (lat == null || lng == null) {
       // fallback: geocode
-      const geo = await geocodeDestination(destination)
-      lat = geo.latitude
-      lng = geo.longitude
+      try {
+        const geo = await geocodeDestination(destination)
+        lat = geo.latitude
+        lng = geo.longitude
+      } catch (err) {
+        if (err instanceof Error && 'code' in err && (err as any).code === 'destination_not_found') {
+          // Suppress error for unrecognized destinations
+          return {}
+        }
+        // Other errors: log and return empty
+        console.error('[Itinerary] Weather fetch failed (geocode):', err)
+        return {}
+      }
     }
     if (lat == null || lng == null) return {}
     // Fetch forecast from Open-Meteo
