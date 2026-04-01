@@ -11,7 +11,7 @@ import { formatDayForWhatsApp } from '@/lib/share/whatsapp'
 import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
 import { Day as DayType, Activity, ActivityType } from '@/types/trip'
 import { format, parseISO } from 'date-fns'
-import { WeatherDisplay } from '@/components/itinerary/WeatherDisplay'
+import { DayWeatherSummary } from '@/app/components/itinerary/DayWeatherSummary'
 import type { WeatherDay } from '@/lib/weather/weather-service'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
@@ -133,8 +133,8 @@ export default function DayCard({
           </div>
           <div className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500 flex items-center gap-2">
             {day.date}
-            {weather && <WeatherDisplay weather={weather} />}
           </div>
+          {weather && <DayWeatherSummary weather={weather} />}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
