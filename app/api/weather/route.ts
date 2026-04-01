@@ -173,7 +173,7 @@ export async function GET(request: Request) {
               temperature_max: day.maxTempC,
               weather_code: day.conditionCode,
               summary: day.conditionLabel,
-            }, { onConflict: ['day_id', 'date'] })
+            }, { onConflict: 'day_id,date' })
           }
         }
       }
