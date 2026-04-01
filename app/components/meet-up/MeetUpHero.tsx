@@ -1,7 +1,6 @@
 import { Typography } from '../../components/design-system/Typography';
-import { SectionContainer } from '../../components/design-system/SectionContainer';
 
-export default function MeetUpHero() {
+export default function MeetUpHero({ onStart }: { onStart: () => void }) {
   return (
     <section className="text-center py-16 md:py-24">
       <div className="mb-3">
@@ -27,6 +26,5 @@ export default function MeetUpHero() {
         </span>
       </div>
     </section>
-    }
   );
 }
