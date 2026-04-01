@@ -122,8 +122,8 @@ function WeatherCardShell({
       {children}
     </Card>
   )
-}
 
+export default function TripWeatherSection({
   destination,
   startDate,
   endDate,
