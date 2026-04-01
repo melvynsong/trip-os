@@ -62,6 +62,7 @@ export default function TimelineItemCard({ tripId, item, isActing, onDelete }: T
   }
 
   // Non-flight: use existing card with shared ActionRow
+  const isDone = item.status === 'done';
   return (
     <Card className={`flex gap-3 ${isDone ? 'opacity-70' : ''}`}>
       <div className="min-w-0 flex-1">
