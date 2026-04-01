@@ -220,5 +220,34 @@ function WeatherCardShell({
     <WeatherCardShell payload={payload}>
       <PeriodConditionsBlock conditions={payload.periodConditions} />
     </WeatherCardShell>
-  )
-}
+        if (loading) {
+          return <WeatherLoadingSkeleton />
+        }
+
+        if (error) {
+          return (
+            <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
+              <div className="space-y-1.5">
+                <ConfidenceBadge mode="forecast" />
+                <h2 className="text-xl font-serif text-[var(--text-strong)]">Weather unavailable</h2>
+              </div>
+              <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+                {error}
+              </div>
+            </Card>
+          )
+        }
+
+        if (!payload) {
+          return (
+            <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
+              <EmptyState
+                title="No weather data"
+                description="Data will appear closer to your travel dates."
+                className="p-5 text-sm"
+              />
+            </Card>
+          )
+        }
+
+        // ...existing code...
