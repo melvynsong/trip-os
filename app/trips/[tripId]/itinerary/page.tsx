@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import DayCard from '@/app/components/itinerary/DayCard'
+import { getEnglishDestinationName } from '@/lib/utils/englishDestination'
 import { fetchTripWeather } from '@/lib/weather/fetchTripWeather'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import TripHeader from '@/app/components/trips/TripHeader'
@@ -247,12 +248,13 @@ export default async function ItineraryPage({ params }: Props) {
   const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
 
   // Main page render
+  const englishDestination = getEnglishDestinationName(trip.destination)
   return (
     <TripPageShell className="space-y-8">
       <TripHeader
         dateRange={`${trip.start_date} → ${trip.end_date}`}
         title={trip.title}
-        subtitle={trip.destination}
+        subtitle={englishDestination}
         backHref={`/trips/${tripId}`}
         backLabel="Back to Trip"
         actions={
@@ -301,13 +303,7 @@ export default async function ItineraryPage({ params }: Props) {
           </>
         }
       />
-      {/* Weather summary for the trip */}
-      <TripWeatherSection
-        destination={trip.destination}
-        startDate={trip.start_date}
-        endDate={trip.end_date}
-        tripId={trip.id}
-      />
+      {/* Weather summary removed: now shown per day card */}
       <div className="space-y-6">
         {days.map((day) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id)
@@ -319,7 +315,7 @@ export default async function ItineraryPage({ params }: Props) {
               key={day.id}
               tripId={tripId!}
               tripTitle={trip.title}
-              destination={trip.destination}
+              destination={englishDestination}
               hotel={hotel}
               day={day}
               activities={dayActivities}

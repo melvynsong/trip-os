@@ -14,7 +14,7 @@ export default function Pill({
     tone === 'brand'
       ? 'border-[color:var(--brand-primary)]/12 bg-[color:var(--brand-primary-soft)] text-[var(--brand-primary)]'
       : tone === 'accent'
-        ? 'border-orange-200 bg-orange-50 text-orange-700'
+        ? 'border-[color:var(--brand-primary)]/20 bg-[color:var(--brand-primary-soft)] text-[var(--brand-primary)]'
         : 'border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-subtle)]'
 
   return (

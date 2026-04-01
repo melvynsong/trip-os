@@ -4,12 +4,20 @@
   --background: #ffffff;
   --foreground: #0f172a;
 
-  --brand-primary: #2563eb;
-  --brand-primary-hover: #1d4ed8;
-  --brand-primary-press: #1e40af;
-  --brand-primary-soft: #eff6ff;
-  --brand-accent: #f97316;
-  --brand-accent-soft: #fff7ed;
+  /* Orange-led brand system */
+  --brand-primary: #FF7A1A;
+  --brand-primary-hover: #e86a0c;
+  --brand-primary-press: #c95a0a;
+  --brand-primary-soft: #FFF3E6;
+  --brand-accent: #FFB155;
+  --brand-accent-soft: #FFF7ED;
+
+  /* Semantic tokens for design alignment */
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-primary-press: var(--brand-primary-press);
+  --color-accent: var(--brand-accent);
+  --color-accent-soft: var(--brand-accent-soft);
 
   --surface-muted: #f4f6f8;
   --surface-panel: #ffffff;
@@ -19,7 +27,7 @@
 
   --border-soft: #e2e8f0;
 
-  --ring-brand: rgba(37, 99, 235, 0.2);
+  --ring-brand: rgba(255, 122, 26, 0.18);
 
   --surface-dark: #111827;
   --surface-dark-muted: #1f2937;

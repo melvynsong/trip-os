@@ -63,7 +63,7 @@ export default function SegmentedControl<T extends string>({
                   ? 'max-w-full rounded-full px-3 py-1.5 text-left text-sm font-medium leading-5 whitespace-normal break-words transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]'
                   : 'rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]',
                 active
-                  ? 'bg-white text-[var(--text-strong)] shadow-sm'
+                  ? 'bg-white text-[var(--brand-primary)] shadow-[0_2px_8px_rgba(255,122,26,0.08)] ring-1 ring-[var(--brand-primary)]'
                   : 'text-[var(--text-subtle)] hover:text-[var(--text-strong)]',
                 disabled && 'cursor-not-allowed'
               )}
