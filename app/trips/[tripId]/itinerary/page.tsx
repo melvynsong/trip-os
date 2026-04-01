@@ -18,7 +18,10 @@ type Props = {
   params: { tripId: string } | Promise<{ tripId: string }>
 }
 
-type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'>
+type Trip = Pick<TripType, 'id' | 'title' | 'destination' | 'start_date' | 'end_date'> & {
+  latitude: number | null;
+  longitude: number | null;
+}
 type Day = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 type Activity = Pick<
   ActivityType,
