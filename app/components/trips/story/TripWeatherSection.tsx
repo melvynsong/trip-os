@@ -1,28 +1,34 @@
-import type { WeatherApiResponse, WeatherMode, WeatherPeriodConditions } from '@/lib/weather/types'
-import Card from '@/app/components/ui/Card'
-import EmptyState from '@/app/components/ui/EmptyState'
-import { LoadingSkeleton } from '@/app/components/ui/LoadingSkeleton'
-import { useWeather } from '@/lib/weather/useWeather'
+
+"use client";
+import type { WeatherApiResponse, WeatherMode, WeatherPeriodConditions } from '@/lib/weather/types';
+import Card from '@/app/components/ui/Card';
+import EmptyState from '@/app/components/ui/EmptyState';
+import { LoadingSkeleton } from '@/app/components/ui/LoadingSkeleton';
+import { useWeather } from '@/lib/weather/useWeather';
+
+type TripWeatherSectionProps = {
+  destination: string;
+  startDate: string;
+  endDate: string;
+  tripId?: string;
+};
 
 function ConfidenceBadge({ mode }: { mode: WeatherMode }) {
   const styles: Record<WeatherMode, string> = {
     forecast: 'bg-emerald-100 text-emerald-700 ring-emerald-200',
     outlook: 'bg-amber-100 text-amber-700 ring-amber-200',
     climate: 'bg-slate-100 text-slate-600 ring-slate-200',
-  }
+  };
   const labels: Record<WeatherMode, string> = {
     forecast: 'Daily forecast',
     outlook: 'Early outlook',
     climate: 'Typical conditions',
-  }
+  };
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${styles[mode]}`}
-    >
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${styles[mode]}`}>
       {labels[mode]}
     </span>
-  )
-}
+  );
 
 function WeatherLoadingSkeleton() {
   return (
@@ -40,19 +46,18 @@ function WeatherLoadingSkeleton() {
         <LoadingSkeleton className="h-12 w-full rounded-lg" />
       </div>
     </Card>
-  )
+  );
 }
 
 function formatDisplayDate(date: string) {
-  const parsed = new Date(`${date}T00:00:00Z`)
-  if (Number.isNaN(parsed.getTime())) return date
-
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return date;
   return parsed.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',
-  })
+  });
 }
 
 function PeriodConditionsBlock({ conditions }: { conditions: WeatherPeriodConditions }) {
@@ -74,23 +79,40 @@ function PeriodConditionsBlock({ conditions }: { conditions: WeatherPeriodCondit
         <p className="text-sm font-medium text-[var(--text-strong)]">{conditions.typicalCondition}</p>
       </div>
     </div>
-  )
+  );
 }
 
-type TripWeatherSectionProps = {
-  destination: string
-  startDate: string
-  endDate: string
-  tripId?: string
+function WeatherCardShell({ payload, children }: { payload: WeatherApiResponse; children: React.ReactNode }) {
+  return (
+    <Card className="space-y-5 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <ConfidenceBadge mode={payload.mode} />
+        <h2 className="text-xl font-serif text-[var(--text-strong)]">{payload.locationLabel}</h2>
+      </div>
+      {/* Context note for non-forecast modes */}
+      {payload.contextNote ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-5 text-amber-800">
+          {payload.contextNote}
+        </div>
+      ) : null}
+      {/* Summary */}
+      <div className="rounded-xl border border-[var(--brand-primary)]/20 bg-[var(--brand-primary-soft)] px-4 py-3.5">
+        <p className="text-sm font-semibold text-[var(--text-strong)]">{payload.summary.headline}</p>
+        {payload.summary.note ? (
+          <p className="mt-1.5 text-xs text-[var(--text-subtle)]">{payload.summary.note}</p>
+        ) : null}
+      </div>
+      {children}
+    </Card>
+  );
 }
-
-'use client'
 
 export default function TripWeatherSection({ destination, startDate, endDate, tripId }: TripWeatherSectionProps) {
-  const { loading, error, payload } = useWeather({ destination, startDate, endDate, tripId })
+  const { loading, error, payload } = useWeather({ destination, startDate, endDate, tripId });
 
   if (loading) {
-    return <WeatherLoadingSkeleton />
+    return <WeatherLoadingSkeleton />;
   }
 
   if (error) {
@@ -104,7 +126,7 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
           {error}
         </div>
       </Card>
-    )
+    );
   }
 
   if (!payload) {
@@ -116,7 +138,7 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
           className="p-5 text-sm"
         />
       </Card>
-    )
+    );
   }
 
   // FORECAST mode — day-by-day rows
@@ -134,9 +156,8 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
             className="p-5 text-sm"
           />
         </Card>
-      )
+      );
     }
-
     return (
       <WeatherCardShell payload={payload}>
         <div className="space-y-2">
@@ -166,7 +187,7 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
           ))}
         </div>
       </WeatherCardShell>
-    )
+    );
   }
 
   // OUTLOOK / CLIMATE modes — aggregate period conditions
@@ -179,51 +200,15 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
           className="p-5 text-sm"
         />
       </WeatherCardShell>
-    )
+    );
   }
 
   return (
     <WeatherCardShell payload={payload}>
-      <PeriodConditionsBlock conditions={payload.periodConditions} />
+      <PeriodConditionsBlock conditions={payload.periodConditions as WeatherPeriodConditions} />
     </WeatherCardShell>
-  )
+  );
 }
-
-
-function WeatherCardShell({
-  payload,
-  children,
-}: {
-  payload: WeatherApiResponse
-  children: React.ReactNode
-}) {
-  return (
-    <Card className="space-y-5 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <ConfidenceBadge mode={payload.mode} />
-        <h2 className="text-xl font-serif text-[var(--text-strong)]">{payload.locationLabel}</h2>
-      </div>
-
-      {/* Context note for non-forecast modes */}
-      {payload.contextNote ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-5 text-amber-800">
-          {payload.contextNote}
-        </div>
-      ) : null}
-
-      {/* Summary */}
-      <div className="rounded-xl border border-[var(--brand-primary)]/20 bg-[var(--brand-primary-soft)] px-4 py-3.5">
-        <p className="text-sm font-semibold text-[var(--text-strong)]">{payload.summary.headline}</p>
-        {payload.summary.note ? (
-          <p className="mt-1.5 text-xs text-[var(--text-subtle)]">{payload.summary.note}</p>
-        ) : null}
-      </div>
-
-      {children}
-    </Card>
-  )
-
   if (error) {
     return (
       <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
