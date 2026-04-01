@@ -64,7 +64,7 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
         style={
           trip.cover_image && !isPrimaryUpcoming
             ? {
-                backgroundImage: `linear-gradient(180deg,rgba(25,20,17,0.18),rgba(25,20,17,0.38)), url(${trip.cover_image})`,
+                backgroundImage: `url(${trip.cover_image})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }
