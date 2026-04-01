@@ -59,29 +59,7 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
           : 'border-[var(--border-soft)]'
       }`}
     >
-      <div
-        className={`relative overflow-hidden ${isPrimaryUpcoming ? 'h-36 bg-slate-900' : 'h-32 bg-[var(--surface-muted)]'}`}
-        style={
-          trip.cover_image && !isPrimaryUpcoming
-            ? {
-                backgroundImage: `url(${trip.cover_image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }
-            : undefined
-        }
-      >
-        {!trip.cover_image || isPrimaryUpcoming ? (
-          <DestinationCoverArt
-            destination={trip.destination}
-            title={trip.title}
-            compact
-            dark={isPrimaryUpcoming}
-          />
-        ) : null}
-        {/* Reduce space below header area */}
-        <div className="h-1" />
-      </div>
+      {/* Removed DestinationCoverArt and background area for a cleaner card header */}
 
       <div className="relative z-10 space-y-5 p-6">
         <div className="space-y-3 pr-10">
