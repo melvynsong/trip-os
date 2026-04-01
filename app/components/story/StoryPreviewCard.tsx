@@ -34,7 +34,13 @@ export default function StoryPreviewCard({ title, content }: StoryPreviewCardPro
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(239,246,255,0.92))] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-6">
+    {/* Orange gradient example: use for Hong Kong/China cards */}
+    {/* <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#C2410C,#FF7A1A,#FFD08A)] p-5 shadow-[0_18px_50px_rgba(255,122,26,0.12)] sm:p-6"> */}
+
+    {/* Purple gradient example: use for London cards */}
+    {/* <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#6D28D9,#A78BFA,#E0C3FC)] p-5 shadow-[0_18px_50px_rgba(109,40,217,0.12)] sm:p-6"> */}
+
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#C2410C,#FF7A1A,#FFD08A)] p-5 shadow-[0_18px_50px_rgba(255,122,26,0.12)] sm:p-6">
       <div className="absolute left-0 top-0 h-24 w-24 rounded-full bg-sky-200/25 blur-2xl" />
       <button
         onClick={handleCopy}
