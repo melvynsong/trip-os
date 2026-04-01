@@ -1,8 +1,10 @@
 "use client";
 
+
 import { useState } from 'react';
 import { MeetUpInput, MeetUpPlan } from '../../../lib/meet-up/types';
 import { buildWhatsAppMessage } from '../../../lib/meet-up/whatsapp-message';
+import { Typography } from '../../design-system/Typography';
 
 type Props = { input: MeetUpInput; plan: MeetUpPlan };
 
@@ -17,20 +19,22 @@ export default function WhatsAppMessageBox({ input, plan }: Props) {
   };
 
   return (
-    <section className="bg-card p-6 rounded-xl shadow mb-6">
-      <h2 className="text-xl font-semibold mb-2 text-primary">WhatsApp Message</h2>
+    <div className="bg-white rounded-xl shadow p-6 mb-6">
+      <Typography as="h2" variant="sectionTitle" className="mb-2 text-[color:var(--brand-primary)]">
+        WhatsApp Message
+      </Typography>
       <textarea
         className="input w-full h-32 mb-2"
         value={message}
         onChange={e => setMessage(e.target.value)}
       />
       <button
-        className="btn btn-success w-full"
+        className="btn w-full bg-[color:var(--brand-primary)] text-white hover:bg-[color:var(--brand-primary-hover)] font-semibold py-2 rounded transition"
         onClick={handleCopy}
         type="button"
       >
         {copied ? 'Copied!' : 'Copy to WhatsApp'}
       </button>
-    </section>
+    </div>
   );
 }

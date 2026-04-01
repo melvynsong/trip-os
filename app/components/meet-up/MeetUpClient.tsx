@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState } from 'react';
 import MeetUpHero from './MeetUpHero';
 import EventForm from './EventForm';
@@ -9,6 +10,8 @@ import WhatsAppMessageBox from './WhatsAppMessageBox';
 import MeetUpError from './MeetUpError';
 import MeetUpLoading from './MeetUpLoading';
 import { MeetUpInput, MeetUpPlan } from '../../../lib/meet-up/types';
+import { PageContainer } from '../../components/design-system/PageContainer';
+import { CardContainer } from '../../components/design-system/CardContainer';
 
 export default function MeetUpClient() {
   const [input, setInput] = useState<MeetUpInput | null>(null);
@@ -38,18 +41,20 @@ export default function MeetUpClient() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <PageContainer className="py-8">
       <MeetUpHero />
-      <EventForm onPlan={handlePlan} loading={loading} />
-      {loading && <MeetUpLoading />}
-      {error && <MeetUpError message={error} />}
-      {plan && (
-        <>
-          <FoodPlanSummary plan={plan} />
-          <InvitationCard input={input!} plan={plan} />
-          <WhatsAppMessageBox input={input!} plan={plan} />
-        </>
-      )}
-    </div>
+      <CardContainer>
+        <EventForm onPlan={handlePlan} loading={loading} />
+        {loading && <MeetUpLoading />}
+        {error && <MeetUpError message={error} />}
+        {plan && (
+          <>
+            <FoodPlanSummary plan={plan} />
+            <InvitationCard input={input!} plan={plan} />
+            <WhatsAppMessageBox input={input!} plan={plan} />
+          </>
+        )}
+      </CardContainer>
+    </PageContainer>
   );
 }

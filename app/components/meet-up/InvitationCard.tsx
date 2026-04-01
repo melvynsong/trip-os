@@ -1,12 +1,17 @@
 import { MeetUpInput, MeetUpPlan } from '../../../lib/meet-up/types';
+import { Typography } from '../../design-system/Typography';
 
 type Props = { input: MeetUpInput; plan: MeetUpPlan };
 
 export default function InvitationCard({ input, plan }: Props) {
   return (
-    <section className="bg-gradient-to-br from-yellow-50 to-pink-50 border border-yellow-200 rounded-xl shadow mb-6 p-6 text-center">
-      <h2 className="text-2xl font-bold text-primary mb-2">{input.eventName || 'Meet-Up'}</h2>
-      <div className="mb-1 text-lg">{plan.theme} Dinner</div>
+    <div className="bg-[color:var(--brand-primary-soft)] border border-[color:var(--brand-primary)] rounded-xl shadow mb-6 p-6 text-center">
+      <Typography as="h2" variant="sectionTitle" className="mb-2 text-[color:var(--brand-primary)]">
+        {input.eventName || 'Meet-Up'}
+      </Typography>
+      <Typography as="div" variant="cardSubtitle" className="mb-1 text-lg">
+        {plan.theme} Dinner
+      </Typography>
       <div className="mb-1">
         <span className="font-medium">Date:</span> {input.date} &nbsp;
         <span className="font-medium">Time:</span> {input.time}
@@ -21,8 +26,10 @@ export default function InvitationCard({ input, plan }: Props) {
         <span className="font-medium">Pax:</span> {input.pax}
       </div>
       {input.notes && (
-        <div className="mt-2 italic text-muted-foreground">{input.notes}</div>
+        <Typography as="div" variant="helper" className="mt-2 italic text-muted-foreground">
+          {input.notes}
+        </Typography>
       )}
-    </section>
+    </div>
   );
 }

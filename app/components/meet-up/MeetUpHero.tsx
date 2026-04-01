@@ -1,15 +1,20 @@
+import { Typography } from '../../design-system/Typography';
+import { SectionContainer } from '../../design-system/SectionContainer';
+
 export default function MeetUpHero() {
   return (
-    <section className="mb-8 text-center">
-      <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">Plan a Memorable Meet-Up</h1>
-      <p className="text-lg text-muted-foreground mb-4">
+    <SectionContainer className="text-center">
+      <Typography as="h1" variant="pageTitle" className="mb-2 text-[color:var(--brand-primary)]">
+        Plan a Memorable Meet-Up
+      </Typography>
+      <Typography as="p" variant="cardSubtitle" className="mb-4">
         Effortlessly coordinate your next dinner or gathering with ToGoStory’s premium planner.
-      </p>
+      </Typography>
       <div className="flex justify-center">
-        <span className="inline-block bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-sm font-semibold">
+        <span className="inline-block bg-[color:var(--brand-primary-soft)] text-[color:var(--brand-primary)] rounded-full px-3 py-1 text-sm font-semibold">
           Free &amp; No Login Required
         </span>
       </div>
-    </section>
+    </SectionContainer>
   );
 }

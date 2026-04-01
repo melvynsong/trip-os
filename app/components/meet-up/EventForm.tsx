@@ -1,7 +1,9 @@
 "use client";
 
+
 import { useState } from 'react';
 import { MeetUpInput } from '../../../lib/meet-up/types';
+import { Typography } from '../../design-system/Typography';
 
 const THEMES = [
   'Japanese',
@@ -43,10 +45,13 @@ export default function EventForm({ onPlan, loading }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl shadow mb-8 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-8 space-y-4">
+      <Typography as="h2" variant="sectionTitle" className="mb-2 text-[color:var(--brand-primary)] text-left">
+        Event Details
+      </Typography>
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
-          <label className="block font-medium mb-1">Event Name</label>
+          <Typography as="label" variant="label" className="block mb-1 text-left">Event Name</Typography>
           <input
             className="input"
             type="text"
@@ -58,7 +63,7 @@ export default function EventForm({ onPlan, loading }: Props) {
           />
         </div>
         <div className="flex-1">
-          <label className="block font-medium mb-1">Host</label>
+          <Typography as="label" variant="label" className="block mb-1 text-left">Host</Typography>
           <input
             className="input"
             type="text"
@@ -71,7 +76,7 @@ export default function EventForm({ onPlan, loading }: Props) {
       </div>
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
-          <label className="block font-medium mb-1">Date</label>
+          <Typography as="label" variant="label" className="block mb-1 text-left">Date</Typography>
           <input
             className="input"
             type="date"
@@ -81,7 +86,7 @@ export default function EventForm({ onPlan, loading }: Props) {
           />
         </div>
         <div className="flex-1">
-          <label className="block font-medium mb-1">Time</label>
+          <Typography as="label" variant="label" className="block mb-1 text-left">Time</Typography>
           <input
             className="input"
             type="time"
@@ -91,7 +96,7 @@ export default function EventForm({ onPlan, loading }: Props) {
           />
         </div>
         <div className="flex-1">
-          <label className="block font-medium mb-1">Pax</label>
+          <Typography as="label" variant="label" className="block mb-1 text-left">Pax</Typography>
           <input
             className="input"
             type="number"
@@ -104,7 +109,7 @@ export default function EventForm({ onPlan, loading }: Props) {
         </div>
       </div>
       <div>
-        <label className="block font-medium mb-1">Location</label>
+        <Typography as="label" variant="label" className="block mb-1 text-left">Location</Typography>
         <input
           className="input"
           type="text"
@@ -115,7 +120,7 @@ export default function EventForm({ onPlan, loading }: Props) {
         />
       </div>
       <div>
-        <label className="block font-medium mb-1">Theme</label>
+        <Typography as="label" variant="label" className="block mb-1 text-left">Theme</Typography>
         <select
           className="input"
           value={theme}
@@ -128,7 +133,7 @@ export default function EventForm({ onPlan, loading }: Props) {
         </select>
       </div>
       <div>
-        <label className="block font-medium mb-1">Notes</label>
+        <Typography as="label" variant="label" className="block mb-1 text-left">Notes</Typography>
         <textarea
           className="input"
           value={notes}
@@ -139,7 +144,7 @@ export default function EventForm({ onPlan, loading }: Props) {
       </div>
       <button
         type="submit"
-        className="btn btn-primary w-full mt-2"
+        className="btn w-full bg-[color:var(--brand-primary)] text-white hover:bg-[color:var(--brand-primary-hover)] font-semibold py-2 rounded transition mt-2"
         disabled={loading}
       >
         {loading ? 'Planning...' : 'Generate Plan'}
