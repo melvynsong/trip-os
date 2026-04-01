@@ -123,23 +123,6 @@ function WeatherCardShell({
     </Card>
   )
 
-export default function TripWeatherSection({
-  destination,
-  startDate,
-  endDate,
-  tripId,
-}: TripWeatherSectionProps) {
-  const { loading, error, payload } = useWeather({
-    destination,
-    startDate,
-    endDate,
-    tripId,
-  })
-
-  if (loading) {
-    return <WeatherLoadingSkeleton />
-  }
-
   if (error) {
     return (
       <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
