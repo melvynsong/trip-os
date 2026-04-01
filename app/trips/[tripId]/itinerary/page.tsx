@@ -152,7 +152,13 @@ export default async function ItineraryPage({ params }: Props) {
   let weatherByDate: Record<string, any> = {}
   if (trip && days && days.length > 0) {
     try {
-      weatherByDate = await fetchTripWeather(trip.destination, trip.start_date, trip.end_date)
+      weatherByDate = await fetchTripWeather(
+        trip.destination,
+        trip.start_date,
+        trip.end_date,
+        (trip as any).latitude,
+        (trip as any).longitude
+      )
     } catch (err) {
       // Already logged in helper, but log here for clarity
       console.error('[Itinerary] Weather fetch failed:', err)

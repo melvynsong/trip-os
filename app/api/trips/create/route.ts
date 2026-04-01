@@ -106,15 +106,23 @@ export async function POST(request: Request) {
       )
     }
 
+    // Get primary destination coordinates if available
+    let latitude = null, longitude = null;
+    if (destinations.length > 0 && destinations[0].lat != null && destinations[0].lng != null) {
+      latitude = destinations[0].lat;
+      longitude = destinations[0].lng;
+    }
     const { data: createdTrip, error: insertError } = await supabase
       .from('trips')
       .insert({
-      user_id: user.id,
-      title,
-      destination,
-      start_date: startDate,
-      end_date: endDate,
-    })
+        user_id: user.id,
+        title,
+        destination,
+        start_date: startDate,
+        end_date: endDate,
+        latitude,
+        longitude,
+      })
       .select('id')
       .single<{ id: string }>()
 

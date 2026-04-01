@@ -48,6 +48,9 @@ export async function GET(request: Request) {
     const startDate = String(searchParams.get('startDate') || '').trim()
     const endDate = String(searchParams.get('endDate') || '').trim()
 
+    // Debug: Log incoming weather API request
+    console.info('[WeatherAPI] Request:', { destination, startDate, endDate })
+
     if (!destination) {
       return NextResponse.json({ error: 'Destination is required.' }, { status: 400 })
     }
@@ -72,7 +75,17 @@ export async function GET(request: Request) {
     }
 
     const modeSelection = selectWeatherMode(startDate)
-    const geocoded = await geocodeDestination(destination)
+    let geocoded
+    try {
+      geocoded = await geocodeDestination(destination)
+    } catch (err) {
+      // Debug: Log geocoding failure
+      console.error('[WeatherAPI] Geocoding failed:', { destination, error: err })
+      if (err instanceof WeatherProviderError && err.code === 'destination_not_found') {
+        return NextResponse.json({ error: 'Could not find that destination.' }, { status: 404 })
+      }
+      throw err
+    }
     const locationLabel = buildLocationLabel(geocoded.name, geocoded.region, geocoded.country)
 
     // ------------------------------------------------------------------

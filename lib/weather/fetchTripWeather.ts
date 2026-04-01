@@ -10,18 +10,22 @@ import { transformOpenMeteoDailyForecast, filterForecastByDateRange } from './tr
 export async function fetchTripWeather(
   destination: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  latitude?: number | null,
+  longitude?: number | null
 ): Promise<Record<string, WeatherDay>> {
   if (!destination || !startDate || !endDate) return {}
   try {
-    // Geocode destination to lat/lon
-    const geo = await geocodeDestination(destination)
-    if (!geo || !geo.latitude || !geo.longitude) {
-      // Graceful fallback: skip weather if geocode fails
-      return {}
+    let lat = latitude, lng = longitude;
+    if (lat == null || lng == null) {
+      // fallback: geocode
+      const geo = await geocodeDestination(destination)
+      lat = geo.latitude
+      lng = geo.longitude
     }
+    if (lat == null || lng == null) return {}
     // Fetch forecast from Open-Meteo
-    const forecast = await fetchOpenMeteoDailyForecast(geo.latitude, geo.longitude, startDate, endDate)
+    const forecast = await fetchOpenMeteoDailyForecast(lat, lng, startDate, endDate)
     const days = transformOpenMeteoDailyForecast(forecast)
     const filtered = filterForecastByDateRange(days, startDate, endDate)
     // Map by date
