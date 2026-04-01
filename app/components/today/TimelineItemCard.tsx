@@ -1,4 +1,5 @@
 'use client'
+import React from 'react';
 
 
 import { getEmoji } from '@/lib/utils/getEmoji'
