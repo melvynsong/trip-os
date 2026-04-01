@@ -33,7 +33,6 @@ export default function InvitationCard({ input, plan }: Props) {
         </Typography>
       )}
       </div>
-    </div>
-    </div>
+      </div>
   );
 }
