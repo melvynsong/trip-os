@@ -468,10 +468,7 @@ export default function TodayView({
           tripId={tripId}
           items={items}
           actingIds={actingIds}
-          onToggleDone={handleToggleDone}
           onDelete={handleDelete}
-          onMoveUp={handleMoveUp}
-          onMoveDown={handleMoveDown}
         />
       </div>
 
