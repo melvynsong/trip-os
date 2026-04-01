@@ -21,7 +21,7 @@ export default function TripHeroCard({
 }: TripHeroCardProps) {
   return (
     <Card className="overflow-hidden border border-[var(--border-soft)] p-0 shadow-[0_14px_40px_rgba(20,33,61,0.16)]">
-      <div className="relative bg-[linear-gradient(135deg,#703CEC,#9093F3)] px-5 py-6 text-white sm:px-6">
+      <div className="relative bg-[linear-gradient(135deg,#E74646,#EB8888)] px-5 py-6 text-white sm:px-6">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/80">Trip Dashboard</p>
         <h1 className="mt-2 text-3xl font-semibold leading-tight">{destination}</h1>
         <p className="mt-1 text-sm text-white/90">{dateRangeLabel}</p>
