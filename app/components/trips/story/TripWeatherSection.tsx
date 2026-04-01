@@ -103,34 +103,6 @@ export default function TripWeatherSection({ destination, startDate, endDate, tr
   )
 }
 
-function WeatherCardShell({ payload, children }: { payload: WeatherApiResponse; children: React.ReactNode }) {
-  return (
-    <Card className="space-y-5 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <ConfidenceBadge mode={payload.mode} />
-        <h2 className="text-xl font-serif text-[var(--text-strong)]">{payload.locationLabel}</h2>
-      </div>
-
-      {/* Context note for non-forecast modes */}
-      {payload.contextNote ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-5 text-amber-800">
-          {payload.contextNote}
-        </div>
-      ) : null}
-
-      {/* Summary */}
-      <div className="rounded-xl border border-[var(--brand-primary)]/20 bg-[var(--brand-primary-soft)] px-4 py-3.5">
-        <p className="text-sm font-semibold text-[var(--text-strong)]">{payload.summary.headline}</p>
-        {payload.summary.note ? (
-          <p className="mt-1.5 text-xs text-[var(--text-subtle)]">{payload.summary.note}</p>
-        ) : null}
-      </div>
-
-      {children}
-    </Card>
-  )
-}
 
 function WeatherCardShell({
   payload,
