@@ -39,11 +39,13 @@ export default function StoryPreviewCard({ title, content }: StoryPreviewCardPro
   // Purple gradient example: use for London cards
   // <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#6D28D9,#A78BFA,#E0C3FC)] p-5 shadow-[0_18px_50px_rgba(109,40,217,0.12)] sm:p-6">
 
-  // TODO: If you want to conditionally render the purple gradient only for London, add a prop or logic here.
+  // TODO: If you want to conditionally render the purple or orange gradient, add a prop or logic here.
   // For now, apply the purple gradient as the default for visual validation.
+  // Purple: #703CEC (dark) to #9093F3 (light)
+  // Orange: #E74646 (dark) to #EB8888 (light)
   return (
-    <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#6D28D9,#A78BFA,#E0C3FC)] p-5 shadow-[0_18px_50px_rgba(109,40,217,0.12)] sm:p-6">
-      <div className="absolute left-0 top-0 h-24 w-24 rounded-full bg-purple-200/25 blur-2xl" />
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(135deg,#703CEC,#9093F3)] p-5 shadow-[0_18px_50px_rgba(112,60,236,0.12)] sm:p-6">
+      <div className="absolute left-0 top-0 h-24 w-24 rounded-full bg-[#703CEC]/25 blur-2xl" />
       <button
         onClick={handleCopy}
         className="absolute right-4 top-4 z-10 flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm backdrop-blur transition-all hover:bg-white active:scale-95"
