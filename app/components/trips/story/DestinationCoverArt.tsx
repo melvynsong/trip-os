@@ -34,11 +34,11 @@ export default function DestinationCoverArt({
   dark?: boolean
 }) {
 
-  // Only show the label and title, no initials circle, and reduce top space
+  // Remove all absolute positioning and extra spacing so label sits flush with the top
   return (
-    <div aria-hidden className="absolute inset-0 overflow-hidden">
+    <div aria-hidden>
       {showLabel ? (
-        <div className={`absolute ${compact ? 'bottom-3 left-4 right-4' : 'bottom-2 left-6 right-6'} flex items-end gap-4`}>
+        <div className={`flex items-start gap-2 px-4 pt-2`}> 
           <div className="min-w-0">
             <p className={`font-medium uppercase tracking-[0.2em] ${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-subtle)] m-0 p-0`}>
               {destination || 'Travel story'}
