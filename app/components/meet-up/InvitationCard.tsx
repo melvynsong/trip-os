@@ -1,5 +1,5 @@
 import { MeetUpInput, MeetUpPlan } from '../../../lib/meet-up/types';
-import { Typography } from '../../design-system/Typography';
+import { Typography } from '../../components/design-system/Typography';
 
 type Props = { input: MeetUpInput; plan: MeetUpPlan };
 

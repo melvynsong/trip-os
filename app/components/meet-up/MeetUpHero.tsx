@@ -1,5 +1,5 @@
-import { Typography } from '../../design-system/Typography';
-import { SectionContainer } from '../../design-system/SectionContainer';
+import { Typography } from '../../components/design-system/Typography';
+import { SectionContainer } from '../../components/design-system/SectionContainer';
 
 export default function MeetUpHero() {
   return (

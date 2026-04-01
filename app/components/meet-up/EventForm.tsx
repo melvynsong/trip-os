@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { MeetUpInput } from '../../../lib/meet-up/types';
-import { Typography } from '../../design-system/Typography';
+import { Typography } from '../../components/design-system/Typography';
 
 const THEMES = [
   'Japanese',
