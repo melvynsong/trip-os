@@ -20,32 +20,34 @@ export default function TripHeroCard({
   shareButton,
 }: TripHeroCardProps) {
   return (
-    <Card className="overflow-hidden border border-[var(--border-soft)] p-0 shadow-[0_14px_40px_rgba(20,33,61,0.16)]">
-      <div className="relative bg-[linear-gradient(135deg,#E74646,#EB8888)] px-5 py-6 text-white sm:px-6">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/80">Trip Dashboard</p>
-        <h1 className="mt-2 text-3xl font-semibold leading-tight">{destination}</h1>
-        <p className="mt-1 text-sm text-white/90">{dateRangeLabel}</p>
-        <p className="mt-4 text-sm text-white/85">{tripTitle}</p>
-        <div className="mt-2 inline-flex items-center rounded-full border border-white/35 bg-white/18 px-3 py-1 text-sm">
-          🏨 {hotel || 'Hotel not added yet'}
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Link
-            href={`/trips/${tripId}/today`}
-            className={buttonClass({
-              variant: 'secondary',
-              className:
-                '!border-white/70 !bg-white !text-[var(--text-strong)] hover:!bg-[#f1f4fb] active:!bg-[#e6ebf8]',
-            })}
-          >
-            View Today
-          </Link>
-          <Link href={`/trips/${tripId}/itinerary`} className={buttonClass({ variant: 'secondary', className: 'border-white/45 bg-white/10 text-white hover:bg-white/20 active:bg-white/25' })}>
-            Open Itinerary
-          </Link>
-          {shareButton}
-        </div>
+    <Card className="overflow-hidden border border-[var(--border-soft)] p-0 shadow-[0_14px_40px_rgba(20,33,61,0.10)] bg-white">
+      <div className="px-6 py-7 bg-[#E74646] text-white">
+        <div className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80 mb-1">Trip Dashboard</div>
+        <h1 className="text-3xl font-bold leading-tight mb-1">{destination}</h1>
+        <div className="text-sm opacity-90 mb-2">{dateRangeLabel}</div>
+        <div className="text-base opacity-85 mb-2">{tripTitle}</div>
+        <div className="text-sm opacity-90">🏨 {hotel || 'Hotel not added yet'}</div>
+      </div>
+      <div className="flex flex-wrap gap-3 px-6 py-4 bg-white">
+        <Link
+          href={`/trips/${tripId}/today`}
+          className={buttonClass({
+            variant: 'secondary',
+            className: 'border-[#E74646] text-[#E74646] bg-white hover:bg-[#fbeaea] active:bg-[#f6d6d6] font-semibold',
+          })}
+        >
+          View Today
+        </Link>
+        <Link
+          href={`/trips/${tripId}/itinerary`}
+          className={buttonClass({
+            variant: 'primary',
+            className: 'bg-[#E74646] text-white border-[#E74646] hover:bg-[#eb8888] active:bg-[#e74646]/90 font-semibold',
+          })}
+        >
+          Open Itinerary
+        </Link>
+        {shareButton}
       </div>
     </Card>
   )
