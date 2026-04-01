@@ -1,4 +1,5 @@
 
+import React from 'react';
 import Link from 'next/link'
 import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
