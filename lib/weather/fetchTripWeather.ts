@@ -14,7 +14,8 @@ export async function fetchTripWeather(
   latitude?: number | null,
   longitude?: number | null
 ): Promise<Record<string, WeatherDay>> {
-  if (!destination || !startDate || !endDate) return {}
+  // Only fetch weather if destination is a non-empty string
+  if (!destination || typeof destination !== 'string' || !destination.trim() || !startDate || !endDate) return {}
   try {
     let lat = latitude, lng = longitude;
     if (lat == null || lng == null) {
