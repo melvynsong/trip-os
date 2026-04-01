@@ -54,7 +54,7 @@ export default function SavedStoryCard({ story }: SavedStoryCardProps) {
 
   return (
     <article className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-[0_18px_50px_rgba(41,31,24,0.05)]">
-      <div className="border-b border-stone-100 bg-[linear-gradient(180deg,rgba(248,242,233,0.85),rgba(255,255,255,0.82))] px-5 py-5 sm:px-6">
+      <div className="border-b border-stone-100 bg-[linear-gradient(135deg,#703CEC,#9093F3)] px-5 py-5 sm:px-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-3">
             <div className="flex flex-wrap gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">
