@@ -34,17 +34,17 @@ export default function DestinationCoverArt({
   dark?: boolean
 }) {
 
-  // Remove all absolute positioning and extra spacing so label sits flush with the top
+  // Remove all extra spacing so label sits flush with the top, and reduce gap below
   return (
     <div aria-hidden>
       {showLabel ? (
-        <div className={`flex items-start gap-2 px-4 pt-2`}> 
+        <div className={`flex items-start gap-2 px-4 pt-1 pb-1`}> 
           <div className="min-w-0">
             <p className={`font-medium uppercase tracking-[0.2em] ${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-subtle)] m-0 p-0`}>
               {destination || 'Travel story'}
             </p>
             {title ? (
-              <p className={`mt-1 max-w-[14rem] truncate font-serif ${compact ? 'text-base' : 'text-2xl'} text-[var(--text-strong)] m-0 p-0`}>
+              <p className={`mt-0.5 max-w-[14rem] truncate font-serif ${compact ? 'text-base' : 'text-2xl'} text-[var(--text-strong)] m-0 p-0`}>
                 {title}
               </p>
             ) : null}

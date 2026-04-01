@@ -79,6 +79,8 @@ export default function TripCard({ trip, onDeleteTrip, canDelete }: TripCardProp
             dark={isPrimaryUpcoming}
           />
         ) : null}
+        {/* Reduce space below header area */}
+        <div className="h-1" />
       </div>
 
       <div className="relative z-10 space-y-5 p-6">
