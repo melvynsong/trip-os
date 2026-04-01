@@ -12,7 +12,7 @@ import { transformActivitiesForTimeline } from '@/lib/trips/timeline-shared'
 import { Day as DayType, Activity, ActivityType } from '@/types/trip'
 import { format, parseISO } from 'date-fns'
 import { DayWeatherSummary } from '@/app/components/itinerary/DayWeatherSummary'
-import type { WeatherDay } from '@/lib/weather/weather-service'
+import type { WeatherDay } from '@/lib/weather/types'
 
 type DayCardDay = Pick<DayType, 'id' | 'trip_id' | 'day_number' | 'date' | 'title'>
 
