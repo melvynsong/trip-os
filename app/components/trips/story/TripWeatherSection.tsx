@@ -221,17 +221,4 @@ function WeatherCardShell({
       <PeriodConditionsBlock conditions={payload.periodConditions} />
     </WeatherCardShell>
   )
-
-        if (!payload) {
-          return (
-            <Card className="space-y-4 rounded-[2rem] border-[var(--border-soft)] bg-white p-6">
-              <EmptyState
-                title="No weather data"
-                description="Data will appear closer to your travel dates."
-                className="p-5 text-sm"
-              />
-            </Card>
-          )
-        }
-
-        // ...existing code...
+}
