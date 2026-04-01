@@ -9,6 +9,8 @@ export type Trip = {
   notes: string | null
   created_at: string
   updated_at: string
+  latitude: number | null
+  longitude: number | null
 }
 
 export type Day = {
