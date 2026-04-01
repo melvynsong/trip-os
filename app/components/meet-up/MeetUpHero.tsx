@@ -27,6 +27,6 @@ export default function MeetUpHero() {
         </span>
       </div>
     </section>
-  }
+    }
   );
 }
