@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { fetchHistoricalWeather, fetchOpenMeteoDailyForecast, geocodeDestination } from '@/lib/weather/openMeteo'
 import {
   buildPeriodWeatherSummary,
@@ -47,6 +48,7 @@ export async function GET(request: Request) {
     const destination = String(searchParams.get('destination') || '').trim()
     const startDate = String(searchParams.get('startDate') || '').trim()
     const endDate = String(searchParams.get('endDate') || '').trim()
+    const tripId = searchParams.get('tripId')?.toString() || null
 
     // Debug: Log incoming weather API request
     console.info('[WeatherAPI] Request:', { destination, startDate, endDate })
@@ -91,41 +93,99 @@ export async function GET(request: Request) {
     // ------------------------------------------------------------------
     // FORECAST mode — real daily weather from Open-Meteo forecast API
     // ------------------------------------------------------------------
-    if (modeSelection.mode === 'forecast') {
-      let rawForecast
+    if (modeSelection.mode === 'forecast' || modeSelection.mode === 'outlook' || modeSelection.mode === 'climate') {
+      let rawForecast = null;
+      let days: any[] = [];
+      let summary = null;
+      let mode = modeSelection.mode;
+      let periodConditions = null;
 
-      try {
-        rawForecast = await fetchOpenMeteoDailyForecast(
-          geocoded.latitude,
-          geocoded.longitude,
-          startDate,
-          endDate
+      if (mode === 'forecast') {
+        try {
+          rawForecast = await fetchOpenMeteoDailyForecast(
+            geocoded.latitude,
+            geocoded.longitude,
+            startDate,
+            endDate
+          )
+        } catch (error) {
+          if (error instanceof WeatherProviderError && error.code === 'no_forecast_for_dates') {
+            return NextResponse.json(
+              emptyResponse(
+                locationLabel,
+                'Forecast unavailable for these dates',
+                'Try checking closer to your trip or confirm your travel dates.'
+              )
+            )
+          }
+          throw error
+        }
+        const transformedDays = transformOpenMeteoDailyForecast(rawForecast)
+        days = filterForecastByDateRange(transformedDays, startDate, endDate)
+        summary = buildTripWeatherSummary(days)
+      } else {
+        // OUTLOOK / CLIMATE modes — derive typical conditions from historical data
+        const yearsToFetch = modeSelection.historicalYears
+        const archiveResults = await Promise.allSettled(
+          Array.from({ length: yearsToFetch }, (_, i) => {
+            const yearOffset = i + 1
+            const { start, end } = shiftDateRangeByYears(startDate, endDate, yearOffset)
+            return fetchHistoricalWeather(geocoded.latitude, geocoded.longitude, start, end)
+          })
         )
-      } catch (error) {
-        if (error instanceof WeatherProviderError && error.code === 'no_forecast_for_dates') {
+        const periodConditionsList = archiveResults
+          .filter(
+            (r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchHistoricalWeather>>> =>
+              r.status === 'fulfilled'
+          )
+          .map((r) => transformArchiveToPeriodConditions(r.value))
+          .filter((c): c is NonNullable<typeof c> => c !== null)
+        if (periodConditionsList.length === 0) {
           return NextResponse.json(
             emptyResponse(
               locationLabel,
-              'Forecast unavailable for these dates',
-              'Try checking closer to your trip or confirm your travel dates.'
+              'Typical conditions unavailable',
+              'We could not retrieve historical data for this destination right now.'
             )
           )
         }
-        throw error
+        periodConditions = mergeHistoricalConditions(periodConditionsList)
+        summary = buildPeriodWeatherSummary(periodConditions)
       }
 
-      const transformedDays = transformOpenMeteoDailyForecast(rawForecast)
-      const days = filterForecastByDateRange(transformedDays, startDate, endDate)
-      const summary = buildTripWeatherSummary(days)
+      // Upsert weather data for each day if tripId is provided
+      if (tripId && days.length > 0) {
+        const supabase = await createClient()
+        // Fetch all days for this trip in one query
+        const { data: tripDays, error: tripDaysError } = await supabase
+          .from('days')
+          .select('id, date')
+          .eq('trip_id', tripId)
+        if (!tripDaysError && Array.isArray(tripDays)) {
+          const dayIdMap = new Map(tripDays.map((d: any) => [d.date, d.id]))
+          for (const day of days) {
+            const day_id = dayIdMap.get(day.date)
+            if (!day_id) continue
+            await supabase.from('weather').upsert({
+              day_id,
+              date: day.date,
+              temperature_min: day.minTempC,
+              temperature_max: day.maxTempC,
+              weather_code: day.conditionCode,
+              summary: day.conditionLabel,
+            }, { onConflict: ['day_id', 'date'] })
+          }
+        }
+      }
 
       const response: WeatherApiResponse = {
-        mode: 'forecast',
+        mode,
         confidenceLabel: modeSelection.confidenceLabel,
-        contextNote: null,
+        contextNote: modeSelection.contextNote || null,
         locationLabel,
-        summary,
-        days,
-        periodConditions: null,
+        summary: summary!,
+        days: mode === 'forecast' ? days : [],
+        periodConditions: periodConditions,
       }
       return NextResponse.json(response)
     }

@@ -10,6 +10,7 @@ type TripWeatherSectionProps = {
   destination: string
   startDate: string
   endDate: string
+  tripId?: string
 }
 
 function formatDisplayDate(date: string) {
@@ -123,15 +124,16 @@ function WeatherCardShell({
   )
 }
 
-export default function TripWeatherSection({
   destination,
   startDate,
   endDate,
+  tripId,
 }: TripWeatherSectionProps) {
   const { loading, error, payload } = useWeather({
     destination,
     startDate,
     endDate,
+    tripId,
   })
 
   if (loading) {

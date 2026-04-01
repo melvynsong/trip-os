@@ -7,6 +7,7 @@ type WeatherDataProviderProps = {
   destination: string
   startDate: string
   endDate: string
+  tripId?: string
   children: React.ReactNode
 }
 
@@ -18,12 +19,14 @@ export function WeatherDataProvider({
   destination,
   startDate,
   endDate,
+  tripId,
   children,
 }: WeatherDataProviderProps) {
   const { payload } = useWeather({
     destination,
     startDate,
     endDate,
+    tripId,
   })
 
   return (

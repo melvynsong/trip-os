@@ -7,6 +7,7 @@ type UseWeatherOptions = {
   destination: string
   startDate: string
   endDate: string
+  tripId?: string
 }
 
 type UseWeatherReturn = {
@@ -19,6 +20,7 @@ export function useWeather({
   destination,
   startDate,
   endDate,
+  tripId,
 }: UseWeatherOptions): UseWeatherReturn {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,8 +28,9 @@ export function useWeather({
 
   const query = useMemo(() => {
     const params = new URLSearchParams({ destination, startDate, endDate })
+    if (tripId) params.set('tripId', tripId)
     return params.toString()
-  }, [destination, startDate, endDate])
+  }, [destination, startDate, endDate, tripId])
 
   useEffect(() => {
     let cancelled = false

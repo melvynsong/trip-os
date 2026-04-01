@@ -7,6 +7,7 @@ import DayCard from '@/app/components/itinerary/DayCard'
 import { fetchTripWeather } from '@/lib/weather/fetchTripWeather'
 import WhatsAppShareSheet from '@/app/components/share/WhatsAppShareSheet'
 import TripHeader from '@/app/components/trips/TripHeader'
+import TripWeatherSection from '@/app/components/trips/story/TripWeatherSection'
 import TripPageShell from '@/app/components/trips/TripPageShell'
 import { buttonClass } from '@/app/components/ui/Button'
 import { resolvePlaceType } from '@/lib/places'
@@ -248,7 +249,6 @@ export default async function ItineraryPage({ params }: Props) {
   // Main page render
   return (
     <TripPageShell className="space-y-8">
-      {/* Debug Info removed for production. If troubleshooting is needed, check server logs. */}
       <TripHeader
         dateRange={`${trip.start_date} → ${trip.end_date}`}
         title={trip.title}
@@ -300,6 +300,13 @@ export default async function ItineraryPage({ params }: Props) {
             />
           </>
         }
+      />
+      {/* Weather summary for the trip */}
+      <TripWeatherSection
+        destination={trip.destination}
+        startDate={trip.start_date}
+        endDate={trip.end_date}
+        tripId={trip.id}
       />
       <div className="space-y-6">
         {days.map((day) => {
