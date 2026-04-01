@@ -44,9 +44,19 @@ export default function DayCard({
   day,
   activities,
   flights = [],
-  moveActivityAction,
   weather = null,
 }: DayCardProps) {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[ITINERARY_DEBUG][ITINERARY_PAGE_LOADED]', {
+        tripId,
+        dayId: day.id,
+        activityCount: activities.length,
+        timestamp: new Date().toISOString(),
+        pageSource: 'itinerary',
+      });
+    }
+  }, [tripId, day.id, activities.length]);
 
   const normalizedDayTitle =
     day.title && !new RegExp(`^\s*day\s*${day.day_number}\b`, 'i').test(day.title)
@@ -168,23 +178,27 @@ export default function DayCard({
           {sections.map((section) => (
             <TimeOfDaySection key={section.key} label={section.label}>
               {section.items.map((item) => {
-                const globalIndex = orderedItems.indexOf(item)
-                const key =
-                  item.kind === 'activity'
-                    ? item.activity.id
-                    : item.activity.id
-
+                const key = item.activity.id;
                 return (
                   <ItineraryActivityRenderer
                     key={key}
                     tripId={tripId}
                     dayId={day.id}
                     item={item}
-                    canMoveUp={item.kind === 'activity' ? globalIndex > 0 : false}
-                    canMoveDown={item.kind === 'activity' ? globalIndex < orderedItems.length - 1 : false}
-                    moveActivityAction={moveActivityAction}
+                    onDelete={(activityId) => {
+                      if (typeof window !== 'undefined') {
+                        console.log('[UI_ACTION][DELETE_ACTIVITY_CLICKED]', {
+                          tripId,
+                          dayId: day.id,
+                          activityId,
+                          timestamp: new Date().toISOString(),
+                          pageSource: 'itinerary',
+                        });
+                      }
+                      // TODO: implement actual delete logic
+                    }}
                   />
-                )
+                );
               })}
             </TimeOfDaySection>
           ))}

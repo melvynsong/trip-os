@@ -21,13 +21,8 @@ export type TodayItem = Pick<
 type TimelineItemCardProps = {
   tripId: string
   item: TodayItem
-  canMoveUp: boolean
-  canMoveDown: boolean
   isActing: boolean
-  onToggleDone: (item: TodayItem) => void
   onDelete: (item: TodayItem) => void
-  onMoveUp: (item: TodayItem) => void
-  onMoveDown: (item: TodayItem) => void
 }
 
 function formatTime(t: string) {
@@ -38,85 +33,29 @@ function formatTime(t: string) {
 }
 
 
-export default function TimelineItemCard({
-  tripId,
-  item,
-  canMoveUp,
-  canMoveDown,
-  isActing,
-  onToggleDone,
-  onDelete,
-  onMoveUp,
-  onMoveDown,
-}: TimelineItemCardProps) {
-  const isDone = item.status === 'done';
+export default function TimelineItemCard({ tripId, item, isActing, onDelete }: TimelineItemCardProps) {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[UI_ACTION][ACTIVITY_CARD_RENDERED]', {
+        tripId,
+        dayId: item.day_id,
+        activityId: item.id,
+        activityTitle: item.title,
+        timestamp: new Date().toISOString(),
+        pageSource: typeof window !== 'undefined' && window.location.pathname.includes('today') ? 'today' : 'itinerary',
+      });
+    }
+  }, [tripId, item]);
 
   // If this is a flight, use the shared rich flight card
   if (isFlightActivity(item)) {
-    // Debug logging for flight activities
-    if (typeof window !== 'undefined') {
-      // eslint-disable-next-line no-console
-      console.log('[TodayDebug] activity:', {
-        id: item.id,
-        type: item.type,
-        hasMetadata: !!item.metadata,
-        metadataKeys: item.metadata ? Object.keys(item.metadata) : [],
-        metadata: item.metadata,
-      });
-    }
-    // getFlightDisplayModel expects full Activity, but TodayItem is a subset; fallback to item if not enough data
     const flightModel = getFlightDisplayModel(item as any) || item;
-    if (typeof window !== 'undefined') {
-      // eslint-disable-next-line no-console
-      console.log('[TodayDebug] extracted flightModel:', flightModel);
-    }
     return (
-      <div className={isDone ? 'opacity-70' : ''}>
+      <div>
         <FlightJourneyCard
           activity={flightModel}
-          // Only show delete if not acting
           onDelete={isActing ? undefined : () => onDelete(item)}
         />
-        {/* Today-specific actions: done, move up/down, remove */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => onToggleDone(item)}
-            disabled={isActing}
-            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
-              isDone
-                ? 'border-green-500 bg-green-500 text-white'
-                : 'border-slate-300 hover:border-emerald-400'
-            } disabled:cursor-not-allowed`}
-            title={isDone ? 'Mark incomplete' : 'Mark done'}
-          >
-            {isDone && (
-              <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
-                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </button>
-          <button
-            onClick={() => onMoveUp(item)}
-            disabled={!canMoveUp || isActing}
-            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-slate-50/70 px-2.5 text-xs text-slate-700 hover:bg-sky-50/70' })}
-          >
-            ↑
-          </button>
-          <button
-            onClick={() => onMoveDown(item)}
-            disabled={!canMoveDown || isActing}
-            className={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-slate-50/70 px-2.5 text-xs text-slate-700 hover:bg-sky-50/70' })}
-          >
-            ↓
-          </button>
-          <button
-            onClick={() => onDelete(item)}
-            disabled={isActing}
-            className={buttonClass({ size: 'sm', variant: 'ghost', className: 'ml-auto h-8 rounded-full px-2.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-600' })}
-          >
-            Remove
-          </button>
-        </div>
       </div>
     );
   }
@@ -147,14 +86,20 @@ export default function TimelineItemCard({
         )}
 
         <ActionRow
-          isDone={isDone}
           isActing={isActing}
-          canMoveUp={canMoveUp}
-          canMoveDown={canMoveDown}
-          onToggleDone={() => onToggleDone(item)}
-          onMoveUp={() => onMoveUp(item)}
-          onMoveDown={() => onMoveDown(item)}
-          onDelete={() => onDelete(item)}
+          onDelete={() => {
+            if (typeof window !== 'undefined') {
+              console.log('[UI_ACTION][DELETE_ACTIVITY_CLICKED]', {
+                tripId,
+                dayId: item.day_id,
+                activityId: item.id,
+                activityTitle: item.title,
+                timestamp: new Date().toISOString(),
+                pageSource: typeof window !== 'undefined' && window.location.pathname.includes('today') ? 'today' : 'itinerary',
+              });
+            }
+            onDelete(item);
+          }}
         />
       </div>
     </Card>

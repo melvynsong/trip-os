@@ -19,19 +19,10 @@ type ItineraryActivityRendererProps = {
   tripId: string;
   dayId: string;
   item: ItineraryTimelineItem;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  moveActivityAction: (formData: FormData) => Promise<void>;
+  onDelete: (activityId: string) => void;
 };
 
-export default function ItineraryActivityRenderer({
-  tripId,
-  dayId,
-  item,
-  canMoveUp,
-  canMoveDown,
-  moveActivityAction,
-}: ItineraryActivityRendererProps) {
+export default function ItineraryActivityRenderer({ tripId, dayId, item, onDelete }: ItineraryActivityRendererProps) {
   const activity = item.activity;
   const isFlight = isFlightActivity(activity);
   let chosenRenderer = 'generic';
@@ -81,9 +72,7 @@ export default function ItineraryActivityRenderer({
     <ActivityCard
       tripId={tripId}
       activity={activity}
-      canMoveUp={canMoveUp}
-      canMoveDown={canMoveDown}
-      moveActivityAction={moveActivityAction}
+      onDelete={onDelete}
     />
   );
 }

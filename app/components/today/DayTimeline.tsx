@@ -18,15 +18,17 @@ type DayTimelineProps = {
   onMoveDown: (item: TodayItem) => void
 }
 
-export default function DayTimeline({
-  tripId,
-  items,
-  actingIds,
-  onToggleDone,
-  onDelete,
-  onMoveUp,
-  onMoveDown,
-}: DayTimelineProps) {
+export default function DayTimeline({ tripId, items, actingIds, onDelete }: { tripId: string, items: TodayItem[], actingIds: Set<string>, onDelete: (item: TodayItem) => void }) {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[ITINERARY_DEBUG][TODAY_PAGE_LOADED]', {
+        tripId,
+        activityCount: items.length,
+        timestamp: new Date().toISOString(),
+        pageSource: 'today',
+      });
+    }
+  }, [tripId, items.length]);
   if (items.length === 0) {
     return (
       <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50/70 p-10 text-center text-slate-500">
@@ -68,9 +70,19 @@ export default function DayTimeline({
                   tripId={tripId}
                   dayId={item.day_id}
                   item={{ kind: 'activity', activity: itineraryActivity, originalIndex: globalIdx, sortMinutes: null }}
-                  canMoveUp={globalIdx > 0}
-                  canMoveDown={globalIdx < allSorted.length - 1}
-                  moveActivityAction={async () => {}}
+                  onDelete={() => {
+                    if (typeof window !== 'undefined') {
+                      console.log('[UI_ACTION][DELETE_ACTIVITY_CLICKED]', {
+                        tripId,
+                        dayId: item.day_id,
+                        activityId: item.id,
+                        activityTitle: item.title,
+                        timestamp: new Date().toISOString(),
+                        pageSource: 'today',
+                      });
+                    }
+                    onDelete(item);
+                  }}
                 />
               )
             })}

@@ -18,18 +18,22 @@ type ActivityCardActivity = Pick<
 type ActivityCardProps = {
   tripId: string
   activity: ActivityCardActivity
-  canMoveUp: boolean
-  canMoveDown: boolean
-  moveActivityAction: (formData: FormData) => Promise<void>
+  onDelete: (activityId: string) => void
 }
 
-export default function ActivityCard({
-  tripId,
-  activity,
-  canMoveUp,
-  canMoveDown,
-  moveActivityAction,
-}: ActivityCardProps) {
+export default function ActivityCard({ tripId, activity, onDelete }: ActivityCardProps) {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[UI_ACTION][ACTIVITY_CARD_RENDERED]', {
+        tripId,
+        dayId: activity.day_id,
+        activityId: activity.id,
+        activityTitle: activity.title,
+        timestamp: new Date().toISOString(),
+        pageSource: typeof window !== 'undefined' && window.location.pathname.includes('today') ? 'today' : 'itinerary',
+      });
+    }
+  }, [tripId, activity]);
   return (
     <Card key={activity.id}>
       <div className="flex items-center justify-between gap-3">
@@ -68,18 +72,36 @@ export default function ActivityCard({
           triggerClassName={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
         />
         <ActionRow
-          isDone={false}
           isActing={false}
-          canMoveUp={canMoveUp}
-          canMoveDown={canMoveDown}
-          onToggleDone={() => {}}
-          onMoveUp={() => moveActivityAction(new FormData(Object.assign(document.createElement('form'), { day_id: activity.day_id, activity_id: activity.id, direction: 'up' })))}
-          onMoveDown={() => moveActivityAction(new FormData(Object.assign(document.createElement('form'), { day_id: activity.day_id, activity_id: activity.id, direction: 'down' })))}
-          onDelete={() => {}}
+          onDelete={() => {
+            if (typeof window !== 'undefined') {
+              console.log('[UI_ACTION][DELETE_ACTIVITY_CLICKED]', {
+                tripId,
+                dayId: activity.day_id,
+                activityId: activity.id,
+                activityTitle: activity.title,
+                timestamp: new Date().toISOString(),
+                pageSource: typeof window !== 'undefined' && window.location.pathname.includes('today') ? 'today' : 'itinerary',
+              });
+            }
+            onDelete(activity.id);
+          }}
         />
         <Link
           href={`/trips/${tripId}/itinerary/${activity.day_id}/activities/${activity.id}/edit`}
           className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 rounded-full text-xs text-slate-700 hover:bg-sky-50/70' })}
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              console.log('[UI_ACTION][EDIT_ACTIVITY_CLICKED]', {
+                tripId,
+                dayId: activity.day_id,
+                activityId: activity.id,
+                activityTitle: activity.title,
+                timestamp: new Date().toISOString(),
+                pageSource: typeof window !== 'undefined' && window.location.pathname.includes('today') ? 'today' : 'itinerary',
+              });
+            }
+          }}
         >
           Edit
         </Link>
