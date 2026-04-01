@@ -5,7 +5,9 @@ type Props = { input: MeetUpInput; plan: MeetUpPlan };
 
 export default function InvitationCard({ input, plan }: Props) {
   return (
-    <div className="bg-[color:var(--brand-primary-soft)] border border-[color:var(--brand-primary)] rounded-xl shadow mb-6 p-6 text-center">
+    <div className="relative bg-white/80 backdrop-blur border-2 border-[color:var(--brand-primary)] rounded-2xl shadow-xl mx-auto max-w-lg p-8 text-center overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[color:var(--brand-primary-soft)] via-white/60 to-transparent opacity-80 rounded-2xl" />
+      <div className="relative z-10">
       <Typography as="h2" variant="sectionTitle" className="mb-2 text-[color:var(--brand-primary)]">
         {input.eventName || 'Meet-Up'}
       </Typography>
@@ -30,6 +32,8 @@ export default function InvitationCard({ input, plan }: Props) {
           {input.notes}
         </Typography>
       )}
+      </div>
+    </div>
     </div>
   );
 }

@@ -93,3 +93,8 @@ textarea {
     animation: none !important;
   }
 }
+
+/* Meet-Up gradient background utility */
+.gradient-bg {
+  background: linear-gradient(135deg, #e0e7ff 0%, #fdf6e3 50%, #ffe6d6 100%);
+}

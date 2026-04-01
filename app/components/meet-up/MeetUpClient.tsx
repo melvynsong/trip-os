@@ -1,8 +1,10 @@
 "use client";
 
 
-import { useState } from 'react';
+
+import { useRef, useState } from 'react';
 import MeetUpHero from './MeetUpHero';
+import ExplainerSteps from './ExplainerSteps';
 import EventForm from './EventForm';
 import FoodPlanSummary from './FoodPlanSummary';
 import InvitationCard from './InvitationCard';
@@ -18,6 +20,7 @@ export default function MeetUpClient() {
   const [plan, setPlan] = useState<MeetUpPlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const handlePlan = async (formInput: MeetUpInput) => {
     setInput(formInput);
@@ -40,21 +43,30 @@ export default function MeetUpClient() {
     }
   };
 
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <PageContainer className="py-8">
-      <MeetUpHero />
-      <CardContainer>
-        <EventForm onPlan={handlePlan} loading={loading} />
+    <div className="gradient-bg min-h-screen pb-16">
+      <PageContainer>
+        <MeetUpHero onStart={scrollToForm} />
+        <div className="my-10">
+          <ExplainerSteps />
+        </div>
+        <div ref={formRef} className="my-12">
+          <EventForm onPlan={handlePlan} loading={loading} />
+        </div>
         {loading && <MeetUpLoading />}
         {error && <MeetUpError message={error} />}
         {plan && (
-          <>
-            <FoodPlanSummary plan={plan} />
+          <div className="flex flex-col gap-10 mt-16">
             <InvitationCard input={input!} plan={plan} />
+            <FoodPlanSummary plan={plan} />
             <WhatsAppMessageBox input={input!} plan={plan} />
-          </>
+          </div>
         )}
-      </CardContainer>
-    </PageContainer>
+      </PageContainer>
+    </div>
   );
 }
