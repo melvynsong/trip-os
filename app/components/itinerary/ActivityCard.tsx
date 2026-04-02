@@ -5,7 +5,7 @@ import { Activity as ActivityType } from '@/types/trip'
 import { getEmoji } from '@/lib/utils/getEmoji'
 import StoryGenerationSheet from '@/app/components/story/StoryGenerationSheet'
 import { buttonClass } from '@/app/components/ui/Button'
-// import { ActionRow } from '@/app/components/shared/ActionRow'
+import { ActionRow } from '@/app/components/shared/ActionRow'
 import Card from '@/app/components/ui/Card'
 import { Typography } from '@/app/components/design-system/Typography'
 
@@ -72,7 +72,7 @@ export default function ActivityCard({ tripId, activity, onDelete }: ActivityCar
           triggerLabel="Write Story"
           triggerClassName={buttonClass({ size: 'sm', className: 'h-8 rounded-full border-slate-200 bg-white text-xs text-slate-700 hover:bg-sky-50/70' })}
         />
-        {/* Up, Down, and Remove buttons hidden per requirements. Only Write Story and Edit remain. */}
+        {/* Only Write Story and Edit remain. Remove button hidden for itinerary page. */}
         <Link
           href={`/trips/${tripId}/itinerary/${activity.day_id}/activities/${activity.id}/edit`}
           className={buttonClass({ size: 'sm', variant: 'ghost', className: 'h-8 rounded-full text-xs text-slate-700 hover:bg-sky-50/70' })}
@@ -91,6 +91,7 @@ export default function ActivityCard({ tripId, activity, onDelete }: ActivityCar
         >
           Edit
         </Link>
+        <ActionRow isActing={false} onDelete={() => {}} hideRemove={true} />
       </div>
     </Card>
   )
