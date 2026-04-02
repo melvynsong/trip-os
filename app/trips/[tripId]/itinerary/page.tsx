@@ -35,42 +35,6 @@ type Activity = Pick<
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
-    // Place debug block here, after all variables are assigned and after try/catch
-
-    // Main page render
-    try {
-      // ...existing try logic...
-
-      // DEBUG: Print out all loaded data before rendering (inside try, after variables assigned)
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('[ItineraryPage][DEBUG] trip:', trip);
-        console.log('[ItineraryPage][DEBUG] days:', days);
-        console.log('[ItineraryPage][DEBUG] activities:', activities);
-      }
-
-      // TEMPORARY: Render debug info in UI for troubleshooting
-      if (!trip || !days || !Array.isArray(days) || days.length === 0) {
-        return (
-          <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
-            <h2>Debug: No trip or days loaded</h2>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
-          </div>
-        );
-      }
-      }
-      if (!activities || !Array.isArray(activities)) {
-        return (
-          <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
-            <h2>Debug: No activities loaded</h2>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
-          </div>
-        );
-      }
-
-      // ...main return render here...
-    } catch (err) {
-      // ...existing catch logic...
-    }
   let errorDetails: any = null;
   let tripId: string | undefined = undefined;
   let user: any = null;
@@ -228,77 +192,88 @@ export default async function ItineraryPage({ params }: Props) {
         });
         englishDestination = getEnglishDestinationName(trip!.destination);
 
-        // DEBUG: Print out all loaded data before rendering (after all assignments)
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('[ItineraryPage][DEBUG] trip:', trip);
-          console.log('[ItineraryPage][DEBUG] days:', days);
-          console.log('[ItineraryPage][DEBUG] activities:', activities);
-        }
+    // DEBUG: Print out all loaded data before rendering (after all assignments)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[ItineraryPage][DEBUG] trip:', trip);
+      console.log('[ItineraryPage][DEBUG] days:', days);
+      console.log('[ItineraryPage][DEBUG] activities:', activities);
+    }
 
-        // TEMPORARY: Render debug info in UI for troubleshooting
-        if (!trip || !days || !Array.isArray(days) || days.length === 0) {
-          return (
-            <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
-              <h2>Debug: No trip or days loaded</h2>
-              <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
-            </div>
-          );
-        }
-        if (!activities || !Array.isArray(activities)) {
-          return (
-            <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
-              <h2>Debug: No activities loaded</h2>
-              <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
-            </div>
-          );
-        }
+    // TEMPORARY: Render debug info in UI for troubleshooting
+    if (!trip || !days || !Array.isArray(days) || days.length === 0) {
+      return (
+        <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+          <h2>Debug: No trip or days loaded</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
+        </div>
+      );
+    }
+    if (!activities || !Array.isArray(activities)) {
+      return (
+        <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+          <h2>Debug: No activities loaded</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
+        </div>
+      );
+    }
 
-        // Main page render
-        return (
-          <TripPageShell
-            trip={trip!}
-            user={user}
-            tripId={tripId!}
-            days={days!}
-            activities={activities}
-            weatherByDate={weatherByDate}
-            shareDays={shareDays}
-            shortTripShareText={shortTripShareText}
-            detailedTripShareText={detailedTripShareText}
-            englishDestination={englishDestination}
-          >
-            <WhatsAppShareSheet
-              tripId={tripId!}
-              tripTitle={trip!.title}
-              shortTripShareText={shortTripShareText}
-              detailedTripShareText={detailedTripShareText}
-              triggerLabel="Share itinerary"
-              triggerClassName={buttonClass({
-                size: 'sm',
-                variant: 'secondary',
-                className: 'rounded-full',
-              })}
-            />
-            {/* Weather summary removed: now shown per day card */}
-            <div className="space-y-6">
-              {days!.map((day: any) => {
-                const dayActivities = activities.filter((activity) => activity.day_id === day.id);
-                // Normalize date to YYYY-MM-DD (avoid timezone bugs)
-                const dateKey = String(day.date).slice(0, 10);
-                const weather = weatherByDate[dateKey] || null;
-                return (
-                  <DayCard
-                    key={day.id}
-                    tripId={tripId!}
-                    tripTitle={trip!.title}
-                    destination={englishDestination}
-                    hotel={hotel}
-                    day={day}
-                    activities={dayActivities}
-                    weather={weather}
-                  />
-                );
-              })}
-            </div>
-          </TripPageShell>
-        );
+    // Main page render
+    return (
+      <TripPageShell
+        trip={trip!}
+        user={user}
+        tripId={tripId!}
+        days={days!}
+        activities={activities}
+        weatherByDate={weatherByDate}
+        shareDays={shareDays}
+        shortTripShareText={shortTripShareText}
+        detailedTripShareText={detailedTripShareText}
+        englishDestination={englishDestination}
+      >
+        <WhatsAppShareSheet
+          tripId={tripId!}
+          tripTitle={trip!.title}
+          shortTripShareText={shortTripShareText}
+          detailedTripShareText={detailedTripShareText}
+          triggerLabel="Share itinerary"
+          triggerClassName={buttonClass({
+            size: 'sm',
+            variant: 'secondary',
+            className: 'rounded-full',
+          })}
+        />
+        {/* Weather summary removed: now shown per day card */}
+        <div className="space-y-6">
+          {days!.map((day: any) => {
+            const dayActivities = activities.filter((activity) => activity.day_id === day.id);
+            // Normalize date to YYYY-MM-DD (avoid timezone bugs)
+            const dateKey = String(day.date).slice(0, 10);
+            const weather = weatherByDate[dateKey] || null;
+            return (
+              <DayCard
+                key={day.id}
+                tripId={tripId!}
+                tripTitle={trip!.title}
+                destination={englishDestination}
+                hotel={hotel}
+                day={day}
+                activities={dayActivities}
+                weather={weather}
+              />
+            );
+          })}
+        </div>
+      </TripPageShell>
+    );
+  } catch (err) {
+    // ...existing catch logic...
+    // Optionally, render a fallback error UI here
+    return (
+      <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+        <h2>Server Error</h2>
+        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify(errorDetails || err, null, 2)}</pre>
+      </div>
+    );
+  }
+}
