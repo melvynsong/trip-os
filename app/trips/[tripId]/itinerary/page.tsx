@@ -175,15 +175,15 @@ export default async function ItineraryPage({ params }: Props) {
     );
   }
   // Main page render
-  return (
-    <TripPageShell className="space-y-8">
-      <TripHeader
-        dateRange={`${trip.start_date} → ${trip.end_date}`}
-        title={trip.title}
-        subtitle={englishDestination}
-        backHref={`/trips/${tripId}`}
-        backLabel="Back to Trip"
-        actions={
+    return (
+      <TripPageShell className="space-y-8">
+        <TripHeader
+          dateRange={`${trip!.start_date} → ${trip!.end_date}`}
+          title={trip!.title}
+          subtitle={englishDestination}
+          backHref={`/trips/${tripId}`}
+          backLabel="Back to Trip"
+          actions={
           <>
             <Link
               href={`/trips/${tripId}/today`}
