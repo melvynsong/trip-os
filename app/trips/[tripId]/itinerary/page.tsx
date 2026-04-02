@@ -216,7 +216,7 @@ export default async function ItineraryPage({ params }: Props) {
               🧳 Packing List
             </Link>
             <WhatsAppShareSheet
-              title={`Share ${trip.title} itinerary`}
+              title={`Share ${trip!.title} itinerary`}
               shortText={shortTripShareText}
               detailedText={detailedTripShareText}
               triggerLabel="Share itinerary"
@@ -231,7 +231,7 @@ export default async function ItineraryPage({ params }: Props) {
       />
       {/* Weather summary removed: now shown per day card */}
       <div className="space-y-6">
-        {days.map((day: any) => {
+        {days!.map((day: any) => {
           const dayActivities = activities.filter((activity) => activity.day_id === day.id);
           // Normalize date to YYYY-MM-DD (avoid timezone bugs)
           const dateKey = String(day.date).slice(0, 10);
@@ -240,7 +240,7 @@ export default async function ItineraryPage({ params }: Props) {
             <DayCard
               key={day.id}
               tripId={tripId!}
-              tripTitle={trip.title}
+              tripTitle={trip!.title}
               destination={englishDestination}
               hotel={hotel}
               day={day}
