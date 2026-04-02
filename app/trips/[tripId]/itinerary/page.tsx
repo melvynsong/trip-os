@@ -35,7 +35,7 @@ type Activity = Pick<
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
-    // DEBUG: Print out all loaded data before rendering
+    // Place debug block here, after all variables are assigned
     if (process.env.NODE_ENV !== 'production') {
       console.log('[ItineraryPage][DEBUG] trip:', trip);
       console.log('[ItineraryPage][DEBUG] days:', days);
