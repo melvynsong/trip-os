@@ -88,7 +88,7 @@ export default async function ItineraryPage({ params }: Props) {
       if (!days || days.length === 0) throw new Error('No itinerary days found for this trip.');
     });
     await step('fetch activities', async () => {
-      const dayIds = days.map((day: any) => day.id);
+      const dayIds = days!.map((day: any) => day.id);
       const activitiesResult = await supabase
         .from('activities')
         .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
