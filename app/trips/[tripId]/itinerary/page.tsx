@@ -126,7 +126,7 @@ export default async function ItineraryPage({ params }: Props) {
       }
     });
     await step('share text', async () => {
-      shareDays = days.map((day: any) => {
+      shareDays = days!.map((day: any) => {
         const dayActivities = activities.filter((activity) => activity.day_id === day.id);
         return {
           dayNumber: day.day_number,
