@@ -57,6 +57,7 @@ export default async function ItineraryPage({ params }: Props) {
           </div>
         );
       }
+      }
       if (!activities || !Array.isArray(activities)) {
         return (
           <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
