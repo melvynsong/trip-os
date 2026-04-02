@@ -254,37 +254,52 @@ export default async function ItineraryPage({ params }: Props) {
 
         // Main page render
         return (
-              triggerLabel="Share itinerary"
-              triggerClassName={buttonClass({
-                size: 'sm',
-                variant: 'secondary',
-                className: 'rounded-full',
-              })}
-            />
-          </>
-        }
-      />
-      {/* Weather summary removed: now shown per day card */}
-      <div className="space-y-6">
-        {days!.map((day: any) => {
-          const dayActivities = activities.filter((activity) => activity.day_id === day.id);
-          // Normalize date to YYYY-MM-DD (avoid timezone bugs)
-          const dateKey = String(day.date).slice(0, 10);
-          const weather = weatherByDate[dateKey] || null;
-          return (
-            <DayCard
-              key={day.id}
-              tripId={tripId!}
-              tripTitle={trip!.title}
-              destination={englishDestination}
-              hotel={hotel}
-              day={day}
-              activities={dayActivities}
-              weather={weather}
-            />
-          );
-        })}
-      </div>
-    </TripPageShell>
-  );
-}
+      return (
+        <TripPageShell
+          trip={trip!}
+          user={user}
+          tripId={tripId!}
+          days={days!}
+          activities={activities}
+          weatherByDate={weatherByDate}
+          shareDays={shareDays}
+          shortTripShareText={shortTripShareText}
+          detailedTripShareText={detailedTripShareText}
+          englishDestination={englishDestination}
+        >
+          <WhatsAppShareSheet
+            tripId={tripId!}
+            tripTitle={trip!.title}
+            shortTripShareText={shortTripShareText}
+            detailedTripShareText={detailedTripShareText}
+            triggerLabel="Share itinerary"
+            triggerClassName={buttonClass({
+              size: 'sm',
+              variant: 'secondary',
+              className: 'rounded-full',
+            })}
+          />
+          {/* Weather summary removed: now shown per day card */}
+          <div className="space-y-6">
+            {days!.map((day: any) => {
+              const dayActivities = activities.filter((activity) => activity.day_id === day.id);
+              // Normalize date to YYYY-MM-DD (avoid timezone bugs)
+              const dateKey = String(day.date).slice(0, 10);
+              const weather = weatherByDate[dateKey] || null;
+              return (
+                <DayCard
+                  key={day.id}
+                  tripId={tripId!}
+                  tripTitle={trip!.title}
+                  destination={englishDestination}
+                  hotel={hotel}
+                  day={day}
+                  activities={dayActivities}
+                  weather={weather}
+                />
+              );
+            })}
+          </div>
+        </TripPageShell>
+      );
+    }
