@@ -123,17 +123,7 @@ const FlightJourneyCard: React.FC<FlightJourneyCardProps> = ({ activity, onDelet
         </div>
       )}
       {/* Actions: Only Delete for flights */}
-      {canDeleteActivity(activity) && onDelete && (
-        <div className={styles.actionsRow}>
-          <button
-            className={styles.deleteButton}
-            onClick={() => onDelete(activity.id)}
-            aria-label="Delete Flight Activity"
-          >
-            Delete
-          </button>
-        </div>
-      )}
+      {/* Delete button deleted as per requirements */}
     </Card>
   );
 };
