@@ -4,7 +4,6 @@ import './globals.css'
 import Navigation from '@/app/components/Navigation'
 import AppFooter from '@/app/components/ui/AppFooter'
 import ToastProvider from '@/app/components/ui/ToastProvider'
-import ErrorBoundary from '@/app/components/ErrorBoundary'
 import { branding as BRAND } from '@/lib/branding'
 
 const inter = Inter({
@@ -83,11 +82,9 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-white text-stone-900">
         <ToastProvider>
-          <ErrorBoundary>
-            <Navigation />
-            {children}
-            <AppFooter />
-          </ErrorBoundary>
+          <Navigation />
+          {children}
+          <AppFooter />
         </ToastProvider>
       </body>
     </html>
