@@ -38,28 +38,37 @@ export default async function ItineraryPage({ params }: Props) {
     // Place debug block here, after all variables are assigned and after try/catch
 
     // Main page render
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[ItineraryPage][DEBUG] trip:', trip);
-      console.log('[ItineraryPage][DEBUG] days:', days);
-      console.log('[ItineraryPage][DEBUG] activities:', activities);
-    }
+    try {
+      // ...existing try logic...
 
-    // TEMPORARY: Render debug info in UI for troubleshooting
-    if (!trip || !days || !Array.isArray(days) || days.length === 0) {
-      return (
-        <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
-          <h2>Debug: No trip or days loaded</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
-        </div>
-      );
-    }
-    if (!activities || !Array.isArray(activities)) {
-      return (
-        <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
-          <h2>Debug: No activities loaded</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
-        </div>
-      );
+      // DEBUG: Print out all loaded data before rendering (inside try, after variables assigned)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[ItineraryPage][DEBUG] trip:', trip);
+        console.log('[ItineraryPage][DEBUG] days:', days);
+        console.log('[ItineraryPage][DEBUG] activities:', activities);
+      }
+
+      // TEMPORARY: Render debug info in UI for troubleshooting
+      if (!trip || !days || !Array.isArray(days) || days.length === 0) {
+        return (
+          <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+            <h2>Debug: No trip or days loaded</h2>
+            <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
+          </div>
+        );
+      }
+      if (!activities || !Array.isArray(activities)) {
+        return (
+          <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+            <h2>Debug: No activities loaded</h2>
+            <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
+          </div>
+        );
+      }
+
+      // ...main return render here...
+    } catch (err) {
+      // ...existing catch logic...
     }
   let errorDetails: any = null;
   let tripId: string | undefined = undefined;
