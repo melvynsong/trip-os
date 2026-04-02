@@ -144,10 +144,10 @@ export default async function ItineraryPage({ params }: Props) {
         };
       });
       const tripShareInput = {
-        tripTitle: trip.title,
-        startDate: trip.start_date,
-        endDate: trip.end_date,
-        destinations: [trip.destination],
+        tripTitle: trip!.title,
+        startDate: trip!.start_date,
+        endDate: trip!.end_date,
+        destinations: [trip!.destination],
         hotel,
         days: shareDays,
       };
