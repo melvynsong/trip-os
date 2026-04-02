@@ -35,6 +35,30 @@ type Activity = Pick<
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
+    // DEBUG: Print out all loaded data before rendering
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[ItineraryPage][DEBUG] trip:', trip);
+      console.log('[ItineraryPage][DEBUG] days:', days);
+      console.log('[ItineraryPage][DEBUG] activities:', activities);
+    }
+
+    // TEMPORARY: Render debug info in UI for troubleshooting
+    if (!trip || !days || !Array.isArray(days) || days.length === 0) {
+      return (
+        <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+          <h2>Debug: No trip or days loaded</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
+        </div>
+      );
+    }
+    if (!activities || !Array.isArray(activities)) {
+      return (
+        <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
+          <h2>Debug: No activities loaded</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>{JSON.stringify({ trip, days, activities }, null, 2)}</pre>
+        </div>
+      );
+    }
   let errorDetails: any = null;
   let tripId: string | undefined = undefined;
   let user: any = null;
