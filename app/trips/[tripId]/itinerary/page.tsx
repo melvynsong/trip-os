@@ -35,314 +35,221 @@ type Activity = Pick<
 type Place = Pick<PlaceType, 'id' | 'name' | 'category' | 'place_type'>
 
 export default async function ItineraryPage({ params }: Props) {
+  let errorDetails: any = null;
+  let tripId: string | undefined = undefined;
+  let user = null;
+  let trip = null;
+  let days = null;
+  let activities: Activity[] = [];
+  let places = null;
+  let hotel = null;
+  let weatherByDate: Record<string, any> = {};
+  let shareDays = [];
+  let shortTripShareText = '';
+  let detailedTripShareText = '';
+  let englishDestination = '';
+  const step = (label: string, fn: () => Promise<void>) => fn().catch(err => {
+    errorDetails = { step: label, error: err instanceof Error ? err.message : err, stack: err instanceof Error ? err.stack : undefined };
+    throw err;
+  });
   try {
-    // Support both direct object and Promise for params
-    let tripId: string | undefined
-    if (typeof params === 'object' && 'then' in params && typeof params.then === 'function') {
-      // It's a Promise
-      const resolved = await params
-      tripId = resolved?.tripId
-    } else {
-      tripId = (params as { tripId?: string })?.tripId
-    }
-    const supabase = await createClient()
-
-    async function moveActivity(formData: FormData) {
-      'use server'
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        redirect('/')
+    await step('resolve tripId', async () => {
+      if (typeof params === 'object' && 'then' in params && typeof params.then === 'function') {
+        const resolved = await params;
+        tripId = resolved?.tripId;
+      } else {
+        tripId = (params as { tripId?: string })?.tripId;
       }
-      const dayId = String(formData.get('day_id') || '').trim()
-      const activityId = String(formData.get('activity_id') || '').trim()
-      const direction = String(formData.get('direction') || '').trim()
-      if (!dayId || !activityId || (direction !== 'up' && direction !== 'down')) {
-        return
-      }
-      const { data: day } = await supabase
+    });
+    const supabase = await createClient();
+    await step('fetch user', async () => {
+      const userResult = await supabase.auth.getUser();
+      user = userResult.data.user;
+      if (!user) redirect('/');
+    });
+    await step('fetch trip', async () => {
+      const tripResult = await supabase
+        .from('trips')
+        .select('id, title, destination, start_date, end_date, latitude, longitude')
+        .eq('id', tripId)
+        .single<Trip>();
+      trip = tripResult.data;
+      if (tripResult.error || !trip) throw new Error(tripResult.error?.message || 'Trip not found');
+    });
+    await step('fetch days', async () => {
+      const daysResult = await supabase
         .from('days')
-        .select('id')
-        .eq('id', dayId)
+        .select('id, trip_id, day_number, date, title')
         .eq('trip_id', tripId)
-        .single()
-      if (!day) {
-        return
-      }
-      const { data: dayActivities, error: dayActivitiesError } = await supabase
+        .order('day_number', { ascending: true })
+        .returns<Day[]>();
+      days = daysResult.data;
+      if (daysResult.error) throw new Error(daysResult.error.message);
+      if (!days || days.length === 0) throw new Error('No itinerary days found for this trip.');
+    });
+    await step('fetch activities', async () => {
+      const dayIds = days.map((day: any) => day.id);
+      const activitiesResult = await supabase
         .from('activities')
-        .select('id, sort_order')
-        .eq('day_id', dayId)
+        .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
+        .in('day_id', dayIds)
+        .order('day_id', { ascending: true })
         .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
         .order('id', { ascending: true })
-      if (dayActivitiesError || !dayActivities || dayActivities.length < 2) {
-        return
+        .returns<Activity[]>();
+      if (activitiesResult.error) throw new Error(activitiesResult.error.message);
+      activities = activitiesResult.data || [];
+    });
+    await step('fetch places', async () => {
+      const placesResult = await supabase
+        .from('places')
+        .select('id, name, category, place_type')
+        .eq('trip_id', tripId)
+        .returns<Place[]>();
+      places = placesResult.data;
+      hotel = places?.find((place: any) => resolvePlaceType(place) === 'hotel')?.name ?? null;
+    });
+    await step('fetch weather', async () => {
+      if (trip && days && days.length > 0) {
+        try {
+          weatherByDate = await fetchTripWeather(
+            trip.destination,
+            trip.start_date,
+            trip.end_date,
+            trip.latitude,
+            trip.longitude
+          );
+        } catch (err) {
+          errorDetails = { step: 'fetch weather', error: err instanceof Error ? err.message : err, stack: err instanceof Error ? err.stack : undefined };
+        }
       }
-      const normalized = dayActivities.map((activity, index) => ({
-        id: activity.id,
-        sort_order: index + 1,
-      }))
-      const currentIndex = normalized.findIndex((activity) => activity.id === activityId)
-      if (currentIndex === -1) {
-        return
-      }
-      const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-      if (targetIndex < 0 || targetIndex >= normalized.length) {
-        return
-      }
-      const reordered = [...normalized]
-      ;[reordered[currentIndex], reordered[targetIndex]] = [
-        reordered[targetIndex],
-        reordered[currentIndex],
-      ]
-      await Promise.all(
-        reordered.map((activity, index) =>
-          supabase
-            .from('activities')
-            .update({ sort_order: index + 1 })
-            .eq('id', activity.id)
-            .eq('day_id', dayId)
-        )
-      )
-      revalidatePath(`/trips/${tripId}/itinerary`)
-    }
-
-    // Fetch user
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      redirect('/')
-    }
-
-    // Fetch trip
-    const { data: trip, error: tripError } = await supabase
-      .from('trips')
-      .select('id, title, destination, start_date, end_date, latitude, longitude')
-      .eq('id', tripId)
-      .single<Trip>()
-    if (tripError || !trip) {
-      return (
-        <TripPageShell>
-          <div className="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs text-left">
-            <strong>Debug Info:</strong>
-            <ul className="mt-1 space-y-1">
-              <li><b>tripId:</b> {String(tripId)}</li>
-              <li><b>params:</b> {JSON.stringify(params)}</li>
-              <li><b>User:</b> {user?.id || 'none (not logged in)'}</li>
-            </ul>
-          </div>
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-            Trip not found or you do not have access.
-          </div>
-        </TripPageShell>
-      )
-    }
-
-    // Fetch days
-    const { data: days, error: daysError } = await supabase
-      .from('days')
-      .select('id, trip_id, day_number, date, title')
-      .eq('trip_id', tripId)
-      .order('day_number', { ascending: true })
-      .returns<Day[]>()
-    if (daysError) {
-      return (
-        <TripPageShell>
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-            Failed to load itinerary days: {daysError.message}
-          </div>
-        </TripPageShell>
-      )
-    }
-
-    // --- Fetch weather for the trip date range (non-blocking) ---
-    let weatherByDate: Record<string, any> = {}
-    if (trip && days && days.length > 0) {
-      try {
-        weatherByDate = await fetchTripWeather(
-          trip.destination,
-          trip.start_date,
-          trip.end_date,
-          trip.latitude,
-          trip.longitude
-        )
-      } catch (err) {
-        // Already logged in helper, but log here for clarity
-        console.error('[Itinerary] Weather fetch failed:', err)
-      }
-    }
-
-    if (!days || days.length === 0) {
-      return (
-        <TripPageShell className="space-y-6">
-          <TripHeader
-            dateRange={`${trip.start_date} → ${trip.end_date}`}
-            title={trip.title}
-            subtitle={trip.destination}
-            backHref={`/trips/${tripId}`}
-            backLabel="Back to Trip"
-          />
-          <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50/70 p-6 text-slate-500">
-            No itinerary days found for this trip.
-          </div>
-        </TripPageShell>
-      )
-    }
-
-    const dayIds = days.map((day) => day.id)
-
-    let activities: Activity[] = []
-    const { data: activitiesData, error: activitiesError } = await supabase
-      .from('activities')
-      .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
-      .in('day_id', dayIds)
-      .order('day_id', { ascending: true })
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
-      .order('id', { ascending: true })
-      .returns<Activity[]>()
-    if (activitiesError) {
-      return (
-        <TripPageShell className="max-w-5xl">
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-            Failed to load activities: {activitiesError.message}
-          </div>
-        </TripPageShell>
-      )
-    }
-    activities = activitiesData || []
-
-    const { data: places } = await supabase
-      .from('places')
-      .select('id, name, category, place_type')
-      .eq('trip_id', tripId)
-      .returns<Place[]>()
-    const hotel =
-      places?.find((place) => resolvePlaceType(place) === 'hotel')?.name ?? null
-
-    // WhatsApp share text
-    const shareDays = days.map((day) => {
-      const dayActivities = activities.filter((activity) => activity.day_id === day.id)
-      return {
-        dayNumber: day.day_number,
-        date: day.date,
-        city: trip.destination,
-        title: day.title,
+    });
+    await step('share text', async () => {
+      shareDays = days.map((day: any) => {
+        const dayActivities = activities.filter((activity) => activity.day_id === day.id);
+        return {
+          dayNumber: day.day_number,
+          date: day.date,
+          city: trip.destination,
+          title: day.title,
+          hotel,
+          activities: dayActivities.map((activity) => ({
+            title: activity.title,
+            activity_time: activity.activity_time,
+            type: activity.type,
+            notes: activity.notes,
+            placeName: activity.places?.name ?? null,
+          })),
+        };
+      });
+      const tripShareInput = {
+        tripTitle: trip.title,
+        startDate: trip.start_date,
+        endDate: trip.end_date,
+        destinations: [trip.destination],
         hotel,
-        activities: dayActivities.map((activity) => ({
-          title: activity.title,
-          activity_time: activity.activity_time,
-          type: activity.type,
-          notes: activity.notes,
-          placeName: activity.places?.name ?? null,
-        })),
-      }
-    })
-    const tripShareInput = {
-      tripTitle: trip.title,
-      startDate: trip.start_date,
-      endDate: trip.end_date,
-      destinations: [trip.destination],
-      hotel,
-      days: shareDays,
-    }
-    const shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' })
-    const detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' })
-
-    // Main page render
-    const englishDestination = getEnglishDestinationName(trip.destination)
-    return (
-      <TripPageShell className="space-y-8">
-        <TripHeader
-          dateRange={`${trip.start_date} → ${trip.end_date}`}
-          title={trip.title}
-          subtitle={englishDestination}
-          backHref={`/trips/${tripId}`}
-          backLabel="Back to Trip"
-          actions={
-            <>
-              <Link
-                href={`/trips/${tripId}/today`}
-                className={buttonClass({
-                  size: 'sm',
-                  variant: 'primary',
-                  className: 'rounded-full',
-                })}
-              >
-                📍 Today
-              </Link>
-              <Link
-                href={`/trips/${tripId}/ai-itinerary`}
-                className={buttonClass({
-                  size: 'sm',
-                  variant: 'secondary',
-                  className: 'rounded-full',
-                })}
-              >
-                AI Generate Itinerary
-              </Link>
-              <Link
-                href={`/trips/${tripId}/packing-list`}
-                className={buttonClass({
-                  size: 'sm',
-                  variant: 'secondary',
-                  className: 'rounded-full',
-                })}
-              >
-                🧳 Packing List
-              </Link>
-              <WhatsAppShareSheet
-                title={`Share ${trip.title} itinerary`}
-                shortText={shortTripShareText}
-                detailedText={detailedTripShareText}
-                triggerLabel="Share itinerary"
-                triggerClassName={buttonClass({
-                  size: 'sm',
-                  variant: 'secondary',
-                  className: 'rounded-full',
-                })}
-              />
-            </>
-          }
-        />
-        {/* Weather summary removed: now shown per day card */}
-        <div className="space-y-6">
-          {days.map((day) => {
-            const dayActivities = activities.filter((activity) => activity.day_id === day.id)
-            // Normalize date to YYYY-MM-DD (avoid timezone bugs)
-            const dateKey = String(day.date).slice(0, 10)
-            const weather = weatherByDate[dateKey] || null
-            return (
-              <DayCard
-                key={day.id}
-                tripId={tripId!}
-                tripTitle={trip.title}
-                destination={englishDestination}
-                hotel={hotel}
-                day={day}
-                activities={dayActivities}
-                weather={weather}
-              />
-            )
-          })}
-        </div>
-      </TripPageShell>
-    )
+        days: shareDays,
+      };
+      shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' });
+      detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' });
+    });
+    englishDestination = getEnglishDestinationName(trip.destination);
   } catch (err) {
-    // Robust error logging for server errors
-    console.error('[ItineraryPage][SERVER][FATAL]', {
-      error: err instanceof Error ? err.message : err,
-      stack: err instanceof Error ? err.stack : undefined,
+    // Ultra-granular error logging for server errors
+    console.error('[ItineraryPage][SERVER][FATAL-GRANULAR]', {
+      ...errorDetails,
       params,
       timestamp: new Date().toISOString(),
-    })
+    });
     return (
       <TripPageShell>
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-          <b>Server Error:</b> {err instanceof Error ? err.message : String(err)}
+          <b>Server Error:</b> {errorDetails?.error || (err instanceof Error ? err.message : String(err))}
           <br />
-          <span className="text-xs">Check server logs for [ItineraryPage][SERVER][FATAL] for full details.</span>
+          <b>Step:</b> {errorDetails?.step || 'unknown'}
+          <br />
+          <span className="text-xs">Stack: {errorDetails?.stack?.slice(0, 500) || 'n/a'}</span>
         </div>
       </TripPageShell>
-    )
+    );
   }
+  // Main page render
+  return (
+    <TripPageShell className="space-y-8">
+      <TripHeader
+        dateRange={`${trip.start_date} → ${trip.end_date}`}
+        title={trip.title}
+        subtitle={englishDestination}
+        backHref={`/trips/${tripId}`}
+        backLabel="Back to Trip"
+        actions={
+          <>
+            <Link
+              href={`/trips/${tripId}/today`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'primary',
+                className: 'rounded-full',
+              })}
+            >
+              📍 Today
+            </Link>
+            <Link
+              href={`/trips/${tripId}/ai-itinerary`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'secondary',
+                className: 'rounded-full',
+              })}
+            >
+              AI Generate Itinerary
+            </Link>
+            <Link
+              href={`/trips/${tripId}/packing-list`}
+              className={buttonClass({
+                size: 'sm',
+                variant: 'secondary',
+                className: 'rounded-full',
+              })}
+            >
+              🧳 Packing List
+            </Link>
+            <WhatsAppShareSheet
+              title={`Share ${trip.title} itinerary`}
+              shortText={shortTripShareText}
+              detailedText={detailedTripShareText}
+              triggerLabel="Share itinerary"
+              triggerClassName={buttonClass({
+                size: 'sm',
+                variant: 'secondary',
+                className: 'rounded-full',
+              })}
+            />
+          </>
+        }
+      />
+      {/* Weather summary removed: now shown per day card */}
+      <div className="space-y-6">
+        {days.map((day: any) => {
+          const dayActivities = activities.filter((activity) => activity.day_id === day.id);
+          // Normalize date to YYYY-MM-DD (avoid timezone bugs)
+          const dateKey = String(day.date).slice(0, 10);
+          const weather = weatherByDate[dateKey] || null;
+          return (
+            <DayCard
+              key={day.id}
+              tripId={tripId!}
+              tripTitle={trip.title}
+              destination={englishDestination}
+              hotel={hotel}
+              day={day}
+              activities={dayActivities}
+              weather={weather}
+            />
+          );
+        })}
+      </div>
+    </TripPageShell>
+  );
 }
