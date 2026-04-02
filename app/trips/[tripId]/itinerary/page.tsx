@@ -131,7 +131,7 @@ export default async function ItineraryPage({ params }: Props) {
         return {
           dayNumber: day.day_number,
           date: day.date,
-          city: trip.destination,
+          city: trip!.destination,
           title: day.title,
           hotel,
           activities: dayActivities.map((activity) => ({
