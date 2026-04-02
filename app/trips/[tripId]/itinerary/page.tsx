@@ -154,7 +154,7 @@ export default async function ItineraryPage({ params }: Props) {
       shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' });
       detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' });
     });
-    englishDestination = getEnglishDestinationName(trip.destination);
+    englishDestination = getEnglishDestinationName(trip!.destination);
   } catch (err) {
     // Ultra-granular error logging for server errors
     console.error('[ItineraryPage][SERVER][FATAL-GRANULAR]', {
