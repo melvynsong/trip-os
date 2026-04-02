@@ -28,6 +28,7 @@ export default async function DeploymentFooter() {
   return (
     <footer className="mt-16 border-t border-[var(--border-soft)] bg-[var(--surface-muted)] py-6 text-center text-xs text-[var(--text-subtle)]">
       <BrandLine className="mb-2" />
+      <p>2026 @ Copyrights to ToGoStory</p>
       <p>{deploymentTime}</p>
       {showOwnerHistory ? (
         <p className="mt-2 flex items-center justify-center gap-4">
