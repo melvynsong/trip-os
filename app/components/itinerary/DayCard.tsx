@@ -204,8 +204,8 @@ export default function DayCard({
           ))}
         </div>
       ) : (
-        <div className="rounded-[1.25rem] border border-dashed border-slate-200 bg-slate-50/60 px-4 py-5 text-sm text-slate-500">
-          No activities yet
+        <div className="rounded-[1.25rem] border border-dashed border-slate-200 bg-slate-50/60 px-4 py-5 text-sm text-slate-500 text-center">
+          📭 No activities yet for this day. Use the button above to add your first activity!
         </div>
       )}
 
