@@ -88,109 +88,73 @@ export default async function ItineraryPage({ params }: Props) {
       if (!days || days.length === 0) throw new Error('No itinerary days found for this trip.');
     });
     await step('fetch activities', async () => {
-      try {
-        await step('resolve tripId', async () => {
-          if (typeof params === 'object' && 'then' in params && typeof params.then === 'function') {
-            const resolved = await params;
-            tripId = resolved?.tripId;
-          } else {
-            tripId = (params as { tripId?: string })?.tripId;
-          }
-        });
-        const supabase = await createClient();
-        await step('fetch user', async () => {
-          const userResult = await supabase.auth.getUser();
-          user = userResult.data.user;
-          if (!user) redirect('/');
-        });
-        await step('fetch trip', async () => {
-          const tripResult = await supabase
-            .from('trips')
-            .select('id, title, destination, start_date, end_date, latitude, longitude')
-            .eq('id', tripId)
-            .single<Trip>();
-          trip = tripResult.data;
-          if (tripResult.error || !trip) throw new Error(tripResult.error?.message || 'Trip not found');
-        });
-        await step('fetch days', async () => {
-          const daysResult = await supabase
-            .from('days')
-            .select('id, trip_id, day_number, date, title')
-            .eq('trip_id', tripId)
-            .order('day_number', { ascending: true })
-            .returns<Day[]>();
-          days = daysResult.data;
-          if (daysResult.error) throw new Error(daysResult.error.message);
-          if (!days || days.length === 0) throw new Error('No itinerary days found for this trip.');
-        });
-        await step('fetch activities', async () => {
-          const dayIds = days!.map((day: any) => day.id);
-          const activitiesResult = await supabase
-            .from('activities')
-            .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
-            .in('day_id', dayIds)
-            .order('day_id', { ascending: true })
-            .order('sort_order', { ascending: true })
-            .order('created_at', { ascending: true })
-            .order('id', { ascending: true })
-            .returns<Activity[]>();
-          if (activitiesResult.error) throw new Error(activitiesResult.error.message);
-          activities = activitiesResult.data || [];
-        });
-        await step('fetch places', async () => {
-          const placesResult = await supabase
-            .from('places')
-            .select('id, name, category, place_type')
-            .eq('trip_id', tripId)
-            .returns<Place[]>();
-          places = placesResult.data;
-          hotel = places?.find((place: any) => resolvePlaceType(place) === 'hotel')?.name ?? null;
-        });
-        await step('fetch weather', async () => {
-          if (trip && days && days.length > 0) {
-            try {
-              weatherByDate = await fetchTripWeather(
-                trip.destination,
-                trip.start_date,
-                trip.end_date,
-                trip.latitude,
-                trip.longitude
-              );
-            } catch (err) {
-              errorDetails = { step: 'fetch weather', error: err instanceof Error ? err.message : err, stack: err instanceof Error ? err.stack : undefined };
-            }
-          }
-        });
-        await step('share text', async () => {
-          shareDays = days!.map((day: any) => {
-            const dayActivities = activities.filter((activity) => activity.day_id === day.id);
-            return {
-              dayNumber: day.day_number,
-              date: day.date,
-              city: trip!.destination,
-              title: day.title,
-              hotel,
-              activities: dayActivities.map((activity) => ({
-                title: activity.title,
-                activity_time: activity.activity_time,
-                type: activity.type,
-                notes: activity.notes,
-                placeName: activity.places?.name ?? null,
-              })),
-            };
-          });
-          const tripShareInput = {
-            tripTitle: trip!.title,
-            startDate: trip!.start_date,
-            endDate: trip!.end_date,
-            destinations: [trip!.destination],
-            hotel,
-            days: shareDays,
-          };
-          shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' });
-          detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' });
-        });
-        englishDestination = getEnglishDestinationName(trip!.destination);
+      const dayIds = days!.map((day: any) => day.id);
+      const activitiesResult = await supabase
+        .from('activities')
+        .select('id, day_id, title, activity_time, type, notes, sort_order, place_id, created_at, metadata, places(id, name)')
+        .in('day_id', dayIds)
+        .order('day_id', { ascending: true })
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .returns<Activity[]>();
+      if (activitiesResult.error) throw new Error(activitiesResult.error.message);
+      activities = activitiesResult.data || [];
+    });
+    await step('fetch places', async () => {
+      const placesResult = await supabase
+        .from('places')
+        .select('id, name, category, place_type')
+        .eq('trip_id', tripId)
+        .returns<Place[]>();
+      places = placesResult.data;
+      hotel = places?.find((place: any) => resolvePlaceType(place) === 'hotel')?.name ?? null;
+    });
+    await step('fetch weather', async () => {
+      if (trip && days && days.length > 0) {
+        try {
+          weatherByDate = await fetchTripWeather(
+            trip.destination,
+            trip.start_date,
+            trip.end_date,
+            trip.latitude,
+            trip.longitude
+          );
+        } catch (err) {
+          errorDetails = { step: 'fetch weather', error: err instanceof Error ? err.message : err, stack: err instanceof Error ? err.stack : undefined };
+        }
+      }
+    });
+    await step('share text', async () => {
+      shareDays = days!.map((day: any) => {
+        const dayActivities = activities.filter((activity) => activity.day_id === day.id);
+        return {
+          dayNumber: day.day_number,
+          date: day.date,
+          city: trip!.destination,
+          title: day.title,
+          hotel,
+          activities: dayActivities.map((activity) => ({
+            title: activity.title,
+            activity_time: activity.activity_time,
+            type: activity.type,
+            notes: activity.notes,
+            placeName: activity.places?.name ?? null,
+          })),
+        };
+      });
+      const tripShareInput = {
+        tripTitle: trip!.title,
+        startDate: trip!.start_date,
+        endDate: trip!.end_date,
+        destinations: [trip!.destination],
+        hotel,
+        days: shareDays,
+      };
+      shortTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'short' });
+      detailedTripShareText = formatTripForWhatsApp(tripShareInput, { length: 'detailed' });
+    });
+    englishDestination = getEnglishDestinationName(trip!.destination);
 
     // DEBUG: Print out all loaded data before rendering (after all assignments)
     if (process.env.NODE_ENV !== 'production') {
