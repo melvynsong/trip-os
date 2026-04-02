@@ -39,7 +39,8 @@ export default async function ItineraryPage({ params }: Props) {
   let tripId: string | undefined = undefined;
   let user: any = null;
   let trip: Trip | null = null;
-  let days: Day[] | null = null;
+  // Always use Day[] (never null/undefined) to avoid TS inference issues
+  let days: Day[] = [];
   let activities: Activity[] = [];
   let places: Place[] | null = null;
   let hotel: string | null = null;
@@ -83,9 +84,10 @@ export default async function ItineraryPage({ params }: Props) {
         .eq('trip_id', tripId)
         .order('day_number', { ascending: true })
         .returns<Day[]>();
-      days = daysResult.data;
+      // Always assign as array, never null/undefined
+      days = daysResult.data ?? [];
       if (daysResult.error) throw new Error(daysResult.error.message);
-      if (!days || days.length === 0) throw new Error('No itinerary days found for this trip.');
+      if (days.length === 0) throw new Error('No itinerary days found for this trip.');
     });
     await step('fetch activities', async () => {
       const dayIds = days!.map((day: any) => day.id);
@@ -164,7 +166,8 @@ export default async function ItineraryPage({ params }: Props) {
     }
 
     // TEMPORARY: Render debug info in UI for troubleshooting
-    if (!trip || !days || !Array.isArray(days) || days.length === 0) {
+    // Only check for trip and days.length (days is always an array)
+    if (!trip || days.length === 0) {
       return (
         <div style={{ padding: 32, color: 'red', background: '#fff0f0', borderRadius: 16 }}>
           <h2>Debug: No trip or days loaded</h2>
