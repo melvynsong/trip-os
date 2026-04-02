@@ -1,3 +1,4 @@
+import React from 'react'
 // Next.js 13+ custom not-found boundary for app directory
 // This file must export a React component (default export)
 // that renders a 404 page. Do NOT use a class component or extend anything.
