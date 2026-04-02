@@ -301,3 +301,4 @@ export default async function ItineraryPage({ params }: Props) {
             </div>
           </TripPageShell>
         );
+      }
